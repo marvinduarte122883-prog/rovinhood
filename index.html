@@ -14,10 +14,10 @@
         .profile-info h2 { margin: 0; font-size: 20px; }
         .profile-info p { margin: 2px 0 0; color: #64748b; font-size: 14px; }
         
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .metric-card { background: var(--card); padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); }
         .metric-card h4 { margin: 0; font-size: 12px; text-transform: uppercase; color: #64748b; }
-        .metric-card .value { font-size: 22px; font-weight: bold; margin-top: 5px; color: var(--text); }
+        .metric-card .value { font-size: 20px; font-weight: bold; margin-top: 5px; color: var(--text); }
         
         .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
         .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
@@ -32,9 +32,10 @@
         button.edit { background: #f59e0b; }
         button.delete { background: #ef4444; }
         button.gps-btn { background: #6366f1; }
+        button.photo-btn { background: #0284c7; }
         button.export { background: var(--accent); }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
         th, td { border-bottom: 1px solid #e2e8f0; padding: 8px; text-align: left; }
         th { background: #f1f5f9; font-weight: 600; }
         
@@ -48,6 +49,8 @@
         
         .search-box { display: flex; gap: 10px; margin-bottom: 15px; }
         .search-box input { flex: 1; }
+        
+        .thumb-img { width: 35px; height: 35px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 1px solid #cbd5e1; }
 
         @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
     </style>
@@ -73,6 +76,10 @@
                 <h4>Monthly Sales (30 Days)</h4>
                 <div class="value" id="monthlySales">₱0.00</div>
             </div>
+            <div class="metric-card" style="border-color: #f59e0b;">
+                <h4>Yearly Sales (<span id="currYear">2026</span>)</h4>
+                <div class="value" id="yearlySales">₱0.00</div>
+            </div>
             <div class="metric-card" style="border-color: #8b5cf6;">
                 <h4>Total Sales (All Time)</h4>
                 <div class="value" id="totalSales">₱0.00</div>
@@ -95,6 +102,12 @@
                     <div class="form-group">
                         <label>Contact Number</label>
                         <input type="tel" id="custContact" required placeholder="09xxxxxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label>Capture Store Photo</label>
+                        <input type="file" id="storePhotoInput" accept="image/*" capture="environment" onchange="previewPhoto(event)">
+                        <input type="hidden" id="storePhotoData">
+                        <img id="photoPreview" style="display:none; width: 100%; height: 100px; object-fit: cover; margin-top: 5px; border-radius: 4px;">
                     </div>
                     <div class="form-group">
                         <label>GPS Location</label>
@@ -143,7 +156,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Date</th><th>Store / Customer</th><th>Address</th><th>Item</th><th>Qty</th><th>Total</th><th>GPS</th><th>Action</th>
+                                <th>Photo</th><th>Date</th><th>Store Name</th><th>Address</th><th>Item</th><th>Qty</th><th>Total</th><th>GPS</th><th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="salesTable"></tbody>
@@ -225,6 +238,15 @@
         </div>
     </div>
 
+    <!-- Photo View Modal -->
+    <div id="photoModal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <h3 id="photoTitle">Store Photo</h3>
+            <img id="fullPhoto" style="max-width:100%; max-height:350px; border-radius: 8px; margin-top: 10px;">
+            <button class="delete" style="margin-top:15px;" onclick="closeModal('photoModal')">Close</button>
+        </div>
+    </div>
+
     <!-- Leaflet OpenStreetMap JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -237,9 +259,9 @@
         ];
         let sales = JSON.parse(localStorage.getItem('app_sales')) || [];
         let leafletMap = null;
-        let leafletMarker = null;
 
         function init() {
+            document.getElementById('currYear').textContent = new Date().getFullYear();
             renderProfile();
             renderDropdown();
             renderSales(sales);
@@ -247,6 +269,27 @@
             renderInventory();
             calculateMonitoring();
             populateStoreHistoryDropdown();
+        }
+
+        // Photo Processing
+        function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('storePhotoData').value = e.target.result;
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function viewFullPhoto(photoSrc, storeName) {
+            document.getElementById('photoTitle').textContent = `Store Photo: ${storeName}`;
+            document.getElementById('fullPhoto').src = photoSrc;
+            document.getElementById('photoModal').style.display = 'flex';
         }
 
         // GPS Function
@@ -272,7 +315,7 @@
                 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19, attribution: '© OpenStreetMap'
                 }).addTo(leafletMap);
-                leafletMarker = L.marker([lat, lng]).addTo(leafletMap).bindPopup(storeName).openPopup();
+                L.marker([lat, lng]).addTo(leafletMap).bindPopup(storeName).openPopup();
             }, 200);
         }
 
@@ -303,21 +346,24 @@
         // Monitoring Dashboard Calculations
         function calculateMonitoring() {
             const now = new Date();
+            const currentYear = now.getFullYear();
             const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
             const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
 
-            let total = 0, weekly = 0, monthly = 0;
+            let total = 0, weekly = 0, monthly = 0, yearly = 0;
             sales.forEach(s => {
                 const saleAmount = parseFloat(s.total) || 0;
                 const saleDate = new Date(s.timestamp || s.date);
                 total += saleAmount;
                 if (saleDate >= sevenDaysAgo) weekly += saleAmount;
                 if (saleDate >= thirtyDaysAgo) monthly += saleAmount;
+                if (saleDate.getFullYear() === currentYear) yearly += saleAmount;
             });
 
             document.getElementById('totalSales').textContent = `₱${total.toFixed(2)}`;
             document.getElementById('weeklySales').textContent = `₱${weekly.toFixed(2)}`;
             document.getElementById('monthlySales').textContent = `₱${monthly.toFixed(2)}`;
+            document.getElementById('yearlySales').textContent = `₱${yearly.toFixed(2)}`;
         }
 
         // Search Store Name or Address
@@ -355,13 +401,15 @@
             let html = `<h4>Order History for: ${selectedStore}</h4>
             <table>
                 <thead>
-                    <tr><th>Date</th><th>Item</th><th>Qty</th><th>Total</th><th>GPS</th></tr>
+                    <tr><th>Photo</th><th>Date</th><th>Item</th><th>Qty</th><th>Total</th><th>GPS</th></tr>
                 </thead><tbody>`;
 
             storeOrders.forEach(o => {
                 grandTotal += parseFloat(o.total) || 0;
+                const imgTd = o.photo ? `<img src="${o.photo}" class="thumb-img" onclick="viewFullPhoto('${o.photo}', '${o.name}')">` : 'N/A';
                 const gpsBtn = o.gps ? `<button class="action-btn gps-btn" onclick="showMap(${o.gps.split(',')[0]}, ${o.gps.split(',')[1]}, '${o.name}')">Map</button>` : 'N/A';
                 html += `<tr>
+                    <td>${imgTd}</td>
                     <td>${o.date}</td>
                     <td>${o.item}</td>
                     <td>${o.qty}</td>
@@ -519,6 +567,7 @@
                 name: document.getElementById('custName').value,
                 address: document.getElementById('custAddr').value,
                 contact: document.getElementById('custContact').value,
+                photo: document.getElementById('storePhotoData').value,
                 gps: document.getElementById('custGPS').value,
                 item: item.name,
                 qty: qty,
@@ -531,19 +580,23 @@
 
             init();
             this.reset();
+            document.getElementById('storePhotoData').value = '';
+            document.getElementById('photoPreview').style.display = 'none';
             document.getElementById('custGPS').value = '';
         });
 
         function renderSales(dataList) {
             const tbody = document.getElementById('salesTable');
             if (dataList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#64748b;">No matching sales found.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#64748b;">No matching sales found.</td></tr>`;
                 return;
             }
             tbody.innerHTML = dataList.map(s => {
+                const imgTd = s.photo ? `<img src="${s.photo}" class="thumb-img" onclick="viewFullPhoto('${s.photo}', '${s.name}')">` : 'N/A';
                 const gpsBtn = s.gps ? `<button class="action-btn gps-btn" onclick="showMap(${s.gps.split(',')[0]}, ${s.gps.split(',')[1]}, '${s.name}')">Map</button>` : 'N/A';
                 return `
                 <tr>
+                    <td>${imgTd}</td>
                     <td>${s.date}</td>
                     <td>${s.name}</td>
                     <td>${s.address}</td>
