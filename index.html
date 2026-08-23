@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales & Inventory Manager Pro</title>
@@ -8,25 +10,16 @@
         :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --accent: #10b981; }
         body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         .container { max-width: 1100px; margin: 0 auto; }
-        
         .header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .header-left { display: flex; align-items: center; gap: 15px; }
-        .menu-toggle-btn { background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px; width: auto; }
-        
         .profile-info h2 { margin: 0; font-size: 20px; }
         .profile-info p { margin: 2px 0 0; color: #64748b; font-size: 14px; }
         
-        /* Collapsible Sidebar Menu */
-        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 2000; }
-        .sidebar { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: #1e293b; color: white; transition: left 0.3s ease; z-index: 2001; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
-        .sidebar.active { left: 0; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
-        .sidebar-header h3 { margin: 0; color: #f8fafc; }
-        .close-menu-btn { background: transparent; border: none; color: #94a3b8; font-size: 22px; cursor: pointer; width: auto; margin: 0; }
-        .menu-items { display: flex; flex-direction: column; gap: 8px; }
-        .menu-item-btn { background: transparent; color: #cbd5e1; border: none; text-align: left; padding: 12px 15px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; width: 100%; margin: 0; }
-        .menu-item-btn:hover, .menu-item-btn.active { background: var(--primary); color: white; }
-
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .metric-card { background: var(--card); padding: 12px 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); display: flex; flex-direction: column; justify-content: space-between; }
+        .metric-card h4 { margin: 0; font-size: 11px; text-transform: uppercase; color: #64748b; }
+        .metric-card select { margin-top: 6px; padding: 4px; font-size: 12px; border-radius: 4px; border: 1px solid #cbd5e1; background: #f1f5f9; cursor: pointer; }
+        .metric-card .value { font-size: 18px; font-weight: bold; margin-top: 8px; color: var(--text); }
+        
         .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
         .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
         
@@ -47,6 +40,10 @@
         th, td { border-bottom: 1px solid #e2e8f0; padding: 8px; text-align: left; }
         th { background: #f1f5f9; font-weight: 600; }
         
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+        .tab-btn { background: #e2e8f0; color: var(--text); border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; white-space: nowrap; font-weight: 600; }
+        .tab-btn.active { background: var(--primary); color: white; }
+        
         .filter-panel { background: #f1f5f9; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .filter-grid { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: end; }
 
@@ -60,38 +57,81 @@
             .grid { grid-template-columns: 1fr; } 
             .filter-grid { grid-template-columns: 1fr; }
         }
-    </style></head><body>
-    <!-- Sidebar Menu Drawer -->
-    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleMenu()"></div>
-    <div id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h3>Navigation</h3>
-            <button class="close-menu-btn" onclick="toggleMenu()">&times;</button>
-        </div>
-        <div class="menu-items">
-            <button class="menu-item-btn active" onclick="switchView('salesTab', this)">📋 Sales Log</button>
-            <button class="menu-item-btn" onclick="switchView('dailySalesTab', this)">📅 Daily Sales Breakdown</button>
-            <button class="menu-item-btn" onclick="switchView('storeHistoryTab', this)">🏬 Store Order History</button>
-            <button class="menu-item-btn" onclick="switchView('customersTab', this)">👥 Customer Totals</button>
-            <button class="menu-item-btn" onclick="switchView('weeklySalesTab', this)">📅 Weekly Sales Breakdown</button>
-            <button class="menu-item-btn" onclick="switchView('monthlySalesTab', this)">🗓️ Monthly Sales Breakdown</button>
-            <button class="menu-item-btn" onclick="switchView('yearlySalesTab', this)">📊 Yearly Sales Breakdown</button>
-            <button class="menu-item-btn" onclick="switchView('inventoryTab', this)">📦 Inventory Items</button>
-            <button class="menu-item-btn" onclick="switchView('itemManageTab', this)">⚙️ Item Management</button>
-        </div>
-    </div>
-
+    </style>
+</head>
+<body>
     <div class="container">
-        <!-- Header with Menu Toggle Button -->
+        <!-- Profile Header -->
         <div class="header">
-            <div class="header-left">
-                <button class="menu-toggle-btn" onclick="toggleMenu()">☰ Menu</button>
-                <div class="profile-info">
-                    <h2 id="dispShopName">My Shop</h2>
-                    <p id="dispOwner">Owner: Business Owner | Contact: N/A</p>
-                </div>
+            <div class="profile-info">
+                <h2 id="dispShopName">My Shop</h2>
+                <p id="dispOwner">Owner: Business Owner | Contact: N/A</p>
             </div>
             <button style="width: auto;" onclick="openProfileModal()">Edit Profile</button>
+        </div>
+
+        <!-- Sales Monitoring Dashboard -->
+        <div class="metrics-grid">
+            <div class="metric-card" style="border-color: #06b6d4;">
+                <h4>Daily Sales</h4>
+                <select id="dayFilter" onchange="calculateMonitoring()">
+                    <option value="today">Today</option>
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                    <option value="0">Sunday</option>
+                </select>
+                <div class="value" id="dailySales">₱0.00</div>
+            </div>
+
+            <div class="metric-card" style="border-color: #3b82f6;">
+                <h4>Weekly Sales</h4>
+                <select id="weekFilter" onchange="calculateMonitoring()">
+                    <option value="7days">Last 7 Days</option>
+                    <option value="1">Week 1 (Days 1-7)</option>
+                    <option value="2">Week 2 (Days 8-14)</option>
+                    <option value="3">Week 3 (Days 15-21)</option>
+                    <option value="4">Week 4 (Days 22-28)</option>
+                    <option value="5">Week 5 (Days 29-31)</option>
+                </select>
+                <div class="value" id="weeklySales">₱0.00</div>
+            </div>
+
+            <div class="metric-card" style="border-color: #10b981;">
+                <h4>Monthly Sales</h4>
+                <select id="monthFilter" onchange="calculateMonitoring()">
+                    <option value="30days">Last 30 Days</option>
+                    <option value="0">January</option>
+                    <option value="1">February</option>
+                    <option value="2">March</option>
+                    <option value="3">April</option>
+                    <option value="4">May</option>
+                    <option value="5">June</option>
+                    <option value="6">July</option>
+                    <option value="7">August</option>
+                    <option value="8">September</option>
+                    <option value="9">October</option>
+                    <option value="10">November</option>
+                    <option value="11">December</option>
+                </select>
+                <div class="value" id="monthlySales">₱0.00</div>
+            </div>
+
+            <div class="metric-card" style="border-color: #f59e0b;">
+                <h4>Yearly Sales</h4>
+                <select id="yearFilter" onchange="calculateMonitoring()">
+                </select>
+                <div class="value" id="yearlySales">₱0.00</div>
+            </div>
+
+            <div class="metric-card" style="border-color: #8b5cf6;">
+                <h4>Total Sales</h4>
+                <span style="font-size: 11px; color: #64748b; margin-top: 6px;">All Time Combined</span>
+                <div class="value" id="totalSales">₱0.00</div>
+            </div>
         </div>
 
         <div class="grid">
@@ -145,11 +185,18 @@
                 <button class="export" onclick="exportCSV()">Export Data to CSV</button>
             </div>
 
-            <!-- Main Dynamic Display View -->
+            <!-- Main Tabbed View -->
             <div class="card">
-                <!-- 1. Sales Log View -->
-                <div id="salesTab" class="view-content">
-                    <h3 style="margin-top:0;">Sales Log</h3>
+                <div class="nav-tabs">
+                    <button class="tab-btn active" onclick="switchTab('salesTab', this)">Sales Log</button>
+                    <button class="tab-btn" onclick="switchTab('storeHistoryTab', this)">Store Order History</button>
+                    <button class="tab-btn" onclick="switchTab('customersTab', this)">Customer Totals</button>
+                    <button class="tab-btn" onclick="switchTab('inventoryTab', this)">Inventory Items</button>
+                    <button class="tab-btn" onclick="switchTab('itemManageTab', this)">Item Management</button>
+                </div>
+
+                <!-- 1. Sales Log Section -->
+                <div id="salesTab" class="tab-content">
                     <div class="filter-panel">
                         <div class="filter-grid">
                             <div>
@@ -180,23 +227,8 @@
                     </table>
                 </div>
 
-                <!-- 2. Daily Sales Breakdown View -->
-                <div id="dailySalesTab" class="view-content" style="display:none;">
-                    <h3 style="margin-top:0;">Daily Sales Records</h3>
-                    <p style="color:#64748b; font-size: 13px;">View total sales categorized per individual day.</p>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th><th>Total Orders</th><th>Daily Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dailySalesTable"></tbody>
-                    </table>
-                </div>
-
-                <!-- 3. Store Order History View -->
-                <div id="storeHistoryTab" class="view-content" style="display:none;">
-                    <h3 style="margin-top:0;">Store Order History</h3>
+                <!-- 2. Store Order History Section -->
+                <div id="storeHistoryTab" class="tab-content" style="display:none;">
                     <div class="form-group">
                         <label>Select Store Name:</label>
                         <select id="storeHistorySelect" onchange="renderStoreOrderHistory()">
@@ -208,9 +240,8 @@
                     </div>
                 </div>
 
-                <!-- 4. Customer Totals View -->
-                <div id="customersTab" class="view-content" style="display:none;">
-                    <h3 style="margin-top:0;">Customer Cumulative Sales</h3>
+                <!-- 3. Customer Totals Section -->
+                <div id="customersTab" class="tab-content" style="display:none;">
                     <table>
                         <thead>
                             <tr>
@@ -221,51 +252,9 @@
                     </table>
                 </div>
 
-                <!-- 5. Weekly Sales Breakdown View -->
-                <div id="weeklySalesTab" class="view-content" style="display:none;">
-                    <h3 style="margin-top:0;">Weekly Sales Records</h3>
-                    <p style="color:#64748b; font-size: 13px;">View total sales categorized by week of the month.</p>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Week Period</th><th>Total Orders</th><th>Weekly Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="weeklySalesTable"></tbody>
-                    </table>
-                </div>
-
-                <!-- 6. Monthly Sales Breakdown View -->
-                <div id="monthlySalesTab" class="view-content" style="display:none;">
-                    <h3 style="margin-top:0;">Monthly Sales Records</h3>
-                    <p style="color:#64748b; font-size: 13px;">View sales totals broken down by month for the current year.</p>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Month</th><th>Total Orders</th><th>Monthly Revenue</th>
-                            </tr>
-                        </thead>
-                        <tbody id="monthlySalesTable"></tbody>
-                    </table>
-                </div>
-
-                <!-- 7. Yearly Sales Breakdown View -->
-                <div id="yearlySalesTab" class="view-content" style="display:none;">
-                    <h3 style="margin-top:0;">Yearly Sales Records</h3>
-                    <p style="color:#64748b; font-size: 13px;">View complete yearly business performance history.</p>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Year</th><th>Total Transactions</th><th>Total Revenue</th>
-                            </tr>
-                        </thead>
-                        <tbody id="yearlySalesTable"></tbody>
-                    </table>
-                </div>
-
-                <!-- 8. Inventory Items View -->
-                <div id="inventoryTab" class="view-content" style="display:none;">
-                    <h3 style="margin-top:0;">Stock Inventory Overview</h3>
+                <!-- 4. Inventory Items Section -->
+                <div id="inventoryTab" class="tab-content" style="display:none;">
+                    <h3>Stock Status Overview</h3>
                     <table>
                         <thead>
                             <tr>
@@ -276,8 +265,8 @@
                     </table>
                 </div>
 
-                <!-- 9. Item Management View -->
-                <div id="itemManageTab" class="view-content" style="display:none;">
+                <!-- 5. Item Management Section -->
+                <div id="itemManageTab" class="tab-content" style="display:none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                         <h3 style="margin: 0;">Add & Edit Products</h3>
                         <button onclick="openItemModal()" style="width: auto; background: #10b981; margin: 0;">+ Add New Item</button>
@@ -352,138 +341,74 @@
         let leafletMap = null;
 
         function init() {
+            populateYearDropdown();
             renderProfile();
             renderDropdown();
             filterSalesByDateAndCustomer();
             renderCustomerTotals();
             renderInventoryViews();
+            calculateMonitoring();
             populateStoreHistoryDropdown();
-            renderSeparatedSalesViews();
         }
 
-        // Toggle Sidebar Menu
-        function toggleMenu() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            if (sidebar.classList.contains('active')) {
-                sidebar.classList.remove('active');
-                overlay.style.display = 'none';
-            } else {
-                sidebar.classList.add('active');
-                overlay.style.display = 'block';
+        function populateYearDropdown() {
+            const yearSelect = document.getElementById('yearFilter');
+            const currentYear = new Date().getFullYear();
+            yearSelect.innerHTML = '';
+            for (let y = currentYear; y >= currentYear - 5; y--) {
+                yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
             }
         }
 
-        function switchView(viewId, btn) {
-            document.querySelectorAll('.view-content').forEach(el => el.style.display = 'none');
-            document.getElementById(viewId).style.display = 'block';
+        function calculateMonitoring() {
+            const now = new Date();
+            const todayStr = now.toLocaleDateString();
             
-            document.querySelectorAll('.menu-item-btn').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
-            
-            toggleMenu(); // Auto-close drawer on navigation
-        }
+            const selectedDay = document.getElementById('dayFilter').value;
+            const selectedWeek = document.getElementById('weekFilter').value;
+            const selectedMonth = document.getElementById('monthFilter').value;
+            const selectedYear = parseInt(document.getElementById('yearFilter').value);
 
-        // Dedicated Displays for Daily, Weekly, Monthly, and Yearly Tabs
-        function renderSeparatedSalesViews() {
-            const currentYear = new Date().getFullYear();
-
-            // 1. Daily Sales
-            const dailyMap = {};
-
-            // 2. Weekly Sales
-            const weeks = [
-                { name: 'Week 1 (Days 1 - 7)', count: 0, total: 0 },
-                { name: 'Week 2 (Days 8 - 14)', count: 0, total: 0 },
-                { name: 'Week 3 (Days 15 - 21)', count: 0, total: 0 },
-                { name: 'Week 4 (Days 22 - 28)', count: 0, total: 0 },
-                { name: 'Week 5 (Days 29 - 31)', count: 0, total: 0 }
-            ];
-
-            // 3. Monthly Sales
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            const months = monthNames.map(m => ({ name: m, count: 0, total: 0 }));
-
-            // 4. Yearly Sales
-            const yearMap = {};
+            let total = 0, daily = 0, weekly = 0, monthly = 0, yearly = 0;
 
             sales.forEach(s => {
-                const amount = parseFloat(s.total) || 0;
-                const dateKey = s.isoDate || (s.date ? s.date.split(',')[0] : 'Unknown Date');
-                const d = new Date(s.isoDate || s.timestamp || s.date);
-                const day = d.getDate();
-                const month = d.getMonth();
-                const year = d.getFullYear();
+                const saleAmount = parseFloat(s.total) || 0;
+                const saleDate = new Date(s.isoDate || s.timestamp || s.date);
+                const saleDateStr = saleDate.toLocaleDateString();
+                const dayOfMonth = saleDate.getDate();
 
-                // Fill Daily
-                if (!dailyMap[dateKey]) dailyMap[dateKey] = { count: 0, total: 0 };
-                dailyMap[dateKey].count++;
-                dailyMap[dateKey].total += amount;
+                total += saleAmount;
 
-                // Fill Weekly
-                if (day <= 7) { weeks[0].count++; weeks[0].total += amount; }
-                else if (day <= 14) { weeks[1].count++; weeks[1].total += amount; }
-                else if (day <= 21) { weeks[2].count++; weeks[2].total += amount; }
-                else if (day <= 28) { weeks[3].count++; weeks[3].total += amount; }
-                else { weeks[4].count++; weeks[4].total += amount; }
-
-                // Fill Monthly
-                if (year === currentYear) {
-                    months[month].count++;
-                    months[month].total += amount;
+                if (selectedDay === 'today') {
+                    if (saleDateStr === todayStr) daily += saleAmount;
+                } else {
+                    if (saleDate.getDay().toString() === selectedDay) daily += saleAmount;
                 }
 
-                // Fill Yearly
-                if (!yearMap[year]) yearMap[year] = { count: 0, total: 0 };
-                yearMap[year].count++;
-                yearMap[year].total += amount;
+                if (selectedWeek === '7days') {
+                    const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+                    if (saleDate >= sevenDaysAgo) weekly += saleAmount;
+                } else if (selectedWeek === '1' && dayOfMonth >= 1 && dayOfMonth <= 7) weekly += saleAmount;
+                else if (selectedWeek === '2' && dayOfMonth >= 8 && dayOfMonth <= 14) weekly += saleAmount;
+                else if (selectedWeek === '3' && dayOfMonth >= 15 && dayOfMonth <= 21) weekly += saleAmount;
+                else if (selectedWeek === '4' && dayOfMonth >= 22 && dayOfMonth <= 28) weekly += saleAmount;
+                else if (selectedWeek === '5' && dayOfMonth >= 29) weekly += saleAmount;
+
+                if (selectedMonth === '30days') {
+                    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+                    if (saleDate >= thirtyDaysAgo) monthly += saleAmount;
+                } else {
+                    if (saleDate.getMonth().toString() === selectedMonth) monthly += saleAmount;
+                }
+
+                if (saleDate.getFullYear() === selectedYear) yearly += saleAmount;
             });
 
-            // Render Daily Table
-            const dailyArr = Object.keys(dailyMap).sort((a,b) => new Date(b) - new Date(a));
-            if (dailyArr.length === 0) {
-                document.getElementById('dailySalesTable').innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No daily records found.</td></tr>`;
-            } else {
-                document.getElementById('dailySalesTable').innerHTML = dailyArr.map(d => `
-                    <tr>
-                        <td>${d}</td>
-                        <td>${dailyMap[d].count}</td>
-                        <td>₱${dailyMap[d].total.toFixed(2)}</td>
-                    </tr>
-                `).join('');
-            }
-
-            // Render Weekly Table
-            document.getElementById('weeklySalesTable').innerHTML = weeks.map(w => `
-                <tr>
-                    <td>${w.name}</td>
-                    <td>${w.count}</td>
-                    <td>₱${w.total.toFixed(2)}</td>
-                </tr>
-            `).join('');
-
-            // Render Monthly Table
-            document.getElementById('monthlySalesTable').innerHTML = months.map(m => `
-                <tr>
-                    <td>${m.name}</td>
-                    <td>${m.count}</td>
-                    <td>₱${m.total.toFixed(2)}</td>
-                </tr>
-            `).join('');
-
-            // Render Yearly Table
-            const yearsArr = Object.keys(yearMap).sort((a,b) => b - a);
-            if (yearsArr.length === 0) {
-                document.getElementById('yearlySalesTable').innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No yearly record found.</td></tr>`;
-            } else {
-                document.getElementById('yearlySalesTable').innerHTML = yearsArr.map(y => `
-                    <tr>
-                        <td>${y}</td>
-                        <td>${yearMap[y].count}</td>
-                        <td>₱${yearMap[y].total.toFixed(2)}</td>
-                    </tr>
-                `).join('');
-            }
+            document.getElementById('dailySales').textContent = `₱${daily.toFixed(2)}`;
+            document.getElementById('weeklySales').textContent = `₱${weekly.toFixed(2)}`;
+            document.getElementById('monthlySales').textContent = `₱${monthly.toFixed(2)}`;
+            document.getElementById('yearlySales').textContent = `₱${yearly.toFixed(2)}`;
+            document.getElementById('totalSales').textContent = `₱${total.toFixed(2)}`;
         }
 
         function filterSalesByDateAndCustomer() {
@@ -638,6 +563,7 @@
         }
 
         function renderInventoryViews() {
+            // Render Inventory Items Tab
             const overviewTbody = document.getElementById('inventoryOverviewTable');
             overviewTbody.innerHTML = inventory.map(i => {
                 let status = i.stock > 10 ? '<span style="color: #10b981; font-weight:bold;">In Stock</span>' :
@@ -652,6 +578,7 @@
                 </tr>`;
             }).join('');
 
+            // Render Item Management Tab
             const manageTbody = document.getElementById('inventoryManageTable');
             manageTbody.innerHTML = inventory.map(i => `
                 <tr>
@@ -666,10 +593,192 @@
             `).join('');
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+        function openItemModal(id = null) {
+            if (id) {
+                const item = inventory.find(i => i.id === id);
+                document.getElementById('itemModalTitle').textContent = 'Edit Item';
+                document.getElementById('itemId').value = item.id;
+                document.getElementById('itemName').value = item.name;
+                document.getElementById('itemPrice').value = item.price;
+                document.getElementById('itemStock').value = item.stock;
+            } else {
+                document.getElementById('itemModalTitle').textContent = 'Add New Item';
+                document.getElementById('itemId').value = '';
+                document.getElementById('itemName').value = '';
+                document.getElementById('itemPrice').value = '';
+                document.getElementById('itemStock').value = '';
+            }
+            document.getElementById('itemModal').style.display = 'flex';
         }
 
-        window.onload = init;
+        function saveItem() {
+            const id = document.getElementById('itemId').value;
+            const name = document.getElementById('itemName').value;
+            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+            const stock = parseInt(document.getElementById('itemStock').value) || 0;
+
+            if (!name) return alert('Enter item name');
+
+            if (id) {
+                const item = inventory.find(i => i.id == id);
+                item.name = name; item.price = price; item.stock = stock;
+            } else {
+                inventory.push({ id: Date.now(), name, price, stock });
+            }
+
+            localStorage.setItem('app_inventory', JSON.stringify(inventory));
+            renderInventoryViews();
+            renderDropdown();
+            closeModal('itemModal');
+        }
+
+        function deleteItem(id) {
+            if (confirm('Delete this item from inventory?')) {
+                inventory = inventory.filter(i => i.id !== id);
+                localStorage.setItem('app_inventory', JSON.stringify(inventory));
+                renderInventoryViews();
+                renderDropdown();
+            }
+        }
+
+        function renderCustomerTotals() {
+            const customerMap = {};
+            sales.forEach(s => {
+                const key = s.name.trim().toLowerCase();
+                if (!customerMap[key]) {
+                    customerMap[key] = { displayName: s.name, contact: s.contact, orderCount: 0, totalSpent: 0 };
+                }
+                customerMap[key].orderCount += 1;
+                customerMap[key].totalSpent += parseFloat(s.total) || 0;
+            });
+
+            const tbody = document.getElementById('customersTable');
+            const customerList = Object.values(customerMap);
+            if (customerList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b;">No customer records available.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = customerList.map(c => `
+                <tr>
+                    <td>${c.displayName}</td>
+                    <td>${c.contact}</td>
+                    <td>${c.orderCount}</td>
+                    <td>₱${c.totalSpent.toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteSale(id) {
+            if (confirm('Are you sure you want to delete this sales entry?')) {
+                sales = sales.filter(s => s.id !== id);
+                localStorage.setItem('app_sales', JSON.stringify(sales));
+                init();
+            }
+        }
+
+        function updatePrice() {
+            const id = document.getElementById('prodSelect').value;
+            const item = inventory.find(i => i.id == id);
+            if (item) {
+                document.getElementById('unitPrice').value = item.price;
+                calcTotal();
+            }
+        }
+
+        function calcTotal() {
+            const qty = document.getElementById('qty').value || 0;
+            const price = document.getElementById('unitPrice').value || 0;
+            document.getElementById('totalAmt').value = (qty * price).toFixed(2);
+        }
+
+        document.getElementById('saleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const prodId = document.getElementById('prodSelect').value;
+            const qty = parseInt(document.getElementById('qty').value);
+            const item = inventory.find(i => i.id == prodId);
+
+            if (!item || qty > item.stock) {
+                alert('Invalid item or insufficient stock!');
+                return;
+            }
+
+            item.stock -= qty;
+
+            const now = new Date();
+            const newSale = {
+                id: Date.now(),
+                timestamp: now.toISOString(),
+                isoDate: now.toISOString().split('T')[0],
+                date: now.toLocaleDateString(),
+                name: document.getElementById('custName').value,
+                address: document.getElementById('custAddr').value,
+                contact: document.getElementById('custContact').value,
+                photo: document.getElementById('storePhotoData').value,
+                gps: document.getElementById('custGPS').value,
+                item: item.name,
+                qty: qty,
+                total: document.getElementById('totalAmt').value
+            };
+
+            sales.unshift(newSale);
+            localStorage.setItem('app_inventory', JSON.stringify(inventory));
+            localStorage.setItem('app_sales', JSON.stringify(sales));
+
+            init();
+            this.reset();
+            document.getElementById('storePhotoData').value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('custGPS').value = '';
+        });
+
+        function renderSales(dataList) {
+            const tbody = document.getElementById('salesTable');
+            if (dataList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#64748b;">No matching sales found.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = dataList.map(s => {
+                const imgTd = s.photo ? `<img src="${s.photo}" class="thumb-img" onclick="viewFullPhoto('${s.photo}', '${s.name}')">` : 'N/A';
+                const gpsBtn = s.gps ? `<button class="action-btn gps-btn" onclick="showMap(${s.gps.split(',')[0]}, ${s.gps.split(',')[1]}, '${s.name}')">Map</button>` : 'N/A';
+                return `
+                <tr>
+                    <td>${imgTd}</td>
+                    <td>${s.date}</td>
+                    <td>${s.name}</td>
+                    <td>${s.address}</td>
+                    <td>${s.item}</td>
+                    <td>${s.qty}</td>
+                    <td>₱${s.total}</td>
+                    <td>${gpsBtn}</td>
+                    <td>
+                        <button class="action-btn delete" onclick="deleteSale(${s.id})">Delete</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.getElementById(tabId).style.display = 'block';
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function exportCSV() {
+            let csv = "Date,Store Name,Address,Contact,GPS,Item,Quantity,Total Amount\n";
+            sales.forEach(s => {
+                csv += `"${s.date}","${s.name}","${s.address}","${s.contact}","${s.gps || 'N/A'}","${s.item}",${s.qty},${s.total}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'sales_data.csv';
+            a.click();
+        }
+
+        init();
     </script>
-</body></html>
+</body>
+</html>
