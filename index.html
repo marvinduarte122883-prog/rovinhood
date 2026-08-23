@@ -14,10 +14,11 @@
         .profile-info h2 { margin: 0; font-size: 20px; }
         .profile-info p { margin: 2px 0 0; color: #64748b; font-size: 14px; }
         
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
-        .metric-card { background: var(--card); padding: 12px 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .metric-card { background: var(--card); padding: 12px 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); display: flex; flex-direction: column; justify-content: space-between; }
         .metric-card h4 { margin: 0; font-size: 11px; text-transform: uppercase; color: #64748b; }
-        .metric-card .value { font-size: 18px; font-weight: bold; margin-top: 5px; color: var(--text); }
+        .metric-card select { margin-top: 6px; padding: 4px; font-size: 12px; border-radius: 4px; border: 1px solid #cbd5e1; background: #f1f5f9; cursor: pointer; }
+        .metric-card .value { font-size: 18px; font-weight: bold; margin-top: 8px; color: var(--text); }
         
         .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
         .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
@@ -65,26 +66,72 @@
             <button style="width: auto;" onclick="openProfileModal()">Edit Profile</button>
         </div>
 
-        <!-- Sales Monitoring Dashboard -->
+        <!-- Sales Monitoring Dashboard with Interactive Dropdowns -->
         <div class="metrics-grid">
+            <!-- Daily Sales Dropdown -->
             <div class="metric-card" style="border-color: #06b6d4;">
-                <h4>Daily Sales (Today)</h4>
+                <h4>Daily Sales</h4>
+                <select id="dayFilter" onchange="calculateMonitoring()">
+                    <option value="today">Today</option>
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                    <option value="0">Sunday</option>
+                </select>
                 <div class="value" id="dailySales">₱0.00</div>
             </div>
+
+            <!-- Weekly Sales Dropdown -->
             <div class="metric-card" style="border-color: #3b82f6;">
-                <h4>Weekly Sales (7 Days)</h4>
+                <h4>Weekly Sales</h4>
+                <select id="weekFilter" onchange="calculateMonitoring()">
+                    <option value="7days">Last 7 Days</option>
+                    <option value="1">Week 1 (Days 1-7)</option>
+                    <option value="2">Week 2 (Days 8-14)</option>
+                    <option value="3">Week 3 (Days 15-21)</option>
+                    <option value="4">Week 4 (Days 22-28)</option>
+                    <option value="5">Week 5 (Days 29-31)</option>
+                </select>
                 <div class="value" id="weeklySales">₱0.00</div>
             </div>
+
+            <!-- Monthly Sales Dropdown -->
             <div class="metric-card" style="border-color: #10b981;">
-                <h4>Monthly Sales (30 Days)</h4>
+                <h4>Monthly Sales</h4>
+                <select id="monthFilter" onchange="calculateMonitoring()">
+                    <option value="30days">Last 30 Days</option>
+                    <option value="0">January</option>
+                    <option value="1">February</option>
+                    <option value="2">March</option>
+                    <option value="3">April</option>
+                    <option value="4">May</option>
+                    <option value="5">June</option>
+                    <option value="6">July</option>
+                    <option value="7">August</option>
+                    <option value="8">September</option>
+                    <option value="9">October</option>
+                    <option value="10">November</option>
+                    <option value="11">December</option>
+                </select>
                 <div class="value" id="monthlySales">₱0.00</div>
             </div>
+
+            <!-- Yearly Sales Dropdown -->
             <div class="metric-card" style="border-color: #f59e0b;">
-                <h4>Yearly Sales (<span id="currYear">2026</span>)</h4>
+                <h4>Yearly Sales</h4>
+                <select id="yearFilter" onchange="calculateMonitoring()">
+                    <!-- Populated Dynamically in JS -->
+                </select>
                 <div class="value" id="yearlySales">₱0.00</div>
             </div>
+
+            <!-- Total Sales (All-Time) -->
             <div class="metric-card" style="border-color: #8b5cf6;">
-                <h4>Total Sales (All Time)</h4>
+                <h4>Total Sales</h4>
+                <span style="font-size: 11px; color: #64748b; margin-top: 6px;">All Time Combined</span>
                 <div class="value" id="totalSales">₱0.00</div>
             </div>
         </div>
@@ -264,7 +311,7 @@
         let leafletMap = null;
 
         function init() {
-            document.getElementById('currYear').textContent = new Date().getFullYear();
+            populateYearDropdown();
             renderProfile();
             renderDropdown();
             renderSales(sales);
@@ -272,6 +319,71 @@
             renderInventory();
             calculateMonitoring();
             populateStoreHistoryDropdown();
+        }
+
+        function populateYearDropdown() {
+            const yearSelect = document.getElementById('yearFilter');
+            const currentYear = new Date().getFullYear();
+            yearSelect.innerHTML = '';
+            for (let y = currentYear; y >= currentYear - 5; y--) {
+                yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+            }
+        }
+
+        // Monitoring Dashboard Filter Calculations
+        function calculateMonitoring() {
+            const now = new Date();
+            const todayStr = now.toLocaleDateString();
+            
+            const selectedDay = document.getElementById('dayFilter').value;
+            const selectedWeek = document.getElementById('weekFilter').value;
+            const selectedMonth = document.getElementById('monthFilter').value;
+            const selectedYear = parseInt(document.getElementById('yearFilter').value);
+
+            let total = 0, daily = 0, weekly = 0, monthly = 0, yearly = 0;
+
+            sales.forEach(s => {
+                const saleAmount = parseFloat(s.total) || 0;
+                const saleDate = new Date(s.timestamp || s.date);
+                const saleDateStr = saleDate.toLocaleDateString();
+                const dayOfMonth = saleDate.getDate();
+
+                total += saleAmount;
+
+                // Daily Filter Processing
+                if (selectedDay === 'today') {
+                    if (saleDateStr === todayStr) daily += saleAmount;
+                } else {
+                    if (saleDate.getDay().toString() === selectedDay) daily += saleAmount;
+                }
+
+                // Weekly Filter Processing
+                if (selectedWeek === '7days') {
+                    const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+                    if (saleDate >= sevenDaysAgo) weekly += saleAmount;
+                } else if (selectedWeek === '1' && dayOfMonth >= 1 && dayOfMonth <= 7) weekly += saleAmount;
+                else if (selectedWeek === '2' && dayOfMonth >= 8 && dayOfMonth <= 14) weekly += saleAmount;
+                else if (selectedWeek === '3' && dayOfMonth >= 15 && dayOfMonth <= 21) weekly += saleAmount;
+                else if (selectedWeek === '4' && dayOfMonth >= 22 && dayOfMonth <= 28) weekly += saleAmount;
+                else if (selectedWeek === '5' && dayOfMonth >= 29) weekly += saleAmount;
+
+                // Monthly Filter Processing
+                if (selectedMonth === '30days') {
+                    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+                    if (saleDate >= thirtyDaysAgo) monthly += saleAmount;
+                } else {
+                    if (saleDate.getMonth().toString() === selectedMonth) monthly += saleAmount;
+                }
+
+                // Yearly Filter Processing
+                if (saleDate.getFullYear() === selectedYear) yearly += saleAmount;
+            });
+
+            document.getElementById('dailySales').textContent = `₱${daily.toFixed(2)}`;
+            document.getElementById('weeklySales').textContent = `₱${weekly.toFixed(2)}`;
+            document.getElementById('monthlySales').textContent = `₱${monthly.toFixed(2)}`;
+            document.getElementById('yearlySales').textContent = `₱${yearly.toFixed(2)}`;
+            document.getElementById('totalSales').textContent = `₱${total.toFixed(2)}`;
         }
 
         // Photo Processing
@@ -344,34 +456,6 @@
             localStorage.setItem('app_profile', JSON.stringify(profile));
             renderProfile();
             closeModal('profileModal');
-        }
-
-        // Monitoring Dashboard Calculations (Daily, Weekly, Monthly, Yearly, Total)
-        function calculateMonitoring() {
-            const now = new Date();
-            const todayStr = now.toLocaleDateString();
-            const currentYear = now.getFullYear();
-            const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
-            const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
-
-            let total = 0, daily = 0, weekly = 0, monthly = 0, yearly = 0;
-            sales.forEach(s => {
-                const saleAmount = parseFloat(s.total) || 0;
-                const saleDate = new Date(s.timestamp || s.date);
-                const saleDateStr = new Date(s.timestamp || s.date).toLocaleDateString();
-
-                total += saleAmount;
-                if (saleDateStr === todayStr) daily += saleAmount;
-                if (saleDate >= sevenDaysAgo) weekly += saleAmount;
-                if (saleDate >= thirtyDaysAgo) monthly += saleAmount;
-                if (saleDate.getFullYear() === currentYear) yearly += saleAmount;
-            });
-
-            document.getElementById('dailySales').textContent = `₱${daily.toFixed(2)}`;
-            document.getElementById('weeklySales').textContent = `₱${weekly.toFixed(2)}`;
-            document.getElementById('monthlySales').textContent = `₱${monthly.toFixed(2)}`;
-            document.getElementById('yearlySales').textContent = `₱${yearly.toFixed(2)}`;
-            document.getElementById('totalSales').textContent = `₱${total.toFixed(2)}`;
         }
 
         // Search Store Name or Address
