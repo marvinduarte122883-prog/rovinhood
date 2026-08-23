@@ -3,331 +3,504 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales & Inventory Manager Pro</title>
-    <!-- Leaflet OpenStreetMap CSS -->
+    <title>Business Management System</title>
+    <!-- Leaflet CSS for GPS Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --accent: #10b981; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
-        .container { max-width: 1100px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .profile-info h2 { margin: 0; font-size: 20px; }
-        .profile-info p { margin: 2px 0 0; color: #64748b; font-size: 14px; }
-        
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 20px; }
-        .metric-card { background: var(--card); padding: 12px 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); display: flex; flex-direction: column; justify-content: space-between; }
-        .metric-card h4 { margin: 0; font-size: 11px; text-transform: uppercase; color: #64748b; }
-        .metric-card select { margin-top: 6px; padding: 4px; font-size: 12px; border-radius: 4px; border: 1px solid #cbd5e1; background: #f1f5f9; cursor: pointer; }
-        .metric-card .value { font-size: 18px; font-weight: bold; margin-top: 8px; color: var(--text); }
-        
-        .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
-        .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-        input, select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
-        
-        button { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: 600; margin-top: 8px; }
-        button:hover { opacity: 0.9; }
-        button.action-btn { width: auto; padding: 4px 8px; font-size: 12px; margin: 0 2px; }
-        button.edit { background: #f59e0b; }
-        button.delete { background: #ef4444; }
-        button.gps-btn { background: #6366f1; }
-        button.export { background: var(--accent); }
-        button.clear-btn { background: #64748b; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th, td { border-bottom: 1px solid #e2e8f0; padding: 8px; text-align: left; }
-        th { background: #f1f5f9; font-weight: 600; }
-        
-        .nav-tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
-        .tab-btn { background: #e2e8f0; color: var(--text); border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; white-space: nowrap; font-weight: 600; }
-        .tab-btn.active { background: var(--primary); color: white; }
-        
-        .filter-panel { background: #f1f5f9; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
-        .filter-grid { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: end; }
-
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 450px; max-width: 90%; }
-        #map { height: 300px; width: 100%; border-radius: 8px; margin-top: 10px; }
-        
-        .thumb-img { width: 35px; height: 35px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 1px solid #cbd5e1; }
-
-        @media (max-width: 768px) { 
-            .grid { grid-template-columns: 1fr; } 
-            .filter-grid { grid-template-columns: 1fr; }
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 40px; }
+
+        /* Top Navbar */
+        .navbar {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .menu-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .menu-btn:hover { background: rgba(255,255,255,0.2); }
+
+        .shop-title { font-size: 1.2rem; font-weight: bold; }
+
+        /* Slide-out Sidebar Menu */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 1001;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0; left: -280px;
+            width: 280px; height: 100%;
+            background: var(--surface);
+            z-index: 1002;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.open { left: 0; }
+
+        .sidebar-header {
+            padding: 20px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-sidebar {
+            background: none; border: none; color: white;
+            font-size: 22px; cursor: pointer;
+        }
+
+        .sidebar-menu { list-style: none; padding: 10px 0; }
+
+        .sidebar-menu li a {
+            display: block;
+            padding: 14px 20px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .sidebar-menu li a:hover, .sidebar-menu li a.active {
+            background-color: #eff6ff;
+            color: var(--primary);
+        }
+
+        /* Container */
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* Dashboard Cards Grid */
+        .sales-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .card-title { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .card-value { font-size: 1.8rem; font-weight: bold; color: var(--text); }
+
+        .card-select {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        /* Forms & Tables */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 500; }
+        input, select, button {
+            width: 100%; padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px; font-size: 0.95rem;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white; border: none;
+            cursor: pointer; font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--text-muted); }
+
+        table {
+            width: 100%; border-collapse: collapse;
+            background: var(--surface); margin-top: 15px;
+            border-radius: 8px; overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #f1f5f9; font-weight: 600; }
+
+        .action-btn {
+            padding: 5px 10px; border: none; border-radius: 4px;
+            cursor: pointer; font-size: 0.85rem; color: white;
+        }
+        .action-btn.edit { background: var(--warning); }
+        .action-btn.delete { background: var(--danger); }
+        .action-btn.gps-btn { background: var(--primary); }
+
+        .thumb-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer; }
+
+        /* Modal */
+        .modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); display: none;
+            align-items: center; justify-content: center; z-index: 2000;
+        }
+        .modal-content {
+            background: var(--surface); padding: 25px;
+            border-radius: 8px; width: 90%; max-width: 500px;
+        }
+        #map { height: 350px; width: 100%; border-radius: 6px; margin-top: 10px; }
     </style>
 </head>
 <body>
+
+    <!-- Navigation Header -->
+    <div class="navbar">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="shop-title" id="dispShopName">My Store</div>
+        <button class="btn" style="width: auto; padding: 6px 12px;" onclick="openProfileModal()">Profile</button>
+    </div>
+
+    <!-- Slide-out Sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>Menu Navigation</h3>
+            <button class="close-sidebar" onclick="toggleSidebar()">&times;</button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#" class="nav-link active" onclick="switchView('view-dashboard', this)">Sales Dashboard</a></li>
+            <li><a href="#" class="nav-link" onclick="switchView('view-pos', this)">New Transaction (POS)</a></li>
+            <li><a href="#" class="nav-link" onclick="switchView('view-sales-records', this)">Sales Records</a></li>
+            <li><a href="#" class="nav-link" onclick="switchView('view-inventory', this)">Inventory Stock</a></li>
+            <li><a href="#" class="nav-link" onclick="switchView('view-item-mgmt', this)">Item Management</a></li>
+            <li><a href="#" class="nav-link" onclick="switchView('view-store-history', this)">Store Order History</a></li>
+        </ul>
+    </div>
+
     <div class="container">
-        <!-- Profile Header -->
-        <div class="header">
-            <div class="profile-info">
-                <h2 id="dispShopName">My Shop</h2>
-                <p id="dispOwner">Owner: Business Owner | Contact: N/A</p>
-            </div>
-            <button style="width: auto;" onclick="openProfileModal()">Edit Profile</button>
-        </div>
 
-        <!-- Sales Monitoring Dashboard -->
-        <div class="metrics-grid">
-            <div class="metric-card" style="border-color: #06b6d4;">
-                <h4>Daily Sales</h4>
-                <select id="dayFilter" onchange="calculateMonitoring()">
-                    <option value="today">Today</option>
-                    <option value="1">Monday</option>
-                    <option value="2">Tuesday</option>
-                    <option value="3">Wednesday</option>
-                    <option value="4">Thursday</option>
-                    <option value="5">Friday</option>
-                    <option value="6">Saturday</option>
-                    <option value="0">Sunday</option>
-                </select>
-                <div class="value" id="dailySales">₱0.00</div>
+        <!-- VIEW 1: SALES DASHBOARD (Separated Daily, Weekly, Monthly, Yearly) -->
+        <div id="view-dashboard" class="view-section active">
+            <h2>Sales Analytics Overview</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;" id="dispOwner"></p>
+
+            <div class="sales-grid">
+                <!-- Daily Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Daily Sales</span>
+                        <select id="dayFilter" class="card-select" onchange="calculateMonitoring()">
+                            <option value="today">Today</option>
+                            <option value="0">Sunday</option>
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                        </select>
+                    </div>
+                    <div class="card-value" id="dailySales">₱0.00</div>
+                </div>
+
+                <!-- Weekly Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Weekly Sales</span>
+                        <select id="weekFilter" class="card-select" onchange="calculateMonitoring()">
+                            <option value="7days">Last 7 Days</option>
+                            <option value="1">Week 1 (1-7)</option>
+                            <option value="2">Week 2 (8-14)</option>
+                            <option value="3">Week 3 (15-21)</option>
+                            <option value="4">Week 4 (22-28)</option>
+                            <option value="5">Week 5 (29+)</option>
+                        </select>
+                    </div>
+                    <div class="card-value" id="weeklySales">₱0.00</div>
+                </div>
+
+                <!-- Monthly Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Monthly Sales</span>
+                        <select id="monthFilter" class="card-select" onchange="calculateMonitoring()">
+                            <option value="30days">Last 30 Days</option>
+                            <option value="0">Jan</option><option value="1">Feb</option>
+                            <option value="2">Mar</option><option value="3">Apr</option>
+                            <option value="4">May</option><option value="5">Jun</option>
+                            <option value="6">Jul</option><option value="7">Aug</option>
+                            <option value="8">Sep</option><option value="9">Oct</option>
+                            <option value="10">Nov</option><option value="11">Dec</option>
+                        </select>
+                    </div>
+                    <div class="card-value" id="monthlySales">₱0.00</div>
+                </div>
+
+                <!-- Yearly Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Yearly Sales</span>
+                        <select id="yearFilter" class="card-select" onchange="calculateMonitoring()"></select>
+                    </div>
+                    <div class="card-value" id="yearlySales">₱0.00</div>
+                </div>
             </div>
 
-            <div class="metric-card" style="border-color: #3b82f6;">
-                <h4>Weekly Sales</h4>
-                <select id="weekFilter" onchange="calculateMonitoring()">
-                    <option value="7days">Last 7 Days</option>
-                    <option value="1">Week 1 (Days 1-7)</option>
-                    <option value="2">Week 2 (Days 8-14)</option>
-                    <option value="3">Week 3 (Days 15-21)</option>
-                    <option value="4">Week 4 (Days 22-28)</option>
-                    <option value="5">Week 5 (Days 29-31)</option>
-                </select>
-                <div class="value" id="weeklySales">₱0.00</div>
-            </div>
-
-            <div class="metric-card" style="border-color: #10b981;">
-                <h4>Monthly Sales</h4>
-                <select id="monthFilter" onchange="calculateMonitoring()">
-                    <option value="30days">Last 30 Days</option>
-                    <option value="0">January</option>
-                    <option value="1">February</option>
-                    <option value="2">March</option>
-                    <option value="3">April</option>
-                    <option value="4">May</option>
-                    <option value="5">June</option>
-                    <option value="6">July</option>
-                    <option value="7">August</option>
-                    <option value="8">September</option>
-                    <option value="9">October</option>
-                    <option value="10">November</option>
-                    <option value="11">December</option>
-                </select>
-                <div class="value" id="monthlySales">₱0.00</div>
-            </div>
-
-            <div class="metric-card" style="border-color: #f59e0b;">
-                <h4>Yearly Sales</h4>
-                <select id="yearFilter" onchange="calculateMonitoring()">
-                </select>
-                <div class="value" id="yearlySales">₱0.00</div>
-            </div>
-
-            <div class="metric-card" style="border-color: #8b5cf6;">
-                <h4>Total Sales</h4>
-                <span style="font-size: 11px; color: #64748b; margin-top: 6px;">All Time Combined</span>
-                <div class="value" id="totalSales">₱0.00</div>
-            </div>
-        </div>
-
-        <div class="grid">
-            <!-- Sidebar Entry Form -->
             <div class="card">
-                <h3>Record Sale</h3>
+                <span class="card-title">All-Time Cumulative Sales</span>
+                <div class="card-value" id="totalSales" style="font-size: 2.2rem; color: var(--primary);">₱0.00</div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: NEW SALE TRANSACTION (POS) -->
+        <div id="view-pos" class="view-section">
+            <h2>Record New Sale</h2>
+            <div class="card" style="margin-top: 15px;">
                 <form id="saleForm">
                     <div class="form-group">
-                        <label>Store / Customer Name</label>
-                        <input type="text" id="custName" required placeholder="e.g. ABC Mini Mart">
+                        <label>Customer/Store Name</label>
+                        <input type="text" id="custName" required>
                     </div>
                     <div class="form-group">
-                        <label>Store Address</label>
-                        <input type="text" id="custAddr" required placeholder="Street, City">
+                        <label>Address</label>
+                        <input type="text" id="custAddr">
                     </div>
                     <div class="form-group">
                         <label>Contact Number</label>
-                        <input type="tel" id="custContact" required placeholder="09xxxxxxxxx">
+                        <input type="text" id="custContact">
                     </div>
                     <div class="form-group">
-                        <label>Capture Store Photo</label>
-                        <input type="file" id="storePhotoInput" accept="image/*" capture="environment" onchange="previewPhoto(event)">
-                        <input type="hidden" id="storePhotoData">
-                        <img id="photoPreview" style="display:none; width: 100%; height: 100px; object-fit: cover; margin-top: 5px; border-radius: 4px;">
-                    </div>
-                    <div class="form-group">
-                        <label>GPS Location</label>
-                        <div style="display:flex; gap: 5px;">
-                            <input type="text" id="custGPS" readonly placeholder="Not Set">
-                            <button type="button" class="gps-btn" style="width: auto; margin-top:0;" onclick="getGPSLocation()">Get GPS</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Select Product</label>
-                        <select id="prodSelect" required onchange="updatePrice()"></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Quantity</label>
-                        <input type="number" id="qty" min="1" value="1" required oninput="calcTotal()">
+                        <label>Select Product Item</label>
+                        <select id="prodSelect" onchange="updatePrice()" required></select>
                     </div>
                     <div class="form-group">
                         <label>Unit Price (₱)</label>
-                        <input type="number" id="unitPrice" step="0.01" readonly>
+                        <input type="number" id="unitPrice" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" id="qty" min="1" value="1" oninput="calcTotal()" required>
                     </div>
                     <div class="form-group">
                         <label>Total Amount (₱)</label>
-                        <input type="number" id="totalAmt" step="0.01" readonly>
+                        <input type="number" id="totalAmt" readonly>
                     </div>
-                    <button type="submit">Complete Sale</button>
-                </form>
-                <button class="export" onclick="exportCSV()">Export Data to CSV</button>
-            </div>
-
-            <!-- Main Tabbed View -->
-            <div class="card">
-                <div class="nav-tabs">
-                    <button class="tab-btn active" onclick="switchTab('salesTab', this)">Sales Log</button>
-                    <button class="tab-btn" onclick="switchTab('storeHistoryTab', this)">Store Order History</button>
-                    <button class="tab-btn" onclick="switchTab('customersTab', this)">Customer Totals</button>
-                    <button class="tab-btn" onclick="switchTab('inventoryTab', this)">Inventory Items</button>
-                    <button class="tab-btn" onclick="switchTab('itemManageTab', this)">Item Management</button>
-                </div>
-
-                <!-- 1. Sales Log Section -->
-                <div id="salesTab" class="tab-content">
-                    <div class="filter-panel">
-                        <div class="filter-grid">
-                            <div>
-                                <label>Search Customer / Store</label>
-                                <input type="text" id="searchCustomer" placeholder="Name or address..." oninput="filterSalesByDateAndCustomer()">
-                            </div>
-                            <div>
-                                <label>Start Date</label>
-                                <input type="date" id="startDate" onchange="filterSalesByDateAndCustomer()">
-                            </div>
-                            <div>
-                                <label>End Date</label>
-                                <input type="date" id="endDate" onchange="filterSalesByDateAndCustomer()">
-                            </div>
-                            <div>
-                                <button type="button" class="clear-btn" style="margin-top:0; padding:8px 12px; font-size:12px;" onclick="clearDateAndCustomerFilters()">Reset</button>
-                            </div>
+                    <div class="form-group">
+                        <label>Store Photo</label>
+                        <input type="file" accept="image/*" onchange="previewPhoto(event)">
+                        <input type="hidden" id="storePhotoData">
+                        <img id="photoPreview" class="thumb-img" style="display:none; width:80px; height:80px; margin-top:10px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Location Coordinates (GPS)</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="custGPS" placeholder="Lat, Lng" readonly>
+                            <button type="button" class="btn btn-secondary" style="width: auto;" onclick="getGPSLocation()">Get GPS</button>
                         </div>
                     </div>
+                    <button type="submit" class="btn">Submit Transaction</button>
+                </form>
+            </div>
+        </div>
 
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Photo</th><th>Date</th><th>Store Name</th><th>Address</th><th>Item</th><th>Qty</th><th>Total</th><th>GPS</th><th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="salesTable"></tbody>
-                    </table>
+        <!-- VIEW 3: SALES RECORDS -->
+        <div id="view-sales-records" class="view-section">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2>All Sales Records</h2>
+                <button class="btn" style="width:auto;" onclick="exportCSV()">Export CSV</button>
+            </div>
+            
+            <div class="card" style="margin-top:15px; margin-bottom:15px;">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
+                    <input type="text" id="searchCustomer" placeholder="Search Customer/Address..." oninput="filterSalesByDateAndCustomer()">
+                    <input type="date" id="startDate" onchange="filterSalesByDateAndCustomer()">
+                    <input type="date" id="endDate" onchange="filterSalesByDateAndCustomer()">
+                    <button class="btn btn-secondary" onclick="clearDateAndCustomerFilters()">Clear Filters</button>
                 </div>
+            </div>
 
-                <!-- 2. Store Order History Section -->
-                <div id="storeHistoryTab" class="tab-content" style="display:none;">
-                    <div class="form-group">
-                        <label>Select Store Name:</label>
-                        <select id="storeHistorySelect" onchange="renderStoreOrderHistory()">
-                            <option value="">-- Choose Store --</option>
-                        </select>
-                    </div>
-                    <div id="storeHistoryContainer">
-                        <p style="color:#64748b;">Select a store to view history.</p>
-                    </div>
-                </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Photo</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Address</th>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Total</th>
+                            <th>GPS</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTable"></tbody>
+                </table>
+            </div>
+        </div>
 
-                <!-- 3. Customer Totals Section -->
-                <div id="customersTab" class="tab-content" style="display:none;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Store Name</th><th>Contact Number</th><th>Orders Placed</th><th>Total Purchased</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customersTable"></tbody>
-                    </table>
-                </div>
+        <!-- VIEW 4: INVENTORY ITEMS VIEW -->
+        <div id="view-inventory" class="view-section">
+            <h2>Inventory Stock Levels</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Unit Price</th>
+                            <th>Current Stock</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryOverviewTable"></tbody>
+                </table>
+            </div>
+        </div>
 
-                <!-- 4. Inventory Items Section -->
-                <div id="inventoryTab" class="tab-content" style="display:none;">
-                    <h3>Stock Status Overview</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Item Name</th><th>Price (₱)</th><th>Current Stock</th><th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventoryOverviewTable"></tbody>
-                    </table>
-                </div>
+        <!-- VIEW 5: ITEM MANAGEMENT (Add/Edit/Delete) -->
+        <div id="view-item-mgmt" class="view-section">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2>Manage Inventory Items</h2>
+                <button class="btn" style="width:auto;" onclick="openItemModal()">+ Add New Item</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Unit Price</th>
+                            <th>Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryManageTable"></tbody>
+                </table>
+            </div>
+        </div>
 
-                <!-- 5. Item Management Section -->
-                <div id="itemManageTab" class="tab-content" style="display:none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3 style="margin: 0;">Add & Edit Products</h3>
-                        <button onclick="openItemModal()" style="width: auto; background: #10b981; margin: 0;">+ Add New Item</button>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Item Name</th><th>Price (₱)</th><th>Stock</th><th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventoryManageTable"></tbody>
-                    </table>
-                </div>
+        <!-- VIEW 6: STORE ORDER HISTORY -->
+        <div id="view-store-history" class="view-section">
+            <h2>Store History Lookup</h2>
+            <div class="form-group" style="margin-top:15px;">
+                <label>Select Store Name:</label>
+                <select id="storeHistorySelect" onchange="renderStoreOrderHistory()"></select>
+            </div>
+            <div id="storeHistoryContainer" style="margin-top:15px;"></div>
+        </div>
+
+    </div>
+
+    <!-- MODALS -->
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <h3>Update Shop Profile</h3>
+            <div class="form-group" style="margin-top:15px;">
+                <label>Shop Name</label>
+                <input type="text" id="profShop">
+            </div>
+            <div class="form-group">
+                <label>Owner Name</label>
+                <input type="text" id="profOwner">
+            </div>
+            <div class="form-group">
+                <label>Contact Info</label>
+                <input type="text" id="profContact">
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="saveProfile()">Save</button>
+                <button class="btn btn-secondary" onclick="closeModal('profileModal')">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
-    <div id="profileModal" class="modal">
-        <div class="modal-content">
-            <h3>Edit Business Profile</h3>
-            <div class="form-group"><label>Shop Name</label><input type="text" id="profShop"></div>
-            <div class="form-group"><label>Owner Name</label><input type="text" id="profOwner"></div>
-            <div class="form-group"><label>Contact Number</label><input type="text" id="profContact"></div>
-            <button onclick="saveProfile()">Save Profile</button>
-            <button class="delete" onclick="closeModal('profileModal')">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Edit/Add Item Modal -->
+    <!-- Add/Edit Item Modal -->
     <div id="itemModal" class="modal">
         <div class="modal-content">
             <h3 id="itemModalTitle">Manage Item</h3>
             <input type="hidden" id="itemId">
-            <div class="form-group"><label>Item Name</label><input type="text" id="itemName"></div>
-            <div class="form-group"><label>Unit Price (₱)</label><input type="number" id="itemPrice" step="0.01"></div>
-            <div class="form-group"><label>Stock Quantity</label><input type="number" id="itemStock"></div>
-            <button onclick="saveItem()">Save Item</button>
-            <button class="delete" onclick="closeModal('itemModal')">Cancel</button>
+            <div class="form-group" style="margin-top:15px;">
+                <label>Item Name</label>
+                <input type="text" id="itemName">
+            </div>
+            <div class="form-group">
+                <label>Unit Price (₱)</label>
+                <input type="number" id="itemPrice" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Stock Quantity</label>
+                <input type="number" id="itemStock">
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="saveItem()">Save Item</button>
+                <button class="btn btn-secondary" onclick="closeModal('itemModal')">Cancel</button>
+            </div>
         </div>
     </div>
 
-    <!-- GPS Map Viewer Modal -->
+    <!-- Map Modal -->
     <div id="mapModal" class="modal">
         <div class="modal-content">
             <h3 id="mapTitle">Store Location</h3>
             <div id="map"></div>
-            <button class="delete" style="margin-top:10px;" onclick="closeModal('mapModal')">Close Map</button>
+            <button class="btn btn-secondary" style="margin-top:15px;" onclick="closeModal('mapModal')">Close Map</button>
         </div>
     </div>
 
-    <!-- Photo View Modal -->
+    <!-- Photo Modal -->
     <div id="photoModal" class="modal">
-        <div class="modal-content" style="text-align: center;">
-            <h3 id="photoTitle">Store Photo</h3>
-            <img id="fullPhoto" style="max-width:100%; max-height:350px; border-radius: 8px; margin-top: 10px;">
-            <button class="delete" style="margin-top:15px;" onclick="closeModal('photoModal')">Close</button>
+        <div class="modal-content" style="text-align:center;">
+            <h3 id="photoTitle" style="margin-bottom:10px;">Store Photo</h3>
+            <img id="fullPhoto" style="max-width:100%; max-height:400px; border-radius:6px;">
+            <button class="btn btn-secondary" style="margin-top:15px;" onclick="closeModal('photoModal')">Close</button>
         </div>
     </div>
 
-    <!-- Leaflet OpenStreetMap JS -->
+    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
@@ -349,6 +522,31 @@
             renderInventoryViews();
             calculateMonitoring();
             populateStoreHistoryDropdown();
+        }
+
+        // Navigation Sidebar Toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const isOpen = sidebar.classList.contains('open');
+
+            if (isOpen) {
+                sidebar.classList.remove('open');
+                overlay.style.display = 'none';
+            } else {
+                sidebar.classList.add('open');
+                overlay.style.display = 'block';
+            }
+        }
+
+        function switchView(viewId, linkEl) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(viewId).classList.add('active');
+            if (linkEl) linkEl.classList.add('active');
+            
+            toggleSidebar(); // Close sidebar on choice
         }
 
         function populateYearDropdown() {
@@ -465,7 +663,7 @@
                     const lat = position.coords.latitude.toFixed(6);
                     const lng = position.coords.longitude.toFixed(6);
                     document.getElementById('custGPS').value = `${lat},${lng}`;
-                }, () => { alert('Unable to retrieve location. Please turn on device GPS.'); });
+                }, () => { alert('Unable to retrieve location. Please turn on GPS.'); });
             } else {
                 alert('Geolocation is not supported by your browser.');
             }
@@ -563,7 +761,6 @@
         }
 
         function renderInventoryViews() {
-            // Render Inventory Items Tab
             const overviewTbody = document.getElementById('inventoryOverviewTable');
             overviewTbody.innerHTML = inventory.map(i => {
                 let status = i.stock > 10 ? '<span style="color: #10b981; font-weight:bold;">In Stock</span>' :
@@ -578,7 +775,6 @@
                 </tr>`;
             }).join('');
 
-            // Render Item Management Tab
             const manageTbody = document.getElementById('inventoryManageTable');
             manageTbody.innerHTML = inventory.map(i => `
                 <tr>
@@ -627,89 +823,53 @@
             }
 
             localStorage.setItem('app_inventory', JSON.stringify(inventory));
-            renderInventoryViews();
             renderDropdown();
+            renderInventoryViews();
             closeModal('itemModal');
         }
 
         function deleteItem(id) {
-            if (confirm('Delete this item from inventory?')) {
+            if (confirm('Delete this item?')) {
                 inventory = inventory.filter(i => i.id !== id);
                 localStorage.setItem('app_inventory', JSON.stringify(inventory));
-                renderInventoryViews();
                 renderDropdown();
-            }
-        }
-
-        function renderCustomerTotals() {
-            const customerMap = {};
-            sales.forEach(s => {
-                const key = s.name.trim().toLowerCase();
-                if (!customerMap[key]) {
-                    customerMap[key] = { displayName: s.name, contact: s.contact, orderCount: 0, totalSpent: 0 };
-                }
-                customerMap[key].orderCount += 1;
-                customerMap[key].totalSpent += parseFloat(s.total) || 0;
-            });
-
-            const tbody = document.getElementById('customersTable');
-            const customerList = Object.values(customerMap);
-            if (customerList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b;">No customer records available.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = customerList.map(c => `
-                <tr>
-                    <td>${c.displayName}</td>
-                    <td>${c.contact}</td>
-                    <td>${c.orderCount}</td>
-                    <td>₱${c.totalSpent.toFixed(2)}</td>
-                </tr>
-            `).join('');
-        }
-
-        function deleteSale(id) {
-            if (confirm('Are you sure you want to delete this sales entry?')) {
-                sales = sales.filter(s => s.id !== id);
-                localStorage.setItem('app_sales', JSON.stringify(sales));
-                init();
+                renderInventoryViews();
             }
         }
 
         function updatePrice() {
-            const id = document.getElementById('prodSelect').value;
-            const item = inventory.find(i => i.id == id);
+            const prodId = document.getElementById('prodSelect').value;
+            const item = inventory.find(i => i.id == prodId);
             if (item) {
-                document.getElementById('unitPrice').value = item.price;
+                document.getElementById('unitPrice').value = item.price.toFixed(2);
                 calcTotal();
+            } else {
+                document.getElementById('unitPrice').value = '';
+                document.getElementById('totalAmt').value = '';
             }
         }
 
         function calcTotal() {
-            const qty = document.getElementById('qty').value || 0;
-            const price = document.getElementById('unitPrice').value || 0;
-            document.getElementById('totalAmt').value = (qty * price).toFixed(2);
+            const price = parseFloat(document.getElementById('unitPrice').value) || 0;
+            const qty = parseInt(document.getElementById('qty').value) || 0;
+            document.getElementById('totalAmt').value = (price * qty).toFixed(2);
         }
 
         document.getElementById('saleForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const prodId = document.getElementById('prodSelect').value;
-            const qty = parseInt(document.getElementById('qty').value);
             const item = inventory.find(i => i.id == prodId);
+            const qty = parseInt(document.getElementById('qty').value);
 
-            if (!item || qty > item.stock) {
-                alert('Invalid item or insufficient stock!');
-                return;
-            }
+            if (!item) return alert('Please select a valid product.');
+            if (item.stock < qty) return alert('Insufficient stock level!');
 
             item.stock -= qty;
+            localStorage.setItem('app_inventory', JSON.stringify(inventory));
 
             const now = new Date();
             const newSale = {
                 id: Date.now(),
-                timestamp: now.toISOString(),
-                isoDate: now.toISOString().split('T')[0],
-                date: now.toLocaleDateString(),
                 name: document.getElementById('custName').value,
                 address: document.getElementById('custAddr').value,
                 contact: document.getElementById('custContact').value,
@@ -717,27 +877,27 @@
                 gps: document.getElementById('custGPS').value,
                 item: item.name,
                 qty: qty,
-                total: document.getElementById('totalAmt').value
+                total: document.getElementById('totalAmt').value,
+                date: now.toLocaleDateString(),
+                isoDate: now.toISOString().split('T')[0],
+                timestamp: now.getTime()
             };
 
             sales.unshift(newSale);
-            localStorage.setItem('app_inventory', JSON.stringify(inventory));
             localStorage.setItem('app_sales', JSON.stringify(sales));
 
-            init();
             this.reset();
             document.getElementById('storePhotoData').value = '';
             document.getElementById('photoPreview').style.display = 'none';
             document.getElementById('custGPS').value = '';
+
+            init();
+            alert('Sale transaction recorded successfully!');
         });
 
-        function renderSales(dataList) {
+        function renderSales(dataToRender) {
             const tbody = document.getElementById('salesTable');
-            if (dataList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#64748b;">No matching sales found.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = dataList.map(s => {
+            tbody.innerHTML = dataToRender.map(s => {
                 const imgTd = s.photo ? `<img src="${s.photo}" class="thumb-img" onclick="viewFullPhoto('${s.photo}', '${s.name}')">` : 'N/A';
                 const gpsBtn = s.gps ? `<button class="action-btn gps-btn" onclick="showMap(${s.gps.split(',')[0]}, ${s.gps.split(',')[1]}, '${s.name}')">Map</button>` : 'N/A';
                 return `
@@ -750,35 +910,50 @@
                     <td>${s.qty}</td>
                     <td>₱${s.total}</td>
                     <td>${gpsBtn}</td>
-                    <td>
-                        <button class="action-btn delete" onclick="deleteSale(${s.id})">Delete</button>
-                    </td>
+                    <td><button class="action-btn delete" onclick="deleteSale(${s.id})">Delete</button></td>
                 </tr>`;
             }).join('');
         }
 
-        function switchTab(tabId, btn) {
-            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-            document.getElementById(tabId).style.display = 'block';
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+        function deleteSale(id) {
+            if (confirm('Delete this sale record?')) {
+                sales = sales.filter(s => s.id !== id);
+                localStorage.setItem('app_sales', JSON.stringify(sales));
+                init();
+            }
         }
 
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function renderCustomerTotals() {
+            const totals = {};
+            sales.forEach(s => {
+                const key = `${s.name.trim()}__${s.contact}`;
+                if (!totals[key]) {
+                    totals[key] = { name: s.name, contact: s.contact, count: 0, sum: 0 };
+                }
+                totals[key].count += 1;
+                totals[key].sum += parseFloat(s.total) || 0;
+            });
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
 
         function exportCSV() {
-            let csv = "Date,Store Name,Address,Contact,GPS,Item,Quantity,Total Amount\n";
+            if (sales.length === 0) return alert('No sales data available to export.');
+            let csv = 'ID,Date,Store Name,Address,Contact,Item,Qty,Total,GPS\n';
             sales.forEach(s => {
-                csv += `"${s.date}","${s.name}","${s.address}","${s.contact}","${s.gps || 'N/A'}","${s.item}",${s.qty},${s.total}\n`;
+                csv += `"${s.id}","${s.date}","${s.name}","${s.address}","${s.contact}","${s.item}","${s.qty}","${s.total}","${s.gps}"\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'sales_data.csv';
+            a.setAttribute('href', url);
+            a.setAttribute('download', `sales_export_${new Date().toISOString().split('T')[0]}.csv`);
             a.click();
         }
 
-        init();
+        window.onload = init;
     </script>
 </body>
 </html>
