@@ -14,10 +14,10 @@
         .profile-info h2 { margin: 0; font-size: 20px; }
         .profile-info p { margin: 2px 0 0; color: #64748b; font-size: 14px; }
         
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .metric-card { background: var(--card); padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); }
-        .metric-card h4 { margin: 0; font-size: 12px; text-transform: uppercase; color: #64748b; }
-        .metric-card .value { font-size: 20px; font-weight: bold; margin-top: 5px; color: var(--text); }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .metric-card { background: var(--card); padding: 12px 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); }
+        .metric-card h4 { margin: 0; font-size: 11px; text-transform: uppercase; color: #64748b; }
+        .metric-card .value { font-size: 18px; font-weight: bold; margin-top: 5px; color: var(--text); }
         
         .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
         .card { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
@@ -32,7 +32,6 @@
         button.edit { background: #f59e0b; }
         button.delete { background: #ef4444; }
         button.gps-btn { background: #6366f1; }
-        button.photo-btn { background: #0284c7; }
         button.export { background: var(--accent); }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
@@ -68,6 +67,10 @@
 
         <!-- Sales Monitoring Dashboard -->
         <div class="metrics-grid">
+            <div class="metric-card" style="border-color: #06b6d4;">
+                <h4>Daily Sales (Today)</h4>
+                <div class="value" id="dailySales">₱0.00</div>
+            </div>
             <div class="metric-card" style="border-color: #3b82f6;">
                 <h4>Weekly Sales (7 Days)</h4>
                 <div class="value" id="weeklySales">₱0.00</div>
@@ -343,27 +346,32 @@
             closeModal('profileModal');
         }
 
-        // Monitoring Dashboard Calculations
+        // Monitoring Dashboard Calculations (Daily, Weekly, Monthly, Yearly, Total)
         function calculateMonitoring() {
             const now = new Date();
+            const todayStr = now.toLocaleDateString();
             const currentYear = now.getFullYear();
             const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
             const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
 
-            let total = 0, weekly = 0, monthly = 0, yearly = 0;
+            let total = 0, daily = 0, weekly = 0, monthly = 0, yearly = 0;
             sales.forEach(s => {
                 const saleAmount = parseFloat(s.total) || 0;
                 const saleDate = new Date(s.timestamp || s.date);
+                const saleDateStr = new Date(s.timestamp || s.date).toLocaleDateString();
+
                 total += saleAmount;
+                if (saleDateStr === todayStr) daily += saleAmount;
                 if (saleDate >= sevenDaysAgo) weekly += saleAmount;
                 if (saleDate >= thirtyDaysAgo) monthly += saleAmount;
                 if (saleDate.getFullYear() === currentYear) yearly += saleAmount;
             });
 
-            document.getElementById('totalSales').textContent = `₱${total.toFixed(2)}`;
+            document.getElementById('dailySales').textContent = `₱${daily.toFixed(2)}`;
             document.getElementById('weeklySales').textContent = `₱${weekly.toFixed(2)}`;
             document.getElementById('monthlySales').textContent = `₱${monthly.toFixed(2)}`;
             document.getElementById('yearlySales').textContent = `₱${yearly.toFixed(2)}`;
+            document.getElementById('totalSales').textContent = `₱${total.toFixed(2)}`;
         }
 
         // Search Store Name or Address
