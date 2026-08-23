@@ -40,11 +40,10 @@
         th, td { border-bottom: 1px solid #e2e8f0; padding: 8px; text-align: left; }
         th { background: #f1f5f9; font-weight: 600; }
         
-        .nav-tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; }
-        .tab-btn { background: #e2e8f0; color: var(--text); border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+        .tab-btn { background: #e2e8f0; color: var(--text); border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; white-space: nowrap; font-weight: 600; }
         .tab-btn.active { background: var(--primary); color: white; }
         
-        /* Filter Container Styles */
         .filter-panel { background: #f1f5f9; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .filter-grid { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: end; }
 
@@ -71,9 +70,8 @@
             <button style="width: auto;" onclick="openProfileModal()">Edit Profile</button>
         </div>
 
-        <!-- Sales Monitoring Dashboard with Interactive Dropdowns -->
+        <!-- Sales Monitoring Dashboard -->
         <div class="metrics-grid">
-            <!-- Daily Sales Dropdown -->
             <div class="metric-card" style="border-color: #06b6d4;">
                 <h4>Daily Sales</h4>
                 <select id="dayFilter" onchange="calculateMonitoring()">
@@ -89,7 +87,6 @@
                 <div class="value" id="dailySales">₱0.00</div>
             </div>
 
-            <!-- Weekly Sales Dropdown -->
             <div class="metric-card" style="border-color: #3b82f6;">
                 <h4>Weekly Sales</h4>
                 <select id="weekFilter" onchange="calculateMonitoring()">
@@ -103,7 +100,6 @@
                 <div class="value" id="weeklySales">₱0.00</div>
             </div>
 
-            <!-- Monthly Sales Dropdown -->
             <div class="metric-card" style="border-color: #10b981;">
                 <h4>Monthly Sales</h4>
                 <select id="monthFilter" onchange="calculateMonitoring()">
@@ -124,16 +120,13 @@
                 <div class="value" id="monthlySales">₱0.00</div>
             </div>
 
-            <!-- Yearly Sales Dropdown -->
             <div class="metric-card" style="border-color: #f59e0b;">
                 <h4>Yearly Sales</h4>
                 <select id="yearFilter" onchange="calculateMonitoring()">
-                    <!-- Populated Dynamically in JS -->
                 </select>
                 <div class="value" id="yearlySales">₱0.00</div>
             </div>
 
-            <!-- Total Sales (All-Time) -->
             <div class="metric-card" style="border-color: #8b5cf6;">
                 <h4>Total Sales</h4>
                 <span style="font-size: 11px; color: #64748b; margin-top: 6px;">All Time Combined</span>
@@ -195,15 +188,15 @@
             <!-- Main Tabbed View -->
             <div class="card">
                 <div class="nav-tabs">
-                    <button class="tab-btn active" onclick="switchTab('sales', this)">Sales Log</button>
-                    <button class="tab-btn" onclick="switchTab('storeHistory', this)">Store Order History</button>
-                    <button class="tab-btn" onclick="switchTab('customers', this)">Customer Totals</button>
-                    <button class="tab-btn" onclick="switchTab('inventory', this)">Inventory & Items</button>
+                    <button class="tab-btn active" onclick="switchTab('salesTab', this)">Sales Log</button>
+                    <button class="tab-btn" onclick="switchTab('storeHistoryTab', this)">Store Order History</button>
+                    <button class="tab-btn" onclick="switchTab('customersTab', this)">Customer Totals</button>
+                    <button class="tab-btn" onclick="switchTab('inventoryTab', this)">Inventory Items</button>
+                    <button class="tab-btn" onclick="switchTab('itemManageTab', this)">Item Management</button>
                 </div>
 
-                <!-- Sales Log Section -->
-                <div id="salesTab">
-                    <!-- Date & Customer Search Panel -->
+                <!-- 1. Sales Log Section -->
+                <div id="salesTab" class="tab-content">
                     <div class="filter-panel">
                         <div class="filter-grid">
                             <div>
@@ -234,8 +227,8 @@
                     </table>
                 </div>
 
-                <!-- Per Store History Order Section -->
-                <div id="storeHistoryTab" style="display:none;">
+                <!-- 2. Store Order History Section -->
+                <div id="storeHistoryTab" class="tab-content" style="display:none;">
                     <div class="form-group">
                         <label>Select Store Name:</label>
                         <select id="storeHistorySelect" onchange="renderStoreOrderHistory()">
@@ -247,8 +240,8 @@
                     </div>
                 </div>
 
-                <!-- Customer Sales Monitoring Section -->
-                <div id="customersTab" style="display:none;">
+                <!-- 3. Customer Totals Section -->
+                <div id="customersTab" class="tab-content" style="display:none;">
                     <table>
                         <thead>
                             <tr>
@@ -259,16 +252,32 @@
                     </table>
                 </div>
 
-                <!-- Inventory Section -->
-                <div id="inventoryTab" style="display:none;">
-                    <button onclick="openItemModal()" style="margin-bottom: 15px; width: auto; background: #10b981;">+ Add New Item</button>
+                <!-- 4. Inventory Items Section -->
+                <div id="inventoryTab" class="tab-content" style="display:none;">
+                    <h3>Stock Status Overview</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item Name</th><th>Price (₱)</th><th>Current Stock</th><th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryOverviewTable"></tbody>
+                    </table>
+                </div>
+
+                <!-- 5. Item Management Section -->
+                <div id="itemManageTab" class="tab-content" style="display:none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="margin: 0;">Add & Edit Products</h3>
+                        <button onclick="openItemModal()" style="width: auto; background: #10b981; margin: 0;">+ Add New Item</button>
+                    </div>
                     <table>
                         <thead>
                             <tr>
                                 <th>Item Name</th><th>Price (₱)</th><th>Stock</th><th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="inventoryTable"></tbody>
+                        <tbody id="inventoryManageTable"></tbody>
                     </table>
                 </div>
             </div>
@@ -337,7 +346,7 @@
             renderDropdown();
             filterSalesByDateAndCustomer();
             renderCustomerTotals();
-            renderInventory();
+            renderInventoryViews();
             calculateMonitoring();
             populateStoreHistoryDropdown();
         }
@@ -351,7 +360,6 @@
             }
         }
 
-        // Monitoring Dashboard Filter Calculations
         function calculateMonitoring() {
             const now = new Date();
             const todayStr = now.toLocaleDateString();
@@ -371,14 +379,12 @@
 
                 total += saleAmount;
 
-                // Daily Filter Processing
                 if (selectedDay === 'today') {
                     if (saleDateStr === todayStr) daily += saleAmount;
                 } else {
                     if (saleDate.getDay().toString() === selectedDay) daily += saleAmount;
                 }
 
-                // Weekly Filter Processing
                 if (selectedWeek === '7days') {
                     const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
                     if (saleDate >= sevenDaysAgo) weekly += saleAmount;
@@ -388,7 +394,6 @@
                 else if (selectedWeek === '4' && dayOfMonth >= 22 && dayOfMonth <= 28) weekly += saleAmount;
                 else if (selectedWeek === '5' && dayOfMonth >= 29) weekly += saleAmount;
 
-                // Monthly Filter Processing
                 if (selectedMonth === '30days') {
                     const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
                     if (saleDate >= thirtyDaysAgo) monthly += saleAmount;
@@ -396,7 +401,6 @@
                     if (saleDate.getMonth().toString() === selectedMonth) monthly += saleAmount;
                 }
 
-                // Yearly Filter Processing
                 if (saleDate.getFullYear() === selectedYear) yearly += saleAmount;
             });
 
@@ -407,18 +411,15 @@
             document.getElementById('totalSales').textContent = `₱${total.toFixed(2)}`;
         }
 
-        // Combined Customer & Date Range Search Filter
         function filterSalesByDateAndCustomer() {
             const customerQuery = document.getElementById('searchCustomer').value.toLowerCase().trim();
             const startVal = document.getElementById('startDate').value;
             const endVal = document.getElementById('endDate').value;
 
             const filtered = sales.filter(s => {
-                // Name or Address Search
                 const matchesCustomer = s.name.toLowerCase().includes(customerQuery) || 
                                         s.address.toLowerCase().includes(customerQuery);
 
-                // Date Filtering
                 const saleDateStr = s.isoDate || new Date(s.timestamp || s.date).toISOString().split('T')[0];
                 let matchesDate = true;
 
@@ -438,7 +439,6 @@
             renderSales(sales);
         }
 
-        // Photo Processing
         function previewPhoto(event) {
             const file = event.target.files[0];
             if (file) {
@@ -459,7 +459,6 @@
             document.getElementById('photoModal').style.display = 'flex';
         }
 
-        // GPS Function
         function getGPSLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
@@ -486,7 +485,6 @@
             }, 200);
         }
 
-        // Profile Functions
         function renderProfile() {
             document.getElementById('dispShopName').textContent = profile.shop;
             document.getElementById('dispOwner').textContent = `Owner: ${profile.owner} | Contact: ${profile.contact}`;
@@ -510,7 +508,6 @@
             closeModal('profileModal');
         }
 
-        // Per Store Order History
         function populateStoreHistoryDropdown() {
             const select = document.getElementById('storeHistorySelect');
             const uniqueStores = [...new Set(sales.map(s => s.name.trim()))];
@@ -557,7 +554,6 @@
             container.innerHTML = html;
         }
 
-        // Items & Inventory
         function renderDropdown() {
             const select = document.getElementById('prodSelect');
             select.innerHTML = '<option value="">Select Item</option>';
@@ -566,9 +562,25 @@
             });
         }
 
-        function renderInventory() {
-            const tbody = document.getElementById('inventoryTable');
-            tbody.innerHTML = inventory.map(i => `
+        function renderInventoryViews() {
+            // Render Inventory Items Tab
+            const overviewTbody = document.getElementById('inventoryOverviewTable');
+            overviewTbody.innerHTML = inventory.map(i => {
+                let status = i.stock > 10 ? '<span style="color: #10b981; font-weight:bold;">In Stock</span>' :
+                             i.stock > 0  ? '<span style="color: #f59e0b; font-weight:bold;">Low Stock</span>' :
+                                            '<span style="color: #ef4444; font-weight:bold;">Out of Stock</span>';
+                return `
+                <tr>
+                    <td>${i.name}</td>
+                    <td>₱${parseFloat(i.price).toFixed(2)}</td>
+                    <td>${i.stock}</td>
+                    <td>${status}</td>
+                </tr>`;
+            }).join('');
+
+            // Render Item Management Tab
+            const manageTbody = document.getElementById('inventoryManageTable');
+            manageTbody.innerHTML = inventory.map(i => `
                 <tr>
                     <td>${i.name}</td>
                     <td>₱${parseFloat(i.price).toFixed(2)}</td>
@@ -615,7 +627,7 @@
             }
 
             localStorage.setItem('app_inventory', JSON.stringify(inventory));
-            renderInventory();
+            renderInventoryViews();
             renderDropdown();
             closeModal('itemModal');
         }
@@ -624,12 +636,11 @@
             if (confirm('Delete this item from inventory?')) {
                 inventory = inventory.filter(i => i.id !== id);
                 localStorage.setItem('app_inventory', JSON.stringify(inventory));
-                renderInventory();
+                renderInventoryViews();
                 renderDropdown();
             }
         }
 
-        // Customer Summary Monitoring
         function renderCustomerTotals() {
             const customerMap = {};
             sales.forEach(s => {
@@ -665,7 +676,6 @@
             }
         }
 
-        // Transaction Processing
         function updatePrice() {
             const id = document.getElementById('prodSelect').value;
             const item = inventory.find(i => i.id == id);
@@ -747,12 +757,9 @@
             }).join('');
         }
 
-        // Utility Functions
-        function switchTab(tab, btn) {
-            document.getElementById('salesTab').style.display = tab === 'sales' ? 'block' : 'none';
-            document.getElementById('storeHistoryTab').style.display = tab === 'storeHistory' ? 'block' : 'none';
-            document.getElementById('customersTab').style.display = tab === 'customers' ? 'block' : 'none';
-            document.getElementById('inventoryTab').style.display = tab === 'inventory' ? 'block' : 'none';
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.getElementById(tabId).style.display = 'block';
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
