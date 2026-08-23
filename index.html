@@ -10,10 +10,25 @@
         :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --accent: #10b981; }
         body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         .container { max-width: 1100px; margin: 0 auto; }
+        
         .header { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .menu-toggle-btn { background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px; width: auto; }
+        
         .profile-info h2 { margin: 0; font-size: 20px; }
         .profile-info p { margin: 2px 0 0; color: #64748b; font-size: 14px; }
         
+        /* Collapsible Sidebar Menu */
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 2000; }
+        .sidebar { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: #1e293b; color: white; transition: left 0.3s ease; z-index: 2001; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
+        .sidebar.active { left: 0; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .sidebar-header h3 { margin: 0; color: #f8fafc; }
+        .close-menu-btn { background: transparent; border: none; color: #94a3b8; font-size: 22px; cursor: pointer; width: auto; margin: 0; }
+        .menu-items { display: flex; flex-direction: column; gap: 8px; }
+        .menu-item-btn { background: transparent; color: #cbd5e1; border: none; text-align: left; padding: 12px 15px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; width: 100%; margin: 0; }
+        .menu-item-btn:hover, .menu-item-btn.active { background: var(--primary); color: white; }
+
         .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .metric-card { background: var(--card); padding: 12px 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); display: flex; flex-direction: column; justify-content: space-between; }
         .metric-card h4 { margin: 0; font-size: 11px; text-transform: uppercase; color: #64748b; }
@@ -40,10 +55,6 @@
         th, td { border-bottom: 1px solid #e2e8f0; padding: 8px; text-align: left; }
         th { background: #f1f5f9; font-weight: 600; }
         
-        .nav-tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
-        .tab-btn { background: #e2e8f0; color: var(--text); border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; white-space: nowrap; font-weight: 600; }
-        .tab-btn.active { background: var(--primary); color: white; }
-        
         .filter-panel { background: #f1f5f9; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .filter-grid { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: end; }
 
@@ -60,17 +71,39 @@
     </style>
 </head>
 <body>
+    <!-- Sidebar Menu Drawer -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleMenu()"></div>
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Navigation</h3>
+            <button class="close-menu-btn" onclick="toggleMenu()">&times;</button>
+        </div>
+        <div class="menu-items">
+            <button class="menu-item-btn active" onclick="switchView('salesTab', this)">📋 Sales Log</button>
+            <button class="menu-item-btn" onclick="switchView('storeHistoryTab', this)">🏬 Store Order History</button>
+            <button class="menu-item-btn" onclick="switchView('customersTab', this)">👥 Customer Totals</button>
+            <button class="menu-item-btn" onclick="switchView('weeklySalesTab', this)">📅 Weekly Sales Breakdown</button>
+            <button class="menu-item-btn" onclick="switchView('monthlySalesTab', this)">🗓️ Monthly Sales Breakdown</button>
+            <button class="menu-item-btn" onclick="switchView('yearlySalesTab', this)">📊 Yearly Sales Breakdown</button>
+            <button class="menu-item-btn" onclick="switchView('inventoryTab', this)">📦 Inventory Items</button>
+            <button class="menu-item-btn" onclick="switchView('itemManageTab', this)">⚙️ Item Management</button>
+        </div>
+    </div>
+
     <div class="container">
-        <!-- Profile Header -->
+        <!-- Header with Menu Toggle Button -->
         <div class="header">
-            <div class="profile-info">
-                <h2 id="dispShopName">My Shop</h2>
-                <p id="dispOwner">Owner: Business Owner | Contact: N/A</p>
+            <div class="header-left">
+                <button class="menu-toggle-btn" onclick="toggleMenu()">☰ Menu</button>
+                <div class="profile-info">
+                    <h2 id="dispShopName">My Shop</h2>
+                    <p id="dispOwner">Owner: Business Owner | Contact: N/A</p>
+                </div>
             </div>
             <button style="width: auto;" onclick="openProfileModal()">Edit Profile</button>
         </div>
 
-        <!-- Sales Monitoring Dashboard -->
+        <!-- Dashboard Summary Bar -->
         <div class="metrics-grid">
             <div class="metric-card" style="border-color: #06b6d4;">
                 <h4>Daily Sales</h4>
@@ -122,8 +155,7 @@
 
             <div class="metric-card" style="border-color: #f59e0b;">
                 <h4>Yearly Sales</h4>
-                <select id="yearFilter" onchange="calculateMonitoring()">
-                </select>
+                <select id="yearFilter" onchange="calculateMonitoring()"></select>
                 <div class="value" id="yearlySales">₱0.00</div>
             </div>
 
@@ -185,18 +217,11 @@
                 <button class="export" onclick="exportCSV()">Export Data to CSV</button>
             </div>
 
-            <!-- Main Tabbed View -->
+            <!-- Main Dynamic Display View -->
             <div class="card">
-                <div class="nav-tabs">
-                    <button class="tab-btn active" onclick="switchTab('salesTab', this)">Sales Log</button>
-                    <button class="tab-btn" onclick="switchTab('storeHistoryTab', this)">Store Order History</button>
-                    <button class="tab-btn" onclick="switchTab('customersTab', this)">Customer Totals</button>
-                    <button class="tab-btn" onclick="switchTab('inventoryTab', this)">Inventory Items</button>
-                    <button class="tab-btn" onclick="switchTab('itemManageTab', this)">Item Management</button>
-                </div>
-
-                <!-- 1. Sales Log Section -->
-                <div id="salesTab" class="tab-content">
+                <!-- 1. Sales Log View -->
+                <div id="salesTab" class="view-content">
+                    <h3 style="margin-top:0;">Sales Log</h3>
                     <div class="filter-panel">
                         <div class="filter-grid">
                             <div>
@@ -227,8 +252,9 @@
                     </table>
                 </div>
 
-                <!-- 2. Store Order History Section -->
-                <div id="storeHistoryTab" class="tab-content" style="display:none;">
+                <!-- 2. Store Order History View -->
+                <div id="storeHistoryTab" class="view-content" style="display:none;">
+                    <h3 style="margin-top:0;">Store Order History</h3>
                     <div class="form-group">
                         <label>Select Store Name:</label>
                         <select id="storeHistorySelect" onchange="renderStoreOrderHistory()">
@@ -240,8 +266,9 @@
                     </div>
                 </div>
 
-                <!-- 3. Customer Totals Section -->
-                <div id="customersTab" class="tab-content" style="display:none;">
+                <!-- 3. Customer Totals View -->
+                <div id="customersTab" class="view-content" style="display:none;">
+                    <h3 style="margin-top:0;">Customer Cumulative Sales</h3>
                     <table>
                         <thead>
                             <tr>
@@ -252,9 +279,51 @@
                     </table>
                 </div>
 
-                <!-- 4. Inventory Items Section -->
-                <div id="inventoryTab" class="tab-content" style="display:none;">
-                    <h3>Stock Status Overview</h3>
+                <!-- 4. Weekly Sales Breakdown View -->
+                <div id="weeklySalesTab" class="view-content" style="display:none;">
+                    <h3 style="margin-top:0;">Weekly Sales Records</h3>
+                    <p style="color:#64748b; font-size: 13px;">View total sales categorized by week of the month.</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Week Period</th><th>Total Orders</th><th>Weekly Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="weeklySalesTable"></tbody>
+                    </table>
+                </div>
+
+                <!-- 5. Monthly Sales Breakdown View -->
+                <div id="monthlySalesTab" class="view-content" style="display:none;">
+                    <h3 style="margin-top:0;">Monthly Sales Records</h3>
+                    <p style="color:#64748b; font-size: 13px;">View sales totals broken down by month for the current year.</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Month</th><th>Total Orders</th><th>Monthly Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monthlySalesTable"></tbody>
+                    </table>
+                </div>
+
+                <!-- 6. Yearly Sales Breakdown View -->
+                <div id="yearlySalesTab" class="view-content" style="display:none;">
+                    <h3 style="margin-top:0;">Yearly Sales Records</h3>
+                    <p style="color:#64748b; font-size: 13px;">View complete yearly business performance history.</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Year</th><th>Total Transactions</th><th>Total Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody id="yearlySalesTable"></tbody>
+                    </table>
+                </div>
+
+                <!-- 7. Inventory Items View -->
+                <div id="inventoryTab" class="view-content" style="display:none;">
+                    <h3 style="margin-top:0;">Stock Inventory Overview</h3>
                     <table>
                         <thead>
                             <tr>
@@ -265,8 +334,8 @@
                     </table>
                 </div>
 
-                <!-- 5. Item Management Section -->
-                <div id="itemManageTab" class="tab-content" style="display:none;">
+                <!-- 8. Item Management View -->
+                <div id="itemManageTab" class="view-content" style="display:none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                         <h3 style="margin: 0;">Add & Edit Products</h3>
                         <button onclick="openItemModal()" style="width: auto; background: #10b981; margin: 0;">+ Add New Item</button>
@@ -349,6 +418,30 @@
             renderInventoryViews();
             calculateMonitoring();
             populateStoreHistoryDropdown();
+            renderSeparatedSalesViews();
+        }
+
+        // Toggle Sidebar Menu
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                overlay.style.display = 'none';
+            } else {
+                sidebar.classList.add('active');
+                overlay.style.display = 'block';
+            }
+        }
+
+        function switchView(viewId, btn) {
+            document.querySelectorAll('.view-content').forEach(el => el.style.display = 'none');
+            document.getElementById(viewId).style.display = 'block';
+            
+            document.querySelectorAll('.menu-item-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            
+            toggleMenu(); // Auto-close drawer on navigation
         }
 
         function populateYearDropdown() {
@@ -409,6 +502,85 @@
             document.getElementById('monthlySales').textContent = `₱${monthly.toFixed(2)}`;
             document.getElementById('yearlySales').textContent = `₱${yearly.toFixed(2)}`;
             document.getElementById('totalSales').textContent = `₱${total.toFixed(2)}`;
+        }
+
+        // Dedicated Displays for Weekly, Monthly, and Yearly Tabs
+        function renderSeparatedSalesViews() {
+            const currentYear = new Date().getFullYear();
+
+            // 1. Weekly Sales
+            const weeks = [
+                { name: 'Week 1 (Days 1 - 7)', count: 0, total: 0 },
+                { name: 'Week 2 (Days 8 - 14)', count: 0, total: 0 },
+                { name: 'Week 3 (Days 15 - 21)', count: 0, total: 0 },
+                { name: 'Week 4 (Days 22 - 28)', count: 0, total: 0 },
+                { name: 'Week 5 (Days 29 - 31)', count: 0, total: 0 }
+            ];
+
+            // 2. Monthly Sales
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const months = monthNames.map(m => ({ name: m, count: 0, total: 0 }));
+
+            // 3. Yearly Sales
+            const yearMap = {};
+
+            sales.forEach(s => {
+                const amount = parseFloat(s.total) || 0;
+                const d = new Date(s.isoDate || s.timestamp || s.date);
+                const day = d.getDate();
+                const month = d.getMonth();
+                const year = d.getFullYear();
+
+                // Fill Weekly
+                if (day <= 7) { weeks[0].count++; weeks[0].total += amount; }
+                else if (day <= 14) { weeks[1].count++; weeks[1].total += amount; }
+                else if (day <= 21) { weeks[2].count++; weeks[2].total += amount; }
+                else if (day <= 28) { weeks[3].count++; weeks[3].total += amount; }
+                else { weeks[4].count++; weeks[4].total += amount; }
+
+                // Fill Monthly
+                if (year === currentYear) {
+                    months[month].count++;
+                    months[month].total += amount;
+                }
+
+                // Fill Yearly
+                if (!yearMap[year]) yearMap[year] = { count: 0, total: 0 };
+                yearMap[year].count++;
+                yearMap[year].total += amount;
+            });
+
+            // Render Weekly Table
+            document.getElementById('weeklySalesTable').innerHTML = weeks.map(w => `
+                <tr>
+                    <td>${w.name}</td>
+                    <td>${w.count}</td>
+                    <td>₱${w.total.toFixed(2)}</td>
+                </tr>
+            `).join('');
+
+            // Render Monthly Table
+            document.getElementById('monthlySalesTable').innerHTML = months.map(m => `
+                <tr>
+                    <td>${m.name}</td>
+                    <td>${m.count}</td>
+                    <td>₱${m.total.toFixed(2)}</td>
+                </tr>
+            `).join('');
+
+            // Render Yearly Table
+            const yearsArr = Object.keys(yearMap).sort((a,b) => b - a);
+            if (yearsArr.length === 0) {
+                document.getElementById('yearlySalesTable').innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No yearly record found.</td></tr>`;
+            } else {
+                document.getElementById('yearlySalesTable').innerHTML = yearsArr.map(y => `
+                    <tr>
+                        <td>${y}</td>
+                        <td>${yearMap[y].count}</td>
+                        <td>₱${yearMap[y].total.toFixed(2)}</td>
+                    </tr>
+                `).join('');
+            }
         }
 
         function filterSalesByDateAndCustomer() {
@@ -563,7 +735,6 @@
         }
 
         function renderInventoryViews() {
-            // Render Inventory Items Tab
             const overviewTbody = document.getElementById('inventoryOverviewTable');
             overviewTbody.innerHTML = inventory.map(i => {
                 let status = i.stock > 10 ? '<span style="color: #10b981; font-weight:bold;">In Stock</span>' :
@@ -578,7 +749,6 @@
                 </tr>`;
             }).join('');
 
-            // Render Item Management Tab
             const manageTbody = document.getElementById('inventoryManageTable');
             manageTbody.innerHTML = inventory.map(i => `
                 <tr>
@@ -755,13 +925,6 @@
                     </td>
                 </tr>`;
             }).join('');
-        }
-
-        function switchTab(tabId, btn) {
-            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-            document.getElementById(tabId).style.display = 'block';
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
         }
 
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
