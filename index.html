@@ -111,6 +111,17 @@
             background-color: #f1f5f9;
         }
 
+        .search-bar-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .search-bar-container input {
+            flex: 1;
+        }
+
         .btn {
             padding: 10px 18px;
             background: var(--primary);
@@ -183,6 +194,80 @@
         .action-btn.delete { background: var(--danger); }
         .action-btn.gps-btn { background: var(--primary); }
 
+        .analytics-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .card h4 {
+            font-size: 0.85rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .card .card-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .sub-filter-group {
+            display: none;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .sub-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            background: #f1f5f9;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .sub-btn.active {
+            background: #0ea5e9;
+            color: white;
+            border-color: #0ea5e9;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -218,10 +303,11 @@
         </header>
 
         <nav>
-            <button class="nav-btn active" onclick="switchView('view-new-sale')">New Sale</button>
-            <button class="nav-btn" onclick="switchView('view-sales-records')">Sales Records</button>
-            <button class="nav-btn" onclick="switchView('view-inventory-overview')">Inventory Overview</button>
-            <button class="nav-btn" onclick="switchView('view-manage-inventory')">Manage Inventory</button>
+            <button class="nav-btn active" onclick="switchView('view-new-sale', event)">New Sale</button>
+            <button class="nav-btn" onclick="switchView('view-sales-records', event)">Sales Records</button>
+            <button class="nav-btn" onclick="switchView('view-sales-analytics', event)">Sales Monitoring</button>
+            <button class="nav-btn" onclick="switchView('view-inventory-overview', event)">Inventory Overview</button>
+            <button class="nav-btn" onclick="switchView('view-manage-inventory', event)">Manage Inventory</button>
         </nav>
 
         <!-- View 1: New Sale Form -->
@@ -230,8 +316,8 @@
             <form id="saleForm" style="margin-top: 15px;">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label>Customer Name</label>
-                        <input type="text" id="custName" required placeholder="Enter customer name">
+                        <label>Customer / Store Name</label>
+                        <input type="text" id="custName" required placeholder="Enter store or customer name">
                     </div>
                     <div class="form-group">
                         <label>Customer Address</label>
@@ -282,17 +368,23 @@
 
         <!-- View 2: Sales Records -->
         <div id="view-sales-records" class="view-panel">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
                 <h2>Sales History</h2>
                 <button class="btn btn-success" onclick="exportCSV()">Export to CSV</button>
             </div>
+
+            <div class="search-bar-container">
+                <input type="text" id="salesSearchInput" onkeyup="filterSales()" placeholder="🔍 Search store, customer, address, or product...">
+                <button class="btn" style="background:var(--secondary);" onclick="clearSearch()">Clear</button>
+            </div>
+
             <div style="overflow-x:auto;">
                 <table>
                     <thead>
                         <tr>
                             <th>Photo</th>
                             <th>Date</th>
-                            <th>Customer</th>
+                            <th>Customer / Store</th>
                             <th>Address</th>
                             <th>Item</th>
                             <th>Qty</th>
@@ -307,7 +399,77 @@
             <div id="salesGrandTotalContainer"></div>
         </div>
 
-        <!-- View 3: Inventory Overview -->
+        <!-- View 3: Sales Monitoring / Analytics -->
+        <div id="view-sales-analytics" class="view-panel">
+            <h2>Sales Analytics & Monitoring</h2>
+            <div class="filter-group" style="margin-top: 15px;">
+                <button class="filter-btn active" onclick="setAnalyticsFilter('daily', this)">Daily Breakdown</button>
+                <button class="filter-btn" onclick="setAnalyticsFilter('weekly', this)">This Week</button>
+                <button class="filter-btn" onclick="setAnalyticsFilter('monthly', this)">This Month</button>
+                <button class="filter-btn" onclick="setAnalyticsFilter('all', this)">All Time</button>
+            </div>
+
+            <!-- Day Selector (Monday to Saturday + Today) -->
+            <div id="dayFilterContainer" class="sub-filter-group" style="display: flex;">
+                <button class="sub-btn active" onclick="setDayFilter('today', this)">Today</button>
+                <button class="sub-btn" onclick="setDayFilter(1, this)">Monday</button>
+                <button class="sub-btn" onclick="setDayFilter(2, this)">Tuesday</button>
+                <button class="sub-btn" onclick="setDayFilter(3, this)">Wednesday</button>
+                <button class="sub-btn" onclick="setDayFilter(4, this)">Thursday</button>
+                <button class="sub-btn" onclick="setDayFilter(5, this)">Friday</button>
+                <button class="sub-btn" onclick="setDayFilter(6, this)">Saturday</button>
+            </div>
+
+            <!-- Month Selector (Current Month + Jan to Dec) -->
+            <div id="monthFilterContainer" class="sub-filter-group">
+                <button class="sub-btn active" onclick="setMonthFilter('current', this)">Current Month</button>
+                <button class="sub-btn" onclick="setMonthFilter(0, this)">Jan</button>
+                <button class="sub-btn" onclick="setMonthFilter(1, this)">Feb</button>
+                <button class="sub-btn" onclick="setMonthFilter(2, this)">Mar</button>
+                <button class="sub-btn" onclick="setMonthFilter(3, this)">Apr</button>
+                <button class="sub-btn" onclick="setMonthFilter(4, this)">May</button>
+                <button class="sub-btn" onclick="setMonthFilter(5, this)">Jun</button>
+                <button class="sub-btn" onclick="setMonthFilter(6, this)">Jul</button>
+                <button class="sub-btn" onclick="setMonthFilter(7, this)">Aug</button>
+                <button class="sub-btn" onclick="setMonthFilter(8, this)">Sep</button>
+                <button class="sub-btn" onclick="setMonthFilter(9, this)">Oct</button>
+                <button class="sub-btn" onclick="setMonthFilter(10, this)">Nov</button>
+                <button class="sub-btn" onclick="setMonthFilter(11, this)">Dec</button>
+            </div>
+
+            <div class="analytics-cards">
+                <div class="card">
+                    <h4>Total Revenue</h4>
+                    <div class="card-value" id="analyticRevenue">₱0.00</div>
+                </div>
+                <div class="card">
+                    <h4>Transactions</h4>
+                    <div class="card-value" id="analyticOrders">0</div>
+                </div>
+                <div class="card">
+                    <h4>Items Sold</h4>
+                    <div class="card-value" id="analyticItems">0</div>
+                </div>
+            </div>
+
+            <h3>Period Breakdown</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Customer / Store</th>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="analyticsTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- View 4: Inventory Overview -->
         <div id="view-inventory-overview" class="view-panel">
             <h2>Inventory Stock Overview</h2>
             <div style="overflow-x:auto;">
@@ -325,7 +487,7 @@
             </div>
         </div>
 
-        <!-- View 4: Manage Inventory -->
+        <!-- View 5: Manage Inventory -->
         <div id="view-manage-inventory" class="view-panel">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <h2>Manage Inventory</h2>
@@ -372,29 +534,33 @@
     </div>
 
     <script>
-        // Initial Mock Data
         let inventory = JSON.parse(localStorage.getItem('app_inventory')) || [
             { id: 1, name: 'Sample Product A', price: 150.00, stock: 25 },
             { id: 2, name: 'Sample Product B', price: 299.99, stock: 8 }
         ];
 
         let sales = JSON.parse(localStorage.getItem('app_sales')) || [];
+        let currentAnalyticsFilter = 'daily';
+        let currentSelectedDay = 'today';   // 'today' or 1 (Mon) to 6 (Sat)
+        let currentSelectedMonth = 'current'; // 'current' or 0 (Jan) to 11 (Dec)
 
         function init() {
             renderDropdown();
             renderSales(sales);
             renderInventoryViews();
+            renderAnalytics();
         }
 
-        function switchView(viewId) {
+        function switchView(viewId, evt) {
             document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
 
             document.getElementById(viewId).classList.add('active');
-            event.target.classList.add('active');
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            }
         }
 
-        // --- GPS Geolocation Capture ---
         function captureGPS() {
             const gpsInput = document.getElementById('custGPS');
             const gpsStatus = document.getElementById('gpsStatus');
@@ -433,11 +599,7 @@
                     gpsStatus.textContent = 'Location acquisition failed.';
                     gpsStatus.style.color = 'var(--danger)';
                 },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                }
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         }
 
@@ -450,7 +612,120 @@
             window.open(url, '_blank');
         }
 
-        // Image Processing
+        function filterSales() {
+            const query = document.getElementById('salesSearchInput').value.toLowerCase().trim();
+            if (!query) {
+                renderSales(sales);
+                return;
+            }
+
+            const filtered = sales.filter(s => 
+                (s.name && s.name.toLowerCase().includes(query)) ||
+                (s.address && s.address.toLowerCase().includes(query)) ||
+                (s.item && s.item.toLowerCase().includes(query)) ||
+                (s.date && s.date.toLowerCase().includes(query))
+            );
+
+            renderSales(filtered);
+        }
+
+        function clearSearch() {
+            document.getElementById('salesSearchInput').value = '';
+            renderSales(sales);
+        }
+
+        function setAnalyticsFilter(period, btnElement) {
+            currentAnalyticsFilter = period;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+
+            const dayContainer = document.getElementById('dayFilterContainer');
+            const monthContainer = document.getElementById('monthFilterContainer');
+
+            dayContainer.style.display = 'none';
+            monthContainer.style.display = 'none';
+
+            if (period === 'daily') {
+                dayContainer.style.display = 'flex';
+            } else if (period === 'monthly') {
+                monthContainer.style.display = 'flex';
+            }
+
+            renderAnalytics();
+        }
+
+        function setDayFilter(dayValue, btnElement) {
+            currentSelectedDay = dayValue;
+            document.querySelectorAll('#dayFilterContainer .sub-btn').forEach(btn => btn.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+            renderAnalytics();
+        }
+
+        function setMonthFilter(monthValue, btnElement) {
+            currentSelectedMonth = monthValue;
+            document.querySelectorAll('#monthFilterContainer .sub-btn').forEach(btn => btn.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+            renderAnalytics();
+        }
+
+        function renderAnalytics() {
+            const now = new Date();
+            const todayStr = now.toLocaleDateString();
+
+            const filteredSales = sales.filter(s => {
+                const saleDate = new Date(s.timestamp || s.id);
+                
+                if (currentAnalyticsFilter === 'daily') {
+                    if (currentSelectedDay === 'today') {
+                        return saleDate.toLocaleDateString() === todayStr;
+                    } else {
+                        // 1 = Mon, 2 = Tue, ..., 6 = Sat
+                        return saleDate.getDay() === parseInt(currentSelectedDay);
+                    }
+                } else if (currentAnalyticsFilter === 'weekly') {
+                    const oneWeekAgo = new Date();
+                    oneWeekAgo.setDate(now.getDate() - 7);
+                    return saleDate >= oneWeekAgo;
+                } else if (currentAnalyticsFilter === 'monthly') {
+                    if (currentSelectedMonth === 'current') {
+                        return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
+                    } else {
+                        // 0 = Jan, 1 = Feb, ..., 11 = Dec
+                        return saleDate.getMonth() === parseInt(currentSelectedMonth);
+                    }
+                }
+                return true;
+            });
+
+            let totalRev = 0;
+            let totalQty = 0;
+
+            const tbody = document.getElementById('analyticsTable');
+            tbody.innerHTML = '';
+
+            if (filteredSales.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No records found for selected period.</td></tr>';
+            } else {
+                filteredSales.forEach(s => {
+                    totalRev += parseFloat(s.total);
+                    totalQty += s.qty;
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${s.date}</td>
+                            <td>${s.name}</td>
+                            <td>${s.item}</td>
+                            <td>${s.qty}</td>
+                            <td>₱${parseFloat(s.total).toFixed(2)}</td>
+                        </tr>`;
+                });
+            }
+
+            document.getElementById('analyticRevenue').textContent = `₱${totalRev.toFixed(2)}`;
+            document.getElementById('analyticOrders').textContent = filteredSales.length;
+            document.getElementById('analyticItems').textContent = totalQty;
+        }
+
         function handlePhoto(event) {
             const file = event.target.files[0];
             if (file) {
@@ -470,7 +745,6 @@
             win.document.write(`<img src="${photoData}" alt="${name}" style="max-width:100%;">`);
         }
 
-        // Dropdowns and Form Calculations
         function renderDropdown() {
             const select = document.getElementById('prodSelect');
             select.innerHTML = '<option value="">-- Select Product --</option>';
@@ -492,7 +766,6 @@
             document.getElementById('totalAmt').value = (price * qty).toFixed(2);
         }
 
-        // Submit Sale Event
         document.getElementById('saleForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const prodId = document.getElementById('prodSelect').value;
@@ -536,7 +809,6 @@
             switchView('view-sales-records');
         });
 
-        // Sales Rendering
         function renderSales(data) {
             const tbody = document.getElementById('salesTable');
             const container = document.getElementById('salesGrandTotalContainer');
@@ -544,7 +816,7 @@
             let grandTotal = 0;
 
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No records found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No matching sales records found.</td></tr>';
                 container.innerHTML = '';
                 return;
             }
@@ -575,7 +847,7 @@
 
             container.innerHTML = `
                 <div style="margin-top: 15px; font-weight: bold; font-size: 1.1rem; text-align: right; color: var(--primary);">
-                    Lifetime Store Total: ₱${grandTotal.toFixed(2)}
+                    Displayed Total: ₱${grandTotal.toFixed(2)}
                 </div>`;
         }
 
@@ -587,7 +859,6 @@
             }
         }
 
-        // Inventory Views Rendering
         function renderInventoryViews() {
             const overviewTable = document.getElementById('inventoryOverviewTable');
             const manageTable = document.getElementById('inventoryManageTable');
@@ -621,7 +892,6 @@
             });
         }
 
-        // Item Modal logic
         function openItemModal() {
             document.getElementById('itemId').value = '';
             document.getElementById('itemName').value = '';
@@ -676,7 +946,6 @@
             }
         }
 
-        // CSV Export
         function exportCSV() {
             if (sales.length === 0) { alert('No sales data available to export.'); return; }
             let csvContent = 'data:text/csv;charset=utf-8,Date,Customer,Address,Contact,Item,Qty,Total,GPS\n';
@@ -708,7 +977,6 @@
             document.getElementById(modalId).style.display = 'none';
         }
 
-        // Initialize App
         init();
     </script>
 </body>
