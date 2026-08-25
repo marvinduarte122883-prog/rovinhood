@@ -3,323 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Management System</title>
-    <!-- Leaflet CSS for GPS Map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>Store Management & Sales System</title>
     <style>
         :root {
             --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --bg: #f8fafc;
-            --surface: #ffffff;
-            --text: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --danger: #ef4444;
-            --success: #10b981;
-            --warning: #f59e0b;
+            --primary-hover: #1d4ed8;
+            --secondary: #64748b;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding-bottom: 40px; }
-
-        /* Top Navbar */
-        .navbar {
-            background-color: var(--primary);
-            color: white;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        .menu-btn {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-
-        .menu-btn:hover { background: rgba(255,255,255,0.2); }
-
-        .shop-title { font-size: 1.2rem; font-weight: bold; }
-
-        /* Slide-out Sidebar Menu */
-        .sidebar-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            z-index: 1001;
-        }
-
-        .sidebar {
-            position: fixed;
-            top: 0; left: -280px;
-            width: 280px; height: 100%;
-            background: var(--surface);
-            z-index: 1002;
-            transition: left 0.3s ease;
-            box-shadow: 2px 0 12px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar.open { left: 0; }
-
-        .sidebar-header {
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
             padding: 20px;
-            background: var(--primary);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
-        .close-sidebar {
-            background: none; border: none; color: white;
-            font-size: 22px; cursor: pointer;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        .sidebar-menu { list-style: none; padding: 10px 0; }
-
-        .sidebar-menu li a {
-            display: block;
-            padding: 14px 20px;
-            color: var(--text);
-            text-decoration: none;
-            font-weight: 500;
-            border-bottom: 1px solid var(--border);
-            transition: background 0.2s;
+        header {
+            margin-bottom: 20px;
+            text-align: center;
         }
 
-        .sidebar-menu li a:hover, .sidebar-menu li a.active {
-            background-color: #eff6ff;
+        h1 {
             color: var(--primary);
-        }
-
-        /* Container */
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
-
-        .view-section { display: none; }
-        .view-section.active { display: block; }
-
-        /* Dashboard Cards Grid */
-        .sales-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .card {
-            background: var(--surface);
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 10px;
         }
 
-        .card-title { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
-        .card-value { font-size: 1.8rem; font-weight: bold; color: var(--text); }
-
-        .card-select {
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid var(--border);
-            font-size: 0.85rem;
+        nav {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        /* Forms & Tables */
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 500; }
-        input, select, button {
-            width: 100%; padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 6px; font-size: 0.95rem;
+        .nav-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .nav-btn.active, .nav-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .view-panel {
+            display: none;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        input, select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        input[readonly] {
+            background-color: #f1f5f9;
         }
 
         .btn {
+            padding: 10px 18px;
             background: var(--primary);
-            color: white; border: none;
-            cursor: pointer; font-weight: 600;
-            transition: background 0.2s;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
-        .btn:hover { background: var(--primary-dark); }
-        .btn-secondary { background: var(--text-muted); }
+
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #15803d; }
+
+        .gps-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gps-status {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--secondary);
+        }
 
         table {
-            width: 100%; border-collapse: collapse;
-            background: var(--surface); margin-top: 15px;
-            border-radius: 8px; overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
         }
 
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background: #f1f5f9; font-weight: 600; }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f1f5f9;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .thumb-img {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
         .action-btn {
-            padding: 5px 10px; border: none; border-radius: 4px;
-            cursor: pointer; font-size: 0.85rem; color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: white;
         }
-        .action-btn.edit { background: var(--warning); }
+
+        .action-btn.edit { background: #f59e0b; }
         .action-btn.delete { background: var(--danger); }
         .action-btn.gps-btn { background: var(--primary); }
 
-        .thumb-img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer; }
-
-        /* Modal */
         .modal {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5); display: none;
-            align-items: center; justify-content: center; z-index: 2000;
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
         }
+
         .modal-content {
-            background: var(--surface); padding: 25px;
-            border-radius: 8px; width: 90%; max-width: 500px;
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 450px;
         }
-        #map { height: 350px; width: 100%; border-radius: 6px; margin-top: 10px; }
+
+        .photo-preview {
+            max-width: 100px;
+            max-height: 100px;
+            margin-top: 8px;
+            border-radius: 4px;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Navigation Header -->
-    <div class="navbar">
-        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-        <div class="shop-title" id="dispShopName">My Store</div>
-        <button class="btn" style="width: auto; padding: 6px 12px;" onclick="openProfileModal()">Profile</button>
-    </div>
-
-    <!-- Slide-out Sidebar -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3>Menu Navigation</h3>
-            <button class="close-sidebar" onclick="toggleSidebar()">&times;</button>
-        </div>
-        <ul class="sidebar-menu">
-            <li><a href="#" class="nav-link active" onclick="switchView('view-dashboard', this)">Sales Dashboard</a></li>
-            <li><a href="#" class="nav-link" onclick="switchView('view-pos', this)">New Transaction (POS)</a></li>
-            <li><a href="#" class="nav-link" onclick="switchView('view-sales-records', this)">Sales Records</a></li>
-            <li><a href="#" class="nav-link" onclick="switchView('view-inventory', this)">Inventory Stock</a></li>
-            <li><a href="#" class="nav-link" onclick="switchView('view-item-mgmt', this)">Item Management</a></li>
-            <li><a href="#" class="nav-link" onclick="switchView('view-store-history', this)">Store Order History</a></li>
-        </ul>
-    </div>
-
     <div class="container">
+        <header>
+            <h1>Store Management & GPS Tracker</h1>
+        </header>
 
-        <!-- VIEW 1: SALES DASHBOARD (Separated Daily, Weekly, Monthly, Yearly) -->
-        <div id="view-dashboard" class="view-section active">
-            <h2>Sales Analytics Overview</h2>
-            <p style="color: var(--text-muted); margin-bottom: 20px;" id="dispOwner"></p>
+        <nav>
+            <button class="nav-btn active" onclick="switchView('view-new-sale')">New Sale</button>
+            <button class="nav-btn" onclick="switchView('view-sales-records')">Sales Records</button>
+            <button class="nav-btn" onclick="switchView('view-inventory-overview')">Inventory Overview</button>
+            <button class="nav-btn" onclick="switchView('view-manage-inventory')">Manage Inventory</button>
+        </nav>
 
-            <div class="sales-grid">
-                <!-- Daily Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">Daily Sales</span>
-                        <select id="dayFilter" class="card-select" onchange="calculateMonitoring()">
-                            <option value="today">Today</option>
-                            <option value="0">Sunday</option>
-                            <option value="1">Monday</option>
-                            <option value="2">Tuesday</option>
-                            <option value="3">Wednesday</option>
-                            <option value="4">Thursday</option>
-                            <option value="5">Friday</option>
-                            <option value="6">Saturday</option>
-                        </select>
-                    </div>
-                    <div class="card-value" id="dailySales">₱0.00</div>
-                </div>
-
-                <!-- Weekly Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">Weekly Sales</span>
-                        <select id="weekFilter" class="card-select" onchange="calculateMonitoring()">
-                            <option value="7days">Last 7 Days</option>
-                            <option value="1">Week 1 (1-7)</option>
-                            <option value="2">Week 2 (8-14)</option>
-                            <option value="3">Week 3 (15-21)</option>
-                            <option value="4">Week 4 (22-28)</option>
-                            <option value="5">Week 5 (29+)</option>
-                        </select>
-                    </div>
-                    <div class="card-value" id="weeklySales">₱0.00</div>
-                </div>
-
-                <!-- Monthly Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">Monthly Sales</span>
-                        <select id="monthFilter" class="card-select" onchange="calculateMonitoring()">
-                            <option value="30days">Last 30 Days</option>
-                            <option value="0">Jan</option><option value="1">Feb</option>
-                            <option value="2">Mar</option><option value="3">Apr</option>
-                            <option value="4">May</option><option value="5">Jun</option>
-                            <option value="6">Jul</option><option value="7">Aug</option>
-                            <option value="8">Sep</option><option value="9">Oct</option>
-                            <option value="10">Nov</option><option value="11">Dec</option>
-                        </select>
-                    </div>
-                    <div class="card-value" id="monthlySales">₱0.00</div>
-                </div>
-
-                <!-- Yearly Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">Yearly Sales</span>
-                        <select id="yearFilter" class="card-select" onchange="calculateMonitoring()"></select>
-                    </div>
-                    <div class="card-value" id="yearlySales">₱0.00</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <span class="card-title">All-Time Cumulative Sales</span>
-                <div class="card-value" id="totalSales" style="font-size: 2.2rem; color: var(--primary);">₱0.00</div>
-            </div>
-        </div>
-
-        <!-- VIEW 2: NEW SALE TRANSACTION (POS) -->
-        <div id="view-pos" class="view-section">
-            <h2>Record New Sale</h2>
-            <div class="card" style="margin-top: 15px;">
-                <form id="saleForm">
+        <!-- View 1: New Sale Form -->
+        <div id="view-new-sale" class="view-panel active">
+            <h2>Record New Transaction</h2>
+            <form id="saleForm" style="margin-top: 15px;">
+                <div class="form-grid">
                     <div class="form-group">
-                        <label>Customer/Store Name</label>
-                        <input type="text" id="custName" required>
+                        <label>Customer Name</label>
+                        <input type="text" id="custName" required placeholder="Enter customer name">
                     </div>
                     <div class="form-group">
-                        <label>Address</label>
-                        <input type="text" id="custAddr">
+                        <label>Customer Address</label>
+                        <input type="text" id="custAddr" placeholder="Enter delivery address">
                     </div>
                     <div class="form-group">
                         <label>Contact Number</label>
-                        <input type="text" id="custContact">
+                        <input type="text" id="custContact" placeholder="e.g. 09123456789">
                     </div>
                     <div class="form-group">
-                        <label>Select Product Item</label>
-                        <select id="prodSelect" onchange="updatePrice()" required></select>
+                        <label>Select Product</label>
+                        <select id="prodSelect" onchange="updatePrice()" required>
+                            <option value="">-- Select Product --</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Unit Price (₱)</label>
-                        <input type="number" id="unitPrice" readonly>
+                        <input type="number" id="unitPrice" readonly placeholder="0.00">
                     </div>
                     <div class="form-group">
                         <label>Quantity</label>
@@ -327,43 +257,36 @@
                     </div>
                     <div class="form-group">
                         <label>Total Amount (₱)</label>
-                        <input type="number" id="totalAmt" readonly>
+                        <input type="number" id="totalAmt" readonly placeholder="0.00">
                     </div>
                     <div class="form-group">
-                        <label>Store Photo</label>
-                        <input type="file" accept="image/*" onchange="previewPhoto(event)">
+                        <label>Store/Customer Photo</label>
+                        <input type="file" id="storePhoto" accept="image/*" onchange="handlePhoto(event)">
                         <input type="hidden" id="storePhotoData">
-                        <img id="photoPreview" class="thumb-img" style="display:none; width:80px; height:80px; margin-top:10px;">
+                        <img id="photoPreview" class="photo-preview" alt="Preview">
                     </div>
-                    <div class="form-group">
-                        <label>Location Coordinates (GPS)</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" id="custGPS" placeholder="Lat, Lng" readonly>
-                            <button type="button" class="btn btn-secondary" style="width: auto;" onclick="getGPSLocation()">Get GPS</button>
-                        </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>Capture Transaction Location</label>
+                    <div class="gps-container">
+                        <button type="button" class="btn" onclick="captureGPS()">📍 Acquire GPS Position</button>
+                        <span id="gpsStatus" class="gps-status">GPS Coordinates not set</span>
                     </div>
-                    <button type="submit" class="btn">Submit Transaction</button>
-                </form>
-            </div>
+                    <input type="hidden" id="custGPS">
+                </div>
+
+                <button type="submit" class="btn btn-success" style="width: 100%;">Complete Transaction</button>
+            </form>
         </div>
 
-        <!-- VIEW 3: SALES RECORDS -->
-        <div id="view-sales-records" class="view-section">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2>All Sales Records</h2>
-                <button class="btn" style="width:auto;" onclick="exportCSV()">Export CSV</button>
+        <!-- View 2: Sales Records -->
+        <div id="view-sales-records" class="view-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2>Sales History</h2>
+                <button class="btn btn-success" onclick="exportCSV()">Export to CSV</button>
             </div>
-            
-            <div class="card" style="margin-top:15px; margin-bottom:15px;">
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
-                    <input type="text" id="searchCustomer" placeholder="Search Customer/Address..." oninput="filterSalesByDateAndCustomer()">
-                    <input type="date" id="startDate" onchange="filterSalesByDateAndCustomer()">
-                    <input type="date" id="endDate" onchange="filterSalesByDateAndCustomer()">
-                    <button class="btn btn-secondary" onclick="clearDateAndCustomerFilters()">Clear Filters</button>
-                </div>
-            </div>
-
-            <div style="overflow-x: auto;">
+            <div style="overflow-x:auto;">
                 <table>
                     <thead>
                         <tr>
@@ -374,25 +297,26 @@
                             <th>Item</th>
                             <th>Qty</th>
                             <th>Total</th>
-                            <th>GPS</th>
-                            <th>Action</th>
+                            <th>Map</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="salesTable"></tbody>
                 </table>
             </div>
+            <div id="salesGrandTotalContainer"></div>
         </div>
 
-        <!-- VIEW 4: INVENTORY ITEMS VIEW -->
-        <div id="view-inventory" class="view-section">
-            <h2>Inventory Stock Levels</h2>
-            <div style="overflow-x: auto;">
+        <!-- View 3: Inventory Overview -->
+        <div id="view-inventory-overview" class="view-panel">
+            <h2>Inventory Stock Overview</h2>
+            <div style="overflow-x:auto;">
                 <table>
                     <thead>
                         <tr>
-                            <th>Item Name</th>
-                            <th>Unit Price</th>
-                            <th>Current Stock</th>
+                            <th>Product Name</th>
+                            <th>Price</th>
+                            <th>Stock Quantity</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -401,19 +325,19 @@
             </div>
         </div>
 
-        <!-- VIEW 5: ITEM MANAGEMENT (Add/Edit/Delete) -->
-        <div id="view-item-mgmt" class="view-section">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2>Manage Inventory Items</h2>
-                <button class="btn" style="width:auto;" onclick="openItemModal()">+ Add New Item</button>
+        <!-- View 4: Manage Inventory -->
+        <div id="view-manage-inventory" class="view-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2>Manage Inventory</h2>
+                <button class="btn" onclick="openItemModal()">+ Add New Item</button>
             </div>
-            <div style="overflow-x: auto;">
+            <div style="overflow-x:auto;">
                 <table>
                     <thead>
                         <tr>
-                            <th>Item Name</th>
-                            <th>Unit Price</th>
-                            <th>Stock</th>
+                            <th>Product Name</th>
+                            <th>Price (₱)</th>
+                            <th>Stock Quantity</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -421,432 +345,145 @@
                 </table>
             </div>
         </div>
-
-        <!-- VIEW 6: STORE ORDER HISTORY -->
-        <div id="view-store-history" class="view-section">
-            <h2>Store History Lookup</h2>
-            <div class="form-group" style="margin-top:15px;">
-                <label>Select Store Name:</label>
-                <select id="storeHistorySelect" onchange="renderStoreOrderHistory()"></select>
-            </div>
-            <div id="storeHistoryContainer" style="margin-top:15px;"></div>
-        </div>
-
     </div>
 
-    <!-- MODALS -->
-    <!-- Profile Modal -->
-    <div id="profileModal" class="modal">
-        <div class="modal-content">
-            <h3>Update Shop Profile</h3>
-            <div class="form-group" style="margin-top:15px;">
-                <label>Shop Name</label>
-                <input type="text" id="profShop">
-            </div>
-            <div class="form-group">
-                <label>Owner Name</label>
-                <input type="text" id="profOwner">
-            </div>
-            <div class="form-group">
-                <label>Contact Info</label>
-                <input type="text" id="profContact">
-            </div>
-            <div style="display:flex; gap:10px;">
-                <button class="btn" onclick="saveProfile()">Save</button>
-                <button class="btn btn-secondary" onclick="closeModal('profileModal')">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add/Edit Item Modal -->
+    <!-- Modal for Adding/Editing Item -->
     <div id="itemModal" class="modal">
         <div class="modal-content">
-            <h3 id="itemModalTitle">Manage Item</h3>
+            <h3 id="itemModalTitle">Add New Item</h3>
             <input type="hidden" id="itemId">
-            <div class="form-group" style="margin-top:15px;">
+            <div class="form-group" style="margin-top: 15px;">
                 <label>Item Name</label>
                 <input type="text" id="itemName">
             </div>
-            <div class="form-group">
-                <label>Unit Price (₱)</label>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>Price (₱)</label>
                 <input type="number" id="itemPrice" step="0.01">
             </div>
-            <div class="form-group">
-                <label>Stock Quantity</label>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>Stock</label>
                 <input type="number" id="itemStock">
             </div>
-            <div style="display:flex; gap:10px;">
+            <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+                <button class="btn" style="background:var(--secondary);" onclick="closeModal('itemModal')">Cancel</button>
                 <button class="btn" onclick="saveItem()">Save Item</button>
-                <button class="btn btn-secondary" onclick="closeModal('itemModal')">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- Map Modal -->
-    <div id="mapModal" class="modal">
-        <div class="modal-content">
-            <h3 id="mapTitle">Store Location</h3>
-            <div id="map"></div>
-            <button class="btn btn-secondary" style="margin-top:15px;" onclick="closeModal('mapModal')">Close Map</button>
-        </div>
-    </div>
-
-    <!-- Photo Modal -->
-    <div id="photoModal" class="modal">
-        <div class="modal-content" style="text-align:center;">
-            <h3 id="photoTitle" style="margin-bottom:10px;">Store Photo</h3>
-            <img id="fullPhoto" style="max-width:100%; max-height:400px; border-radius:6px;">
-            <button class="btn btn-secondary" style="margin-top:15px;" onclick="closeModal('photoModal')">Close</button>
-        </div>
-    </div>
-
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <script>
-        // State Management
-        let profile = JSON.parse(localStorage.getItem('app_profile')) || { shop: 'My Business Store', owner: 'Store Owner', contact: '09123456789' };
+        // Initial Mock Data
         let inventory = JSON.parse(localStorage.getItem('app_inventory')) || [
-            { id: 1, name: 'T-Shirt', price: 250.00, stock: 50 },
-            { id: 2, name: 'Jeans', price: 750.00, stock: 30 }
+            { id: 1, name: 'Sample Product A', price: 150.00, stock: 25 },
+            { id: 2, name: 'Sample Product B', price: 299.99, stock: 8 }
         ];
+
         let sales = JSON.parse(localStorage.getItem('app_sales')) || [];
-        let leafletMap = null;
 
         function init() {
-            populateYearDropdown();
-            renderProfile();
             renderDropdown();
-            filterSalesByDateAndCustomer();
-            renderCustomerTotals();
+            renderSales(sales);
             renderInventoryViews();
-            calculateMonitoring();
-            populateStoreHistoryDropdown();
         }
 
-        // Navigation Sidebar Toggle
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const isOpen = sidebar.classList.contains('open');
-
-            if (isOpen) {
-                sidebar.classList.remove('open');
-                overlay.style.display = 'none';
-            } else {
-                sidebar.classList.add('open');
-                overlay.style.display = 'block';
-            }
-        }
-
-        function switchView(viewId, linkEl) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
 
             document.getElementById(viewId).classList.add('active');
-            if (linkEl) linkEl.classList.add('active');
-            
-            toggleSidebar(); // Close sidebar on choice
+            event.target.classList.add('active');
         }
 
-        function populateYearDropdown() {
-            const yearSelect = document.getElementById('yearFilter');
-            const currentYear = new Date().getFullYear();
-            yearSelect.innerHTML = '';
-            for (let y = currentYear; y >= currentYear - 5; y--) {
-                yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+        // --- GPS Geolocation Capture ---
+        function captureGPS() {
+            const gpsInput = document.getElementById('custGPS');
+            const gpsStatus = document.getElementById('gpsStatus');
+
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser.');
+                return;
             }
-        }
 
-        function calculateMonitoring() {
-            const now = new Date();
-            const todayStr = now.toLocaleDateString();
-            
-            const selectedDay = document.getElementById('dayFilter').value;
-            const selectedWeek = document.getElementById('weekFilter').value;
-            const selectedMonth = document.getElementById('monthFilter').value;
-            const selectedYear = parseInt(document.getElementById('yearFilter').value);
+            gpsStatus.textContent = 'Acquiring GPS position...';
+            gpsStatus.style.color = 'var(--primary)';
 
-            let total = 0, daily = 0, weekly = 0, monthly = 0, yearly = 0;
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lng = position.coords.longitude.toFixed(6);
 
-            sales.forEach(s => {
-                const saleAmount = parseFloat(s.total) || 0;
-                const saleDate = new Date(s.isoDate || s.timestamp || s.date);
-                const saleDateStr = saleDate.toLocaleDateString();
-                const dayOfMonth = saleDate.getDate();
-
-                total += saleAmount;
-
-                if (selectedDay === 'today') {
-                    if (saleDateStr === todayStr) daily += saleAmount;
-                } else {
-                    if (saleDate.getDay().toString() === selectedDay) daily += saleAmount;
+                    gpsInput.value = `${lat},${lng}`;
+                    gpsStatus.textContent = `Captured: ${lat}, ${lng}`;
+                    gpsStatus.style.color = 'var(--success)';
+                },
+                (error) => {
+                    let errorMsg = 'Failed to retrieve location.';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg = 'Location permission denied by user.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg = 'Location information is unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg = 'Location request timed out.';
+                            break;
+                    }
+                    alert(errorMsg);
+                    gpsStatus.textContent = 'Location acquisition failed.';
+                    gpsStatus.style.color = 'var(--danger)';
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
                 }
-
-                if (selectedWeek === '7days') {
-                    const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
-                    if (saleDate >= sevenDaysAgo) weekly += saleAmount;
-                } else if (selectedWeek === '1' && dayOfMonth >= 1 && dayOfMonth <= 7) weekly += saleAmount;
-                else if (selectedWeek === '2' && dayOfMonth >= 8 && dayOfMonth <= 14) weekly += saleAmount;
-                else if (selectedWeek === '3' && dayOfMonth >= 15 && dayOfMonth <= 21) weekly += saleAmount;
-                else if (selectedWeek === '4' && dayOfMonth >= 22 && dayOfMonth <= 28) weekly += saleAmount;
-                else if (selectedWeek === '5' && dayOfMonth >= 29) weekly += saleAmount;
-
-                if (selectedMonth === '30days') {
-                    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
-                    if (saleDate >= thirtyDaysAgo) monthly += saleAmount;
-                } else {
-                    if (saleDate.getMonth().toString() === selectedMonth) monthly += saleAmount;
-                }
-
-                if (saleDate.getFullYear() === selectedYear) yearly += saleAmount;
-            });
-
-            document.getElementById('dailySales').textContent = `₱${daily.toFixed(2)}`;
-            document.getElementById('weeklySales').textContent = `₱${weekly.toFixed(2)}`;
-            document.getElementById('monthlySales').textContent = `₱${monthly.toFixed(2)}`;
-            document.getElementById('yearlySales').textContent = `₱${yearly.toFixed(2)}`;
-            document.getElementById('totalSales').textContent = `₱${total.toFixed(2)}`;
+            );
         }
 
-        function filterSalesByDateAndCustomer() {
-            const customerQuery = document.getElementById('searchCustomer').value.toLowerCase().trim();
-            const startVal = document.getElementById('startDate').value;
-            const endVal = document.getElementById('endDate').value;
-
-            const filtered = sales.filter(s => {
-                const matchesCustomer = s.name.toLowerCase().includes(customerQuery) || 
-                                        s.address.toLowerCase().includes(customerQuery);
-
-                const saleDateStr = s.isoDate || new Date(s.timestamp || s.date).toISOString().split('T')[0];
-                let matchesDate = true;
-
-                if (startVal && saleDateStr < startVal) matchesDate = false;
-                if (endVal && saleDateStr > endVal) matchesDate = false;
-
-                return matchesCustomer && matchesDate;
-            });
-
-            renderSales(filtered);
+        function showMap(lat, lng, name) {
+            if (!lat || !lng) {
+                alert('Coordinates unavailable for this record.');
+                return;
+            }
+            const url = `https://www.google.com/maps?q=${lat},${lng}(${encodeURIComponent(name)})`;
+            window.open(url, '_blank');
         }
 
-        function clearDateAndCustomerFilters() {
-            document.getElementById('searchCustomer').value = '';
-            document.getElementById('startDate').value = '';
-            document.getElementById('endDate').value = '';
-            renderSales(sales);
-        }
-
-        function previewPhoto(event) {
+        // Image Processing
+        function handlePhoto(event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById('storePhotoData').value = e.target.result;
-                    const preview = document.getElementById('photoPreview');
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
+                    const img = document.getElementById('photoPreview');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
                 };
                 reader.readAsDataURL(file);
             }
         }
 
-        function viewFullPhoto(photoSrc, storeName) {
-            document.getElementById('photoTitle').textContent = `Store Photo: ${storeName}`;
-            document.getElementById('fullPhoto').src = photoSrc;
-            document.getElementById('photoModal').style.display = 'flex';
+        function viewFullPhoto(photoData, name) {
+            const win = window.open("");
+            win.document.write(`<img src="${photoData}" alt="${name}" style="max-width:100%;">`);
         }
 
-        function getGPSLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    const lat = position.coords.latitude.toFixed(6);
-                    const lng = position.coords.longitude.toFixed(6);
-                    document.getElementById('custGPS').value = `${lat},${lng}`;
-                }, () => { alert('Unable to retrieve location. Please turn on GPS.'); });
-            } else {
-                alert('Geolocation is not supported by your browser.');
-            }
-        }
-
-        function showMap(lat, lng, storeName) {
-            document.getElementById('mapModal').style.display = 'flex';
-            document.getElementById('mapTitle').textContent = `Location: ${storeName}`;
-
-            setTimeout(() => {
-                if (leafletMap) { leafletMap.remove(); }
-                leafletMap = L.map('map').setView([lat, lng], 15);
-                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19, attribution: '© OpenStreetMap'
-                }).addTo(leafletMap);
-                L.marker([lat, lng]).addTo(leafletMap).bindPopup(storeName).openPopup();
-            }, 200);
-        }
-
-        function renderProfile() {
-            document.getElementById('dispShopName').textContent = profile.shop;
-            document.getElementById('dispOwner').textContent = `Owner: ${profile.owner} | Contact: ${profile.contact}`;
-        }
-
-        function openProfileModal() {
-            document.getElementById('profShop').value = profile.shop;
-            document.getElementById('profOwner').value = profile.owner;
-            document.getElementById('profContact').value = profile.contact;
-            document.getElementById('profileModal').style.display = 'flex';
-        }
-
-        function saveProfile() {
-            profile = {
-                shop: document.getElementById('profShop').value,
-                owner: document.getElementById('profOwner').value,
-                contact: document.getElementById('profContact').value
-            };
-            localStorage.setItem('app_profile', JSON.stringify(profile));
-            renderProfile();
-            closeModal('profileModal');
-        }
-
-        function populateStoreHistoryDropdown() {
-            const select = document.getElementById('storeHistorySelect');
-            const uniqueStores = [...new Set(sales.map(s => s.name.trim()))];
-            select.innerHTML = '<option value="">-- Choose Store --</option>';
-            uniqueStores.forEach(store => {
-                select.innerHTML += `<option value="${store}">${store}</option>`;
-            });
-        }
-
-        function renderStoreOrderHistory() {
-            const selectedStore = document.getElementById('storeHistorySelect').value;
-            const container = document.getElementById('storeHistoryContainer');
-
-            if (!selectedStore) {
-                container.innerHTML = `<p style="color:#64748b;">Select a store to view history.</p>`;
-                return;
-            }
-
-            const storeOrders = sales.filter(s => s.name.trim().toLowerCase() === selectedStore.toLowerCase());
-            let grandTotal = 0;
-
-            let html = `<h4>Order History for: ${selectedStore}</h4>
-            <table>
-                <thead>
-                    <tr><th>Photo</th><th>Date</th><th>Item</th><th>Qty</th><th>Total</th><th>GPS</th></tr>
-                </thead><tbody>`;
-
-            storeOrders.forEach(o => {
-                grandTotal += parseFloat(o.total) || 0;
-                const imgTd = o.photo ? `<img src="${o.photo}" class="thumb-img" onclick="viewFullPhoto('${o.photo}', '${o.name}')">` : 'N/A';
-                const gpsBtn = o.gps ? `<button class="action-btn gps-btn" onclick="showMap(${o.gps.split(',')[0]}, ${o.gps.split(',')[1]}, '${o.name}')">Map</button>` : 'N/A';
-                html += `<tr>
-                    <td>${imgTd}</td>
-                    <td>${o.date}</td>
-                    <td>${o.item}</td>
-                    <td>${o.qty}</td>
-                    <td>₱${o.total}</td>
-                    <td>${gpsBtn}</td>
-                </tr>`;
-            });
-
-            html += `</tbody></table>
-            <h3 style="margin-top:15px; text-align:right;">Cumulative Purchases: ₱${grandTotal.toFixed(2)}</h3>`;
-            container.innerHTML = html;
-        }
-
+        // Dropdowns and Form Calculations
         function renderDropdown() {
             const select = document.getElementById('prodSelect');
-            select.innerHTML = '<option value="">Select Item</option>';
+            select.innerHTML = '<option value="">-- Select Product --</option>';
             inventory.forEach(item => {
-                select.innerHTML += `<option value="${item.id}">${item.name} (${item.stock} left)</option>`;
+                select.innerHTML += `<option value="${item.id}">${item.name} (Stock: ${item.stock})</option>`;
             });
-        }
-
-        function renderInventoryViews() {
-            const overviewTbody = document.getElementById('inventoryOverviewTable');
-            overviewTbody.innerHTML = inventory.map(i => {
-                let status = i.stock > 10 ? '<span style="color: #10b981; font-weight:bold;">In Stock</span>' :
-                             i.stock > 0  ? '<span style="color: #f59e0b; font-weight:bold;">Low Stock</span>' :
-                                            '<span style="color: #ef4444; font-weight:bold;">Out of Stock</span>';
-                return `
-                <tr>
-                    <td>${i.name}</td>
-                    <td>₱${parseFloat(i.price).toFixed(2)}</td>
-                    <td>${i.stock}</td>
-                    <td>${status}</td>
-                </tr>`;
-            }).join('');
-
-            const manageTbody = document.getElementById('inventoryManageTable');
-            manageTbody.innerHTML = inventory.map(i => `
-                <tr>
-                    <td>${i.name}</td>
-                    <td>₱${parseFloat(i.price).toFixed(2)}</td>
-                    <td>${i.stock}</td>
-                    <td>
-                        <button class="action-btn edit" onclick="openItemModal(${i.id})">Edit</button>
-                        <button class="action-btn delete" onclick="deleteItem(${i.id})">Delete</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function openItemModal(id = null) {
-            if (id) {
-                const item = inventory.find(i => i.id === id);
-                document.getElementById('itemModalTitle').textContent = 'Edit Item';
-                document.getElementById('itemId').value = item.id;
-                document.getElementById('itemName').value = item.name;
-                document.getElementById('itemPrice').value = item.price;
-                document.getElementById('itemStock').value = item.stock;
-            } else {
-                document.getElementById('itemModalTitle').textContent = 'Add New Item';
-                document.getElementById('itemId').value = '';
-                document.getElementById('itemName').value = '';
-                document.getElementById('itemPrice').value = '';
-                document.getElementById('itemStock').value = '';
-            }
-            document.getElementById('itemModal').style.display = 'flex';
-        }
-
-        function saveItem() {
-            const id = document.getElementById('itemId').value;
-            const name = document.getElementById('itemName').value;
-            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
-            const stock = parseInt(document.getElementById('itemStock').value) || 0;
-
-            if (!name) return alert('Enter item name');
-
-            if (id) {
-                const item = inventory.find(i => i.id == id);
-                item.name = name; item.price = price; item.stock = stock;
-            } else {
-                inventory.push({ id: Date.now(), name, price, stock });
-            }
-
-            localStorage.setItem('app_inventory', JSON.stringify(inventory));
-            renderDropdown();
-            renderInventoryViews();
-            closeModal('itemModal');
-        }
-
-        function deleteItem(id) {
-            if (confirm('Delete this item?')) {
-                inventory = inventory.filter(i => i.id !== id);
-                localStorage.setItem('app_inventory', JSON.stringify(inventory));
-                renderDropdown();
-                renderInventoryViews();
-            }
         }
 
         function updatePrice() {
-            const prodId = document.getElementById('prodSelect').value;
-            const item = inventory.find(i => i.id == prodId);
-            if (item) {
-                document.getElementById('unitPrice').value = item.price.toFixed(2);
-                calcTotal();
-            } else {
-                document.getElementById('unitPrice').value = '';
-                document.getElementById('totalAmt').value = '';
-            }
+            const id = document.getElementById('prodSelect').value;
+            const item = inventory.find(i => i.id == id);
+            document.getElementById('unitPrice').value = item ? item.price.toFixed(2) : '';
+            calcTotal();
         }
 
         function calcTotal() {
@@ -855,14 +492,15 @@
             document.getElementById('totalAmt').value = (price * qty).toFixed(2);
         }
 
+        // Submit Sale Event
         document.getElementById('saleForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const prodId = document.getElementById('prodSelect').value;
             const item = inventory.find(i => i.id == prodId);
             const qty = parseInt(document.getElementById('qty').value);
 
-            if (!item) return alert('Please select a valid product.');
-            if (item.stock < qty) return alert('Insufficient stock level!');
+            if (!item) { alert('Please select a valid product.'); return; }
+            if (item.stock < qty) { alert('Insufficient stock level available!'); return; }
 
             item.stock -= qty;
             localStorage.setItem('app_inventory', JSON.stringify(inventory));
@@ -873,11 +511,11 @@
                 name: document.getElementById('custName').value,
                 address: document.getElementById('custAddr').value,
                 contact: document.getElementById('custContact').value,
-                photo: document.getElementById('storePhotoData').value,
-                gps: document.getElementById('custGPS').value,
                 item: item.name,
                 qty: qty,
-                total: document.getElementById('totalAmt').value,
+                total: (item.price * qty).toFixed(2),
+                photo: document.getElementById('storePhotoData').value,
+                gps: document.getElementById('custGPS').value,
                 date: now.toLocaleDateString(),
                 isoDate: now.toISOString().split('T')[0],
                 timestamp: now.getTime()
@@ -888,72 +526,190 @@
 
             this.reset();
             document.getElementById('storePhotoData').value = '';
-            document.getElementById('photoPreview').style.display = 'none';
             document.getElementById('custGPS').value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('gpsStatus').textContent = 'GPS Coordinates not set';
+            document.getElementById('gpsStatus').style.color = 'var(--secondary)';
 
             init();
-            alert('Sale transaction recorded successfully!');
+            alert('Transaction recorded successfully!');
+            switchView('view-sales-records');
         });
 
-        function renderSales(dataToRender) {
+        // Sales Rendering
+        function renderSales(data) {
             const tbody = document.getElementById('salesTable');
-            tbody.innerHTML = dataToRender.map(s => {
+            const container = document.getElementById('salesGrandTotalContainer');
+            tbody.innerHTML = '';
+            let grandTotal = 0;
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No records found.</td></tr>';
+                container.innerHTML = '';
+                return;
+            }
+
+            data.forEach(s => {
+                grandTotal += parseFloat(s.total);
                 const imgTd = s.photo ? `<img src="${s.photo}" class="thumb-img" onclick="viewFullPhoto('${s.photo}', '${s.name}')">` : 'N/A';
-                const gpsBtn = s.gps ? `<button class="action-btn gps-btn" onclick="showMap(${s.gps.split(',')[0]}, ${s.gps.split(',')[1]}, '${s.name}')">Map</button>` : 'N/A';
-                return `
-                <tr>
-                    <td>${imgTd}</td>
-                    <td>${s.date}</td>
-                    <td>${s.name}</td>
-                    <td>${s.address}</td>
-                    <td>${s.item}</td>
-                    <td>${s.qty}</td>
-                    <td>₱${s.total}</td>
-                    <td>${gpsBtn}</td>
-                    <td><button class="action-btn delete" onclick="deleteSale(${s.id})">Delete</button></td>
-                </tr>`;
-            }).join('');
+                
+                let gpsBtn = 'N/A';
+                if (s.gps) {
+                    const coords = s.gps.split(',');
+                    gpsBtn = `<button class="action-btn gps-btn" onclick="showMap(${coords[0]}, ${coords[1]}, '${s.name}')">Map</button>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${imgTd}</td>
+                        <td>${s.date}</td>
+                        <td>${s.name}</td>
+                        <td>${s.address || 'N/A'}</td>
+                        <td>${s.item}</td>
+                        <td>${s.qty}</td>
+                        <td>₱${parseFloat(s.total).toFixed(2)}</td>
+                        <td>${gpsBtn}</td>
+                        <td><button class="action-btn delete" onclick="deleteSale(${s.id})">Delete</button></td>
+                    </tr>`;
+            });
+
+            container.innerHTML = `
+                <div style="margin-top: 15px; font-weight: bold; font-size: 1.1rem; text-align: right; color: var(--primary);">
+                    Lifetime Store Total: ₱${grandTotal.toFixed(2)}
+                </div>`;
         }
 
         function deleteSale(id) {
-            if (confirm('Delete this sale record?')) {
+            if (confirm('Are you sure you want to delete this sale record?')) {
                 sales = sales.filter(s => s.id !== id);
                 localStorage.setItem('app_sales', JSON.stringify(sales));
                 init();
             }
         }
 
-        function renderCustomerTotals() {
-            const totals = {};
-            sales.forEach(s => {
-                const key = `${s.name.trim()}__${s.contact}`;
-                if (!totals[key]) {
-                    totals[key] = { name: s.name, contact: s.contact, count: 0, sum: 0 };
-                }
-                totals[key].count += 1;
-                totals[key].sum += parseFloat(s.total) || 0;
+        // Inventory Views Rendering
+        function renderInventoryViews() {
+            const overviewTable = document.getElementById('inventoryOverviewTable');
+            const manageTable = document.getElementById('inventoryManageTable');
+
+            overviewTable.innerHTML = '';
+            manageTable.innerHTML = '';
+
+            inventory.forEach(item => {
+                const statusBadge = item.stock < 10 
+                    ? `<span style="color:var(--danger); font-weight:bold;">Low Stock</span>` 
+                    : `<span style="color:var(--success); font-weight:bold;">In Stock</span>`;
+
+                overviewTable.innerHTML += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>₱${item.price.toFixed(2)}</td>
+                        <td>${item.stock}</td>
+                        <td>${statusBadge}</td>
+                    </tr>`;
+
+                manageTable.innerHTML += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>₱${item.price.toFixed(2)}</td>
+                        <td>${item.stock}</td>
+                        <td>
+                            <button class="action-btn edit" onclick="editItem(${item.id})">Edit</button>
+                            <button class="action-btn delete" onclick="deleteItem(${item.id})">Delete</button>
+                        </td>
+                    </tr>`;
             });
+        }
+
+        // Item Modal logic
+        function openItemModal() {
+            document.getElementById('itemId').value = '';
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            document.getElementById('itemStock').value = '';
+            document.getElementById('itemModalTitle').textContent = 'Add New Item';
+            document.getElementById('itemModal').style.display = 'flex';
+        }
+
+        function editItem(id) {
+            const item = inventory.find(i => i.id === id);
+            if (item) {
+                document.getElementById('itemId').value = item.id;
+                document.getElementById('itemName').value = item.name;
+                document.getElementById('itemPrice').value = item.price;
+                document.getElementById('itemStock').value = item.stock;
+                document.getElementById('itemModalTitle').textContent = 'Edit Item';
+                document.getElementById('itemModal').style.display = 'flex';
+            }
+        }
+
+        function saveItem() {
+            const id = document.getElementById('itemId').value;
+            const name = document.getElementById('itemName').value.trim();
+            const price = parseFloat(document.getElementById('itemPrice').value);
+            const stock = parseInt(document.getElementById('itemStock').value);
+
+            if (!name || isNaN(price) || isNaN(stock)) {
+                alert('Please fill in valid data for all item fields.');
+                return;
+            }
+
+            if (id) {
+                const item = inventory.find(i => i.id == id);
+                item.name = name;
+                item.price = price;
+                item.stock = stock;
+            } else {
+                inventory.push({ id: Date.now(), name, price, stock });
+            }
+
+            localStorage.setItem('app_inventory', JSON.stringify(inventory));
+            init();
+            closeModal('itemModal');
+        }
+
+        function deleteItem(id) {
+            if (confirm('Are you sure you want to delete this inventory item?')) {
+                inventory = inventory.filter(i => i.id !== id);
+                localStorage.setItem('app_inventory', JSON.stringify(inventory));
+                init();
+            }
+        }
+
+        // CSV Export
+        function exportCSV() {
+            if (sales.length === 0) { alert('No sales data available to export.'); return; }
+            let csvContent = 'data:text/csv;charset=utf-8,Date,Customer,Address,Contact,Item,Qty,Total,GPS\n';
+
+            sales.forEach(s => {
+                const row = [
+                    `"${s.date}"`,
+                    `"${s.name}"`,
+                    `"${s.address || ''}"`,
+                    `"${s.contact || ''}"`,
+                    `"${s.item}"`,
+                    s.qty,
+                    s.total,
+                    `"${s.gps || ''}"`
+                ].join(',');
+                csvContent += row + '\n';
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', `Sales_Report_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
         }
 
-        function exportCSV() {
-            if (sales.length === 0) return alert('No sales data available to export.');
-            let csv = 'ID,Date,Store Name,Address,Contact,Item,Qty,Total,GPS\n';
-            sales.forEach(s => {
-                csv += `"${s.id}","${s.date}","${s.name}","${s.address}","${s.contact}","${s.item}","${s.qty}","${s.total}","${s.gps}"\n`;
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('href', url);
-            a.setAttribute('download', `sales_export_${new Date().toISOString().split('T')[0]}.csv`);
-            a.click();
-        }
-
-        window.onload = init;
+        // Initialize App
+        init();
     </script>
 </body>
 </html>
