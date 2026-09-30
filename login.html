@@ -1,0 +1,826 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUARTE CLAN | Login</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(212,175,55,.15), transparent 30%),
+        radial-gradient(circle at 80% 80%, rgba(212,175,55,.10), transparent 30%),
+        #090909;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+}
+
+.page {
+    width: 100%;
+    max-width: 1100px;
+    min-height: 650px;
+    display: grid;
+    grid-template-columns: 1fr 430px;
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid rgba(212,175,55,.35);
+    background: #121212;
+    box-shadow: 0 25px 80px rgba(0,0,0,.65);
+}
+
+/* LEFT */
+
+.brand-side {
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background:
+        linear-gradient(135deg,
+        rgba(212,175,55,.12),
+        rgba(0,0,0,.96));
+    position: relative;
+    overflow: hidden;
+}
+
+.brand-side::before {
+    content: "";
+    position: absolute;
+    width: 450px;
+    height: 450px;
+    border: 1px solid rgba(212,175,55,.18);
+    border-radius: 50%;
+    right: -180px;
+    top: -120px;
+}
+
+.brand-side::after {
+    content: "";
+    position: absolute;
+    width: 350px;
+    height: 350px;
+    border: 1px solid rgba(212,175,55,.10);
+    border-radius: 50%;
+    left: -160px;
+    bottom: -150px;
+}
+
+.crest {
+    width: 95px;
+    height: 95px;
+    border: 2px solid #d4af37;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d4af37;
+    font-size: 38px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 2;
+}
+
+.brand-side h1 {
+    font-size: clamp(42px, 6vw, 76px);
+    letter-spacing: 8px;
+    color: #d4af37;
+    line-height: 1;
+    margin-bottom: 18px;
+    position: relative;
+    z-index: 2;
+}
+
+.brand-side h2 {
+    font-size: 19px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 2;
+}
+
+.family-line {
+    width: 100px;
+    height: 2px;
+    background: #d4af37;
+    margin: 25px 0;
+    position: relative;
+    z-index: 2;
+}
+
+.brand-side p {
+    max-width: 500px;
+    color: #aaa;
+    line-height: 1.8;
+    font-size: 15px;
+    position: relative;
+    z-index: 2;
+}
+
+/* LOGIN */
+
+.login-side {
+    background: #121212;
+    padding: 55px 45px;
+    display: flex;
+    align-items: center;
+}
+
+.login-box {
+    width: 100%;
+}
+
+.small-title {
+    color: #d4af37;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.login-box h2 {
+    font-size: 34px;
+    margin-bottom: 10px;
+}
+
+.welcome {
+    color: #888;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.field {
+    margin-bottom: 19px;
+}
+
+.field label {
+    display: block;
+    font-size: 13px;
+    color: #ddd;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.input-wrap {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #d4af37;
+}
+
+.input-wrap input {
+    width: 100%;
+    height: 52px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+    color: white;
+    padding: 0 45px;
+    outline: none;
+    font-size: 14px;
+}
+
+.input-wrap input:focus {
+    border-color: #d4af37;
+    box-shadow: 0 0 0 3px rgba(212,175,55,.08);
+}
+
+.password-toggle {
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #888;
+    cursor: pointer;
+}
+
+.password-toggle:hover {
+    color: #d4af37;
+}
+
+.forgot {
+    text-align: right;
+    margin: -5px 0 23px;
+}
+
+.forgot a {
+    color: #d4af37;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.login-btn {
+    width: 100%;
+    height: 54px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg,#d4af37,#b88a16);
+    color: #111;
+    font-weight: 800;
+    letter-spacing: 2px;
+    cursor: pointer;
+}
+
+.login-btn:hover {
+    filter: brightness(1.08);
+}
+
+.login-btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #555;
+    font-size: 11px;
+    margin: 26px 0;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    height: 1px;
+    background: #292929;
+    flex: 1;
+}
+
+.create {
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+}
+
+.create a {
+    color: #d4af37;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.message {
+    display: none;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.message.show {
+    display: block;
+}
+
+.message.error {
+    color: #ffaaaa;
+    background: rgba(220,70,70,.10);
+    border: 1px solid rgba(220,70,70,.30);
+}
+
+.message.success {
+    color: #a9e8b5;
+    background: rgba(70,180,100,.10);
+    border: 1px solid rgba(70,180,100,.30);
+}
+
+.footer {
+    text-align: center;
+    color: #555;
+    font-size: 10px;
+    letter-spacing: 1px;
+    margin-top: 30px;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:850px) {
+
+    .page {
+        grid-template-columns: 1fr;
+        max-width: 550px;
+    }
+
+    .brand-side {
+        min-height: 330px;
+        padding: 40px;
+    }
+
+    .brand-side h1 {
+        font-size: 48px;
+    }
+
+    .login-side {
+        padding: 40px;
+    }
+}
+
+@media(max-width:480px) {
+
+    body {
+        padding: 12px;
+    }
+
+    .brand-side {
+        padding: 30px;
+    }
+
+    .brand-side h1 {
+        font-size: 37px;
+        letter-spacing: 5px;
+    }
+
+    .brand-side h2 {
+        font-size: 13px;
+    }
+
+    .crest {
+        width: 70px;
+        height: 70px;
+        font-size: 28px;
+    }
+
+    .login-side {
+        padding: 32px 24px;
+    }
+
+    .login-box h2 {
+        font-size: 28px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- BRANDING -->
+    <section class="brand-side">
+
+        <div class="crest">D</div>
+
+        <h1>DUARTE</h1>
+
+        <h2>Our Family • Our Stories • Our Legacy</h2>
+
+        <div class="family-line"></div>
+
+        <p>
+            Welcome to the private online community of the Duarte Clan.
+            Stay connected with family, share memories, celebrate milestones,
+            and keep our family stories together.
+        </p>
+
+    </section>
+
+
+    <!-- LOGIN -->
+    <section class="login-side">
+
+        <div class="login-box">
+
+            <div class="small-title">
+                Duarte Clan Community
+            </div>
+
+            <h2>Welcome Back</h2>
+
+            <p class="welcome">
+                Sign in to continue to your Duarte Clan community.
+            </p>
+
+            <div id="message" class="message"></div>
+
+            <form id="loginForm">
+
+                <div class="field">
+
+                    <label for="email">
+                        Email Address
+                    </label>
+
+                    <div class="input-wrap">
+
+                        <span class="input-icon">✉</span>
+
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="Enter your email address"
+                            autocomplete="email"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <div class="input-wrap">
+
+                        <span class="input-icon">🔒</span>
+
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            id="togglePassword"
+                        >
+                            👁
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="forgot">
+
+                    <a href="#" id="forgotPassword">
+                        Forgot Password?
+                    </a>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="login-btn"
+                    id="loginButton"
+                >
+                    LOGIN
+                </button>
+
+            </form>
+
+
+            <div class="divider">
+                OR
+            </div>
+
+
+            <div class="create">
+
+                Don't have an account?
+
+                <a href="#" id="createAccount">
+                    Create Account
+                </a>
+
+            </div>
+
+
+            <div class="footer">
+                © 2026 DUARTE CLAN • PRIVATE FAMILY COMMUNITY
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL =
+    "https://mrrothkiygcxspiwotjx.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_wYyisTscusEPgTmpbZGYmw_e_mTcAwW";
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+    );
+
+
+const loginForm =
+    document.getElementById("loginForm");
+
+const loginButton =
+    document.getElementById("loginButton");
+
+const message =
+    document.getElementById("message");
+
+const passwordInput =
+    document.getElementById("password");
+
+const togglePassword =
+    document.getElementById("togglePassword");
+
+
+function showMessage(text, type) {
+
+    message.textContent = text;
+
+    message.className =
+        "message show " + type;
+
+}
+
+
+/* PASSWORD VISIBILITY */
+
+togglePassword.addEventListener("click", function () {
+
+    if (passwordInput.type === "password") {
+
+        passwordInput.type = "text";
+        togglePassword.textContent = "🙈";
+
+    } else {
+
+        passwordInput.type = "password";
+        togglePassword.textContent = "👁";
+
+    }
+
+});
+
+
+/* LOGIN */
+
+loginForm.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const email =
+        document.getElementById("email").value.trim();
+
+    const password =
+        passwordInput.value;
+
+    if (!email || !password) {
+
+        showMessage(
+            "Please enter your email and password.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    loginButton.disabled = true;
+    loginButton.textContent = "SIGNING IN...";
+
+    message.className = "message";
+
+
+    try {
+
+        const { data, error } =
+            await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        if (!data.session) {
+
+            throw new Error(
+                "Login succeeded but no session was created."
+            );
+
+        }
+
+
+        showMessage(
+            "Login successful. Opening Duarte Clan...",
+            "success"
+        );
+
+
+        setTimeout(function() {
+
+            window.location.href = "index.html";
+
+        }, 700);
+
+
+    } catch(error) {
+
+        console.error(error);
+
+        showMessage(
+            error.message ||
+            "Unable to sign in. Please check your account.",
+            "error"
+        );
+
+        loginButton.disabled = false;
+        loginButton.textContent = "LOGIN";
+
+    }
+
+});
+
+
+/* CREATE ACCOUNT */
+
+document
+.getElementById("createAccount")
+.addEventListener("click", async function(event) {
+
+    event.preventDefault();
+
+    const email =
+        prompt("Enter your email address:");
+
+    if (!email) return;
+
+
+    const password =
+        prompt("Create a password (minimum 6 characters):");
+
+    if (!password) return;
+
+
+    if (password.length < 6) {
+
+        showMessage(
+            "Password must contain at least 6 characters.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const fullName =
+        prompt("Enter your full name:");
+
+    if (!fullName) return;
+
+
+    try {
+
+        const { data, error } =
+            await supabaseClient.auth.signUp({
+
+                email: email,
+                password: password,
+
+                options: {
+                    data: {
+                        full_name: fullName
+                    }
+                }
+
+            });
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        showMessage(
+            "Account created. Check your email if email confirmation is enabled.",
+            "success"
+        );
+
+
+    } catch(error) {
+
+        console.error(error);
+
+        showMessage(
+            error.message ||
+            "Unable to create your account.",
+            "error"
+        );
+
+    }
+
+});
+
+
+/* FORGOT PASSWORD */
+
+document
+.getElementById("forgotPassword")
+.addEventListener("click", async function(event) {
+
+    event.preventDefault();
+
+    const email =
+        prompt("Enter your Duarte Clan account email:");
+
+    if (!email) return;
+
+
+    try {
+
+        const { error } =
+            await supabaseClient.auth.resetPasswordForEmail(
+                email,
+                {
+                    redirectTo:
+                        window.location.origin +
+                        "/reset-password.html"
+                }
+            );
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        showMessage(
+            "Password reset instructions have been sent to your email.",
+            "success"
+        );
+
+
+    } catch(error) {
+
+        console.error(error);
+
+        showMessage(
+            error.message ||
+            "Unable to send password reset email.",
+            "error"
+        );
+
+    }
+
+});
+
+
+/* IF ALREADY LOGGED IN */
+
+(async function checkExistingSession() {
+
+    const { data } =
+        await supabaseClient.auth.getSession();
+
+    if (data.session) {
+
+        console.log(
+            "Existing Duarte Clan session detected."
+        );
+
+        // Uncomment this if you want
+        // already-logged-in users to go directly home.
+        //
+        // window.location.href = "index.html";
+
+    }
+
+})();
+
+</script>
+
+</body>
+</html>
+```

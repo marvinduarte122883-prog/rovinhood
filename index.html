@@ -1,983 +1,3058 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JACOBY LPGas</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --secondary: #64748b;
-            --success: #16a34a;
-            --danger: #dc2626;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-color: #1e293b;
-            --border-color: #e2e8f0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUARTE CLAN | Home</title>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.5;
-            padding: 20px;
-        }
+:root {
+    --gold: #d4af37;
+    --gold-light: #f0d477;
+    --bg: #0b0b0b;
+    --panel: #141414;
+    --panel-2: #191919;
+    --border: #2b2b2b;
+    --text: #f4f4f4;
+    --muted: #929292;
+}
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
 
-        header {
-            margin-bottom: 20px;
-            text-align: center;
-        }
+/* =========================
+   TOP NAVIGATION
+========================= */
 
-        h1 {
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
+.topbar {
+    height: 72px;
+    background: #111;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
 
-        nav {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
+.topbar-inner {
+    width: min(1400px, 94%);
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
 
-        .nav-btn {
-            padding: 10px 20px;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 220px;
+}
 
-        .nav-btn.active, .nav-btn:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
+.brand-logo {
+    width: 43px;
+    height: 43px;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    font-size: 20px;
+    font-weight: bold;
+}
 
-        .view-panel {
-            display: none;
-            background: var(--card-bg);
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
+.brand-text h1 {
+    color: var(--gold);
+    font-size: 20px;
+    letter-spacing: 3px;
+}
 
-        .view-panel.active {
-            display: block;
-        }
+.brand-text span {
+    color: #777;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+}
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
+.main-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+.nav-btn {
+    border: none;
+    background: transparent;
+    color: #aaa;
+    padding: 11px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: .2s;
+}
 
-        label {
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
+.nav-btn:hover,
+.nav-btn.active {
+    color: var(--gold);
+    background: rgba(212,175,55,.08);
+}
 
-        input, select {
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 1rem;
-        }
+.user-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-        input[readonly] {
-            background-color: #f1f5f9;
-        }
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border);
+    background: #181818;
+    color: #ccc;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 17px;
+}
 
-        .search-bar-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            width: 100%;
-        }
+.icon-btn:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+}
 
-        .search-bar-container input {
-            flex: 1;
-        }
+.avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #80620d);
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
 
-        .btn {
-            padding: 10px 18px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
+/* =========================
+   PAGE
+========================= */
 
-        .btn:hover {
-            background: var(--primary-hover);
-        }
+.page {
+    width: min(1400px, 94%);
+    margin: 25px auto 50px;
+}
 
-        .btn-success { background: var(--success); }
-        .btn-success:hover { background: #15803d; }
+.layout {
+    display: grid;
+    grid-template-columns: 240px minmax(400px, 700px) 300px;
+    gap: 25px;
+    justify-content: center;
+}
 
-        .gps-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+/* =========================
+   LEFT SIDEBAR
+========================= */
 
-        .gps-status {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--secondary);
-        }
+.sidebar {
+    position: sticky;
+    top: 95px;
+    align-self: start;
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
+.profile-mini {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 22px;
+    text-align: center;
+    margin-bottom: 15px;
+}
 
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
+.profile-avatar {
+    width: 72px;
+    height: 72px;
+    margin: auto;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #755a0b);
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
 
-        th {
-            background-color: #f1f5f9;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-        }
+.profile-mini h3 {
+    font-size: 15px;
+    margin-bottom: 5px;
+}
 
-        .thumb-img {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+.profile-mini p {
+    color: var(--muted);
+    font-size: 12px;
+}
 
-        .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            color: white;
-        }
+.side-menu {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 10px;
+}
 
-        .action-btn.edit { background: #f59e0b; }
-        .action-btn.delete { background: var(--danger); }
-        .action-btn.gps-btn { background: var(--primary); }
+.side-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 13px;
+    border: none;
+    background: transparent;
+    color: #aaa;
+    text-align: left;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 13px;
+}
 
-        .analytics-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
+.side-link:hover,
+.side-link.active {
+    color: var(--gold);
+    background: rgba(212,175,55,.08);
+}
 
-        .card {
-            background: #f8fafc;
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
+.side-icon {
+    width: 24px;
+    text-align: center;
+}
 
-        .card h4 {
-            font-size: 0.85rem;
-            color: var(--secondary);
-            text-transform: uppercase;
-            margin-bottom: 6px;
-        }
+/* =========================
+   MAIN FEED
+========================= */
 
-        .card .card-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
+.feed-header {
+    margin-bottom: 18px;
+}
 
-        .filter-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
+.feed-header h2 {
+    font-size: 25px;
+    margin-bottom: 5px;
+}
 
-        .sub-filter-group {
-            display: none;
-            gap: 8px;
-            margin-bottom: 15px;
-            padding-top: 10px;
-            border-top: 1px dashed var(--border-color);
-            flex-wrap: wrap;
-        }
+.feed-header p {
+    color: var(--muted);
+    font-size: 13px;
+}
 
-        .filter-btn {
-            padding: 8px 16px;
-            border: 1px solid var(--border-color);
-            background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-        }
+/* CREATE POST */
 
-        .filter-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
+.create-post {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 18px;
+    margin-bottom: 20px;
+}
 
-        .sub-btn {
-            padding: 6px 12px;
-            border: 1px solid var(--border-color);
-            background: #f1f5f9;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
+.post-top {
+    display: flex;
+    gap: 12px;
+}
 
-        .sub-btn.active {
-            background: #0ea5e9;
-            color: white;
-            border-color: #0ea5e9;
-        }
+.post-avatar {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #74590c);
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
 
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
+.post-input {
+    flex: 1;
+    min-height: 44px;
+    border: 1px solid var(--border);
+    background: #1b1b1b;
+    color: #fff;
+    border-radius: 24px;
+    padding: 12px 17px;
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+}
 
-        .modal-content {
-            background: white;
-            padding: 24px;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 450px;
-        }
+.post-input:focus {
+    border-color: var(--gold);
+}
 
-        .photo-preview {
-            max-width: 100px;
-            max-height: 100px;
-            margin-top: 8px;
-            border-radius: 4px;
-            display: none;
-        }
-    </style>
+.post-tools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 15px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.post-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.post-action {
+    border: none;
+    background: transparent;
+    color: #aaa;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.post-action:hover {
+    color: var(--gold);
+    background: rgba(212,175,55,.08);
+}
+
+.publish-btn {
+    border: none;
+    background: var(--gold);
+    color: #111;
+    font-weight: bold;
+    padding: 10px 19px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.publish-btn:hover {
+    background: var(--gold-light);
+}
+
+/* =========================
+   POSTS
+========================= */
+
+.post-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 18px;
+}
+
+.post-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.author-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #74590c);
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.author-info h3 {
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.author-info span {
+    color: #777;
+    font-size: 11px;
+}
+
+.post-menu {
+    margin-left: auto;
+    color: #777;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.post-text {
+    color: #ddd;
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 15px;
+}
+
+.post-image {
+    width: 100%;
+    height: 300px;
+    border-radius: 12px;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(212,175,55,.15),
+            rgba(0,0,0,.8)
+        );
+    border: 1px solid #292929;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7f7f7f;
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+.post-stats {
+    display: flex;
+    justify-content: space-between;
+    color: #777;
+    font-size: 11px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.post-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    padding-top: 8px;
+}
+
+.post-btn {
+    border: none;
+    background: transparent;
+    color: #999;
+    padding: 9px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.post-btn:hover,
+.post-btn.liked {
+    color: var(--gold);
+    background: rgba(212,175,55,.07);
+}
+
+.comment-area {
+    display: none;
+    margin-top: 12px;
+}
+
+.comment-area.show {
+    display: flex;
+    gap: 8px;
+}
+
+.comment-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    background: #1a1a1a;
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 20px;
+    outline: none;
+}
+
+.comment-send {
+    border: none;
+    background: var(--gold);
+    color: #111;
+    border-radius: 20px;
+    padding: 0 14px;
+    cursor: pointer;
+}
+
+/* =========================
+   RIGHT SIDEBAR
+========================= */
+
+.right-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 18px;
+    margin-bottom: 18px;
+}
+
+.right-card h3 {
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.announcement {
+    border-left: 2px solid var(--gold);
+    padding-left: 12px;
+    margin-bottom: 17px;
+}
+
+.announcement strong {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.announcement span {
+    color: #777;
+    font-size: 10px;
+}
+
+.event {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.event-date {
+    width: 44px;
+    height: 48px;
+    border-radius: 8px;
+    background: rgba(212,175,55,.1);
+    border: 1px solid rgba(212,175,55,.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+}
+
+.event-date strong {
+    font-size: 16px;
+}
+
+.event-date span {
+    font-size: 8px;
+}
+
+.event-info strong {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.event-info span {
+    color: #777;
+    font-size: 10px;
+}
+
+.member-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.member-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #292929;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.member-name {
+    font-size: 12px;
+}
+
+.member-status {
+    color: #666;
+    font-size: 10px;
+    margin-top: 3px;
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 2000;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-box {
+    width: min(500px, 100%);
+    background: #151515;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 25px;
+}
+
+.modal-box h2 {
+    color: var(--gold);
+    margin-bottom: 15px;
+}
+
+.modal-box textarea {
+    width: 100%;
+    min-height: 160px;
+    background: #1c1c1c;
+    border: 1px solid var(--border);
+    color: white;
+    border-radius: 10px;
+    padding: 15px;
+    resize: vertical;
+    outline: none;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.close-btn {
+    border: 1px solid var(--border);
+    background: transparent;
+    color: #aaa;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.confirm-btn {
+    border: none;
+    background: var(--gold);
+    color: #111;
+    font-weight: bold;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1100px) {
+    .layout {
+        grid-template-columns: 210px minmax(400px, 1fr);
+    }
+
+    .right-sidebar {
+        display: none;
+    }
+}
+
+@media (max-width: 800px) {
+
+    .topbar {
+        height: auto;
+        padding: 12px 0;
+    }
+
+    .topbar-inner {
+        flex-wrap: wrap;
+    }
+
+    .main-nav {
+        order: 3;
+        width: 100%;
+        overflow-x: auto;
+        justify-content: flex-start;
+    }
+
+    .layout {
+        display: block;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    .feed-header {
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 500px) {
+
+    .page {
+        width: 94%;
+        margin-top: 15px;
+    }
+
+    .brand-text h1 {
+        font-size: 17px;
+    }
+
+    .brand-text span {
+        display: none;
+    }
+
+    .user-area .icon-btn {
+        display: none;
+    }
+
+    .post-card,
+    .create-post,
+    .right-card {
+        border-radius: 12px;
+    }
+
+    .post-image {
+        height: 220px;
+    }
+}
+
+/* =========================
+   FACEBOOK-STYLE REACTIONS
+========================= */
+.reaction-wrap {
+    position: relative;
+}
+
+.reaction-picker {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 8px);
+    display: none;
+    align-items: center;
+    gap: 5px;
+    background: #202020;
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 7px 9px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.45);
+    z-index: 50;
+    white-space: nowrap;
+}
+
+.reaction-wrap.open .reaction-picker {
+    display: flex;
+}
+
+.reaction-choice {
+    width: 35px;
+    height: 35px;
+    border: 0;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 23px;
+    line-height: 35px;
+    transition: transform .15s, background .15s;
+}
+
+.reaction-choice:hover {
+    transform: translateY(-5px) scale(1.22);
+    background: rgba(255,255,255,.06);
+}
+
+.reaction-summary {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.reaction-icons {
+    letter-spacing: -2px;
+}
+
+.post-btn.selected-reaction {
+    color: var(--gold);
+    background: rgba(212,175,55,.07);
+}
+
+
+.event-manager {
+    display:none;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:20px;
+}
+.event-manager.show { display:block; }
+.event-manager-head { display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px; }
+.event-list-card { border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;background:#171717; }
+.event-list-card h3 { color:var(--gold);font-size:15px;margin-bottom:7px; }
+.event-list-card p { color:#aaa;font-size:12px;line-height:1.55;margin-top:5px; }
+.event-admin-actions { display:flex;gap:7px;margin-top:12px; }
+.event-admin-actions button { border:1px solid var(--border);background:#202020;color:#ccc;padding:7px 10px;border-radius:7px;cursor:pointer; }
+.event-admin-actions button:hover { border-color:var(--gold);color:var(--gold); }
+.event-form-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+.event-field { margin-bottom:12px; }
+.event-field label { display:block;color:#aaa;font-size:11px;margin-bottom:6px; }
+.event-field input,.event-field textarea { width:100%;background:#1c1c1c;border:1px solid var(--border);color:#fff;border-radius:8px;padding:11px;outline:none; }
+.event-field textarea { min-height:90px;resize:vertical; }
+@media(max-width:600px){.event-form-grid{grid-template-columns:1fr;}}
+
+
+/* =========================
+   CLAN MEMBERS
+========================= */
+.members-manager {
+    display: none;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.members-manager.show { display: block; }
+
+.members-manager-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.members-search {
+    width: min(260px, 100%);
+    background: #1b1b1b;
+    border: 1px solid var(--border);
+    color: #fff;
+    border-radius: 9px;
+    padding: 10px 12px;
+    outline: none;
+}
+
+.members-search:focus { border-color: var(--gold); }
+
+.members-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.clan-member-card {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    background: #171717;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.clan-member-card .member-avatar {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    font-size: 13px;
+    background: linear-gradient(135deg, var(--gold), #74590c);
+    color: #111;
+}
+
+.clan-member-card h3 {
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.clan-member-card p {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.admin-badge {
+    display: inline-block;
+    margin-top: 5px;
+    color: var(--gold);
+    border: 1px solid rgba(212,175,55,.3);
+    background: rgba(212,175,55,.08);
+    border-radius: 20px;
+    padding: 3px 7px;
+    font-size: 9px;
+}
+
+@media (max-width: 600px) {
+    .members-manager-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .members-search { width: 100%; }
+    .members-grid { grid-template-columns: 1fr; }
+}
+
+
+/* MY PROFILE */
+.profile-manager{display:none;background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:22px;margin-bottom:20px}
+.profile-manager.show{display:block}
+.profile-card-edit{max-width:650px;margin:auto}
+.profile-hero{display:flex;align-items:center;gap:16px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--border)}
+.profile-big-avatar{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--gold),#74590c);color:#111;font-size:20px;font-weight:800;overflow:hidden}
+.profile-big-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-field{margin-bottom:14px}
+.profile-field label{display:block;color:#aaa;font-size:11px;margin-bottom:6px}
+.profile-field input{width:100%;background:#1c1c1c;border:1px solid var(--border);color:#fff;border-radius:8px;padding:11px;outline:none}
+.profile-field input:focus{border-color:var(--gold)}
+.profile-readonly{background:#141414!important;color:#777!important}
+.profile-save-row{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+.profile-note{font-size:11px;color:var(--muted);line-height:1.6;background:#171717;border:1px solid var(--border);border-radius:9px;padding:11px;margin-top:15px}
+
+
+/* FAMILY GALLERY */
+.gallery-manager{display:none;background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:20px;margin-bottom:20px}
+.gallery-manager.show{display:block}
+.gallery-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.gallery-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.gallery-card{background:#171717;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.gallery-image{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;cursor:pointer;background:#111}
+.gallery-meta{padding:11px}
+.gallery-caption{font-size:12px;color:#eee;margin-bottom:7px;line-height:1.4}
+.gallery-by{font-size:10px;color:var(--muted);line-height:1.5}
+.gallery-delete{margin-top:8px;border:1px solid var(--border);background:#202020;color:#bbb;border-radius:7px;padding:6px 9px;cursor:pointer;font-size:10px}
+.gallery-delete:hover{border-color:#b85c5c;color:#e88}
+.gallery-upload-preview{width:100%;max-height:250px;object-fit:contain;background:#111;border:1px solid var(--border);border-radius:9px;margin-top:10px;display:none}
+.photo-viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:none;align-items:center;justify-content:center;padding:25px}
+.photo-viewer.show{display:flex}
+.photo-viewer img{max-width:94vw;max-height:88vh;object-fit:contain;border-radius:8px}
+.photo-viewer-close{position:absolute;right:22px;top:18px;border:0;background:transparent;color:#fff;font-size:32px;cursor:pointer}
+@media(max-width:800px){.gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:500px){.gallery-grid{grid-template-columns:1fr}.gallery-head{align-items:stretch;flex-direction:column}}
+
+
+/* NOTIFICATIONS */
+.notification-wrap{position:relative}
+.notification-bell{position:relative;border:1px solid var(--border);background:#181818;color:#ddd;border-radius:9px;padding:8px 11px;cursor:pointer;font-size:17px}
+.notification-bell:hover{border-color:var(--gold);color:var(--gold)}
+.notification-badge{position:absolute;right:-6px;top:-7px;min-width:18px;height:18px;padding:0 5px;border-radius:12px;background:#c84242;color:#fff;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:700}
+.notification-panel{position:absolute;right:0;top:calc(100% + 9px);width:min(360px,92vw);max-height:480px;overflow:auto;background:#171717;border:1px solid var(--border);border-radius:12px;box-shadow:0 15px 40px rgba(0,0,0,.5);z-index:500;display:none}
+.notification-wrap.open .notification-panel{display:block}
+.notification-head{display:flex;align-items:center;justify-content:space-between;padding:13px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#171717;z-index:2}
+.notification-head strong{font-size:13px}
+.notification-head button{border:0;background:transparent;color:var(--gold);font-size:10px;cursor:pointer}
+.notification-item{padding:12px 13px;border-bottom:1px solid #292929;cursor:pointer}
+.notification-item:hover{background:#202020}
+.notification-item.unread{background:rgba(212,175,55,.06);border-left:3px solid var(--gold)}
+.notification-message{font-size:12px;line-height:1.45;color:#ddd}
+.notification-time{font-size:9px;color:var(--muted);margin-top:5px}
+.notification-empty{padding:25px;text-align:center;color:var(--muted);font-size:12px}
+
+
+/* FACEBOOK-STYLE COMMENT THREADS */
+.comment-item{position:relative;margin-top:9px}.comment-row{display:flex;gap:8px;align-items:flex-start}
+.comment-bubble{background:#202020;border-radius:13px;padding:8px 11px;max-width:calc(100% - 38px);min-width:130px}
+.comment-author{font-size:11px;font-weight:700;color:#eee;margin-bottom:2px}.comment-text{font-size:12px;line-height:1.45;color:#ddd;white-space:pre-wrap;word-break:break-word}
+.comment-actions{display:flex;align-items:center;gap:9px;margin:3px 0 0 38px;font-size:10px;color:var(--muted)}
+.comment-action{border:0;background:transparent;color:#fff;padding:0;cursor:pointer;font-size:10px;font-weight:600}.comment-action:hover{color:#fff}.comment-action.active{color:var(--gold)}
+.comment-replies{margin-left:36px;border-left:1px solid #333;padding-left:10px}.comment-reply-box{margin:7px 0 3px 36px}
+.replying-label{font-size:9px;color:var(--gold);margin-bottom:5px;display:flex;justify-content:space-between}.replying-label button{border:0;background:transparent;color:#999;cursor:pointer;font-size:9px}
+.reply-input-row{display:flex;gap:6px}.reply-input{flex:1;background:#191919;border:1px solid var(--border);color:#fff;border-radius:18px;padding:8px 11px;font-size:11px;outline:none}
+.reply-input:focus{border-color:var(--gold)}.reply-send{border:0;background:var(--gold);color:#111;border-radius:18px;padding:7px 11px;font-size:10px;font-weight:700;cursor:pointer}
+
+.comment-reaction-wrap{position:relative;display:inline-flex;align-items:center}
+.comment-reaction-picker{position:absolute;left:-8px;bottom:24px;display:none;gap:3px;align-items:center;background:#242424;border:1px solid #3a3a3a;border-radius:22px;padding:5px 7px;box-shadow:0 8px 25px rgba(0,0,0,.45);z-index:80;white-space:nowrap}
+.comment-reaction-wrap.open .comment-reaction-picker{display:flex}
+.comment-reaction-choice{border:0;background:transparent;font-size:20px;line-height:1;padding:3px;cursor:pointer;transition:transform .12s ease}
+.comment-reaction-choice:hover{transform:scale(1.28)}
+.comment-reaction-summary{display:inline-flex;align-items:center;gap:3px;color:#aaa}
+.comment-reaction-icons{letter-spacing:-2px}
+
+
+/* =========================================================
+   DUARTE CLAN — RESPONSIVE / MOBILE FINAL PASS
+   ========================================================= */
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+img{max-width:100%;height:auto}
+button,input,textarea,select{max-width:100%}
+
+/* Prevent long names/content from forcing horizontal scrolling */
+.post-card,.comment-bubble,.event-list-card,.member-card,
+.gallery-card,.profile-card,.notification-panel{min-width:0}
+.post-content,.comment-text,.notification-message{overflow-wrap:anywhere}
+
+/* Reaction menus remain visible inside narrow viewports */
+.reaction-picker,.comment-reaction-picker{
+  max-width:calc(100vw - 24px);
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.reaction-picker::-webkit-scrollbar,
+.comment-reaction-picker::-webkit-scrollbar{display:none}
+
+/* Threaded replies scale down rather than disappearing off-screen */
+.comment-replies{max-width:100%}
+.reply-input-row{min-width:0}
+.reply-input{min-width:0}
+
+/* Touch-friendly controls */
+@media (hover:none),(pointer:coarse){
+  button,.comment-action,.nav-link{min-height:36px}
+  .comment-reaction-choice{font-size:23px;padding:5px}
+}
+
+/* Tablet */
+@media (max-width:1050px){
+  .layout,.main-layout,.content-layout,.dashboard-grid{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  .left-sidebar,.right-sidebar{
+    position:static !important;
+    width:100% !important;
+    max-width:none !important;
+  }
+  .right-sidebar{margin-top:12px}
+  main,.main-feed,.feed,.content{
+    width:100% !important;
+    max-width:760px !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+  }
+}
+
+/* Mobile */
+@media (max-width:700px){
+  body{font-size:14px}
+  header,.topbar,.top-nav,.navbar{
+    width:100%;
+    max-width:100%;
+  }
+
+  nav{
+    gap:4px !important;
+    overflow-x:auto;
+    overflow-y:visible;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  nav::-webkit-scrollbar{display:none}
+  nav a,.nav-link{flex:0 0 auto}
+
+  .left-sidebar,.right-sidebar{
+    display:none !important;
+  }
+
+  main,.main-feed,.feed,.content,.container{
+    width:100% !important;
+    max-width:100% !important;
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+
+  .post-card,.create-post,.section-card,.profile-card,
+  .event-list-card,.member-card,.gallery-card{
+    border-radius:10px !important;
+  }
+
+  .post-card{padding-left:10px !important;padding-right:10px !important}
+
+  .post-actions{
+    display:flex !important;
+    gap:3px !important;
+    justify-content:space-around !important;
+  }
+  .post-actions button{flex:1;white-space:nowrap}
+
+  .comment-actions{
+    margin-left:30px !important;
+    gap:7px !important;
+    flex-wrap:wrap;
+  }
+  .comment-replies{
+    margin-left:18px !important;
+    padding-left:7px !important;
+  }
+  .comment-reply-box{margin-left:18px !important}
+  .comment-bubble{max-width:calc(100% - 34px) !important}
+
+  .comment-reaction-picker{
+    position:fixed !important;
+    left:50% !important;
+    right:auto !important;
+    bottom:18px !important;
+    transform:translateX(-50%);
+    justify-content:center;
+    z-index:2000 !important;
+  }
+
+  .notification-panel{
+    position:fixed !important;
+    top:58px !important;
+    left:8px !important;
+    right:8px !important;
+    width:auto !important;
+    max-width:none !important;
+    max-height:calc(100vh - 75px) !important;
+  }
+
+  .gallery-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:7px !important;
+  }
+
+  .members-grid,.events-grid{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+
+  input,textarea,select{font-size:16px !important} /* prevents iOS input zoom */
+}
+
+/* Small phones */
+@media (max-width:420px){
+  .gallery-grid{grid-template-columns:minmax(0,1fr) !important}
+  .comment-replies{margin-left:10px !important}
+  .comment-reply-box{margin-left:10px !important}
+  .comment-actions{margin-left:25px !important;font-size:9px}
+  .notification-panel{top:52px !important}
+}
+
+</style>
 </head>
-<body>
 
-    <div class="container">
-        <header>
-            <h1>JACOBY LPGas</h1>
-        </header>
+<body style="visibility:hidden">
+<div id="accessGate" style="display:none"></div>
 
-        <nav>
-            <button class="nav-btn active" onclick="switchView('view-new-sale', event)">New Sale</button>
-            <button class="nav-btn" onclick="switchView('view-sales-records', event)">Sales Records</button>
-            <button class="nav-btn" onclick="switchView('view-sales-analytics', event)">Sales Monitoring</button>
-            <button class="nav-btn" onclick="switchView('view-inventory-overview', event)">Inventory Overview</button>
-            <button class="nav-btn" onclick="switchView('view-manage-inventory', event)">Manage Inventory</button>
-        </nav>
+<!-- =========================
+     TOP BAR
+========================= -->
 
-        <!-- View 1: New Sale Form -->
-        <div id="view-new-sale" class="view-panel active">
-            <h2>Record New Transaction</h2>
-            <form id="saleForm" style="margin-top: 15px;">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Customer / Store Name</label>
-                        <input type="text" id="custName" required placeholder="Enter store or customer name">
-                    </div>
-                    <div class="form-group">
-                        <label>Customer Address</label>
-                        <input type="text" id="custAddr" placeholder="Enter delivery address">
-                    </div>
-                    <div class="form-group">
-                        <label>Contact Number</label>
-                        <input type="text" id="custContact" placeholder="e.g. 09123456789">
-                    </div>
-                    <div class="form-group">
-                        <label>Select Product</label>
-                        <select id="prodSelect" onchange="updatePrice()" required>
-                            <option value="">-- Select Product --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Unit Price (₱)</label>
-                        <input type="number" id="unitPrice" readonly placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label>Quantity</label>
-                        <input type="number" id="qty" min="1" value="1" oninput="calcTotal()" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Total Amount (₱)</label>
-                        <input type="number" id="totalAmt" readonly placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label>Store/Customer Photo</label>
-                        <input type="file" id="storePhoto" accept="image/*" onchange="handlePhoto(event)">
-                        <input type="hidden" id="storePhotoData">
-                        <img id="photoPreview" class="photo-preview" alt="Preview">
-                    </div>
-                </div>
+<header class="topbar">
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label>Capture Transaction Location</label>
-                    <div class="gps-container">
-                        <button type="button" class="btn" onclick="captureGPS()">📍 Acquire GPS Position</button>
-                        <span id="gpsStatus" class="gps-status">GPS Coordinates not set</span>
-                    </div>
-                    <input type="hidden" id="custGPS">
-                </div>
+    <div class="topbar-inner">
 
-                <button type="submit" class="btn btn-success" style="width: 100%;">Complete Transaction</button>
-            </form>
+        <div class="brand">
+
+            <div class="brand-logo">
+                D
+            </div>
+
+            <div class="brand-text">
+                <h1>DUARTE CLAN</h1>
+                <span>OUR FAMILY • OUR STORIES • OUR LEGACY</span>
+            </div>
+
         </div>
 
-        <!-- View 2: Sales Records -->
-        <div id="view-sales-records" class="view-panel">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                <h2>Sales History</h2>
-                <button class="btn btn-success" onclick="exportCSV()">Export to CSV</button>
-            </div>
 
-            <div class="search-bar-container">
-                <input type="text" id="salesSearchInput" onkeyup="filterSales()" placeholder="🔍 Search store, customer, address, or product...">
-                <button class="btn" style="background:var(--secondary);" onclick="clearSearch()">Clear</button>
-            </div>
+        <nav class="main-nav">
 
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Photo</th>
-                            <th>Date</th>
-                            <th>Customer / Store</th>
-                            <th>Address</th>
-                            <th>Item</th>
-                            <th>Qty</th>
-                            <th>Total</th>
-                            <th>Map</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="salesTable"></tbody>
-                </table>
-            </div>
-            <div id="salesGrandTotalContainer"></div>
-        </div>
+            <button class="nav-btn active" onclick="showSection('home')">
+                🏠 Home
+            </button>
 
-        <!-- View 3: Sales Monitoring / Analytics -->
-        <div id="view-sales-analytics" class="view-panel">
-            <h2>Sales Analytics & Monitoring</h2>
-            <div class="filter-group" style="margin-top: 15px;">
-                <button class="filter-btn active" onclick="setAnalyticsFilter('daily', this)">Daily Breakdown</button>
-                <button class="filter-btn" onclick="setAnalyticsFilter('weekly', this)">This Week</button>
-                <button class="filter-btn" onclick="setAnalyticsFilter('monthly', this)">This Month</button>
-                <button class="filter-btn" onclick="setAnalyticsFilter('all', this)">All Time</button>
-            </div>
+            <button class="nav-btn" onclick="showSection('members')">
+                👥 Members
+            </button>
 
-            <!-- Day Selector (Monday to Saturday + Today) -->
-            <div id="dayFilterContainer" class="sub-filter-group" style="display: flex;">
-                <button class="sub-btn active" onclick="setDayFilter('today', this)">Today</button>
-                <button class="sub-btn" onclick="setDayFilter(1, this)">Monday</button>
-                <button class="sub-btn" onclick="setDayFilter(2, this)">Tuesday</button>
-                <button class="sub-btn" onclick="setDayFilter(3, this)">Wednesday</button>
-                <button class="sub-btn" onclick="setDayFilter(4, this)">Thursday</button>
-                <button class="sub-btn" onclick="setDayFilter(5, this)">Friday</button>
-                <button class="sub-btn" onclick="setDayFilter(6, this)">Saturday</button>
-            </div>
+            <button class="nav-btn" onclick="showSection('events')">
+                📅 Events
+            </button>
 
-            <!-- Month Selector (Current Month + Jan to Dec) -->
-            <div id="monthFilterContainer" class="sub-filter-group">
-                <button class="sub-btn active" onclick="setMonthFilter('current', this)">Current Month</button>
-                <button class="sub-btn" onclick="setMonthFilter(0, this)">Jan</button>
-                <button class="sub-btn" onclick="setMonthFilter(1, this)">Feb</button>
-                <button class="sub-btn" onclick="setMonthFilter(2, this)">Mar</button>
-                <button class="sub-btn" onclick="setMonthFilter(3, this)">Apr</button>
-                <button class="sub-btn" onclick="setMonthFilter(4, this)">May</button>
-                <button class="sub-btn" onclick="setMonthFilter(5, this)">Jun</button>
-                <button class="sub-btn" onclick="setMonthFilter(6, this)">Jul</button>
-                <button class="sub-btn" onclick="setMonthFilter(7, this)">Aug</button>
-                <button class="sub-btn" onclick="setMonthFilter(8, this)">Sep</button>
-                <button class="sub-btn" onclick="setMonthFilter(9, this)">Oct</button>
-                <button class="sub-btn" onclick="setMonthFilter(10, this)">Nov</button>
-                <button class="sub-btn" onclick="setMonthFilter(11, this)">Dec</button>
-            </div>
+            <button class="nav-btn" onclick="showSection('gallery')">
+                📷 Gallery
+            </button>
 
-            <div class="analytics-cards">
-                <div class="card">
-                    <h4>Total Revenue</h4>
-                    <div class="card-value" id="analyticRevenue">₱0.00</div>
-                </div>
-                <div class="card">
-                    <h4>Transactions</h4>
-                    <div class="card-value" id="analyticOrders">0</div>
-                </div>
-                <div class="card">
-                    <h4>Items Sold</h4>
-                    <div class="card-value" id="analyticItems">0</div>
+        
+            <div class="notification-wrap" id="notificationWrap">
+                <button class="notification-bell" onclick="toggleNotifications(event)" title="Notifications">
+                    🔔
+                    <span class="notification-badge" id="notificationBadge">0</span>
+                </button>
+                <div class="notification-panel" id="notificationPanel" onclick="event.stopPropagation()">
+                    <div class="notification-head">
+                        <strong>🔔 Notifications</strong>
+                        <button onclick="markAllNotificationsRead()">MARK ALL READ</button>
+                    </div>
+                    <div id="notificationList">
+                        <div class="notification-empty">Loading notifications...</div>
+                    </div>
                 </div>
             </div>
+</nav>
 
-            <h3>Period Breakdown</h3>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Customer / Store</th>
-                            <th>Item</th>
-                            <th>Qty</th>
-                            <th>Total Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody id="analyticsTable"></tbody>
-                </table>
+
+        <div class="user-area">
+
+            <button class="icon-btn" title="Notifications">
+                🔔
+            </button>
+
+            <div class="avatar">
+                D
             </div>
+
         </div>
 
-        <!-- View 4: Inventory Overview -->
-        <div id="view-inventory-overview" class="view-panel">
-            <h2>Inventory Stock Overview</h2>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Product Name</th>
-                            <th>Price</th>
-                            <th>Stock Quantity</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventoryOverviewTable"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- View 5: Manage Inventory -->
-        <div id="view-manage-inventory" class="view-panel">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h2>Manage Inventory</h2>
-                <button class="btn" onclick="openItemModal()">+ Add New Item</button>
-            </div>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Product Name</th>
-                            <th>Price (₱)</th>
-                            <th>Stock Quantity</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventoryManageTable"></tbody>
-                </table>
-            </div>
-        </div>
     </div>
 
-    <!-- Modal for Adding/Editing Item -->
-    <div id="itemModal" class="modal">
-        <div class="modal-content">
-            <h3 id="itemModalTitle">Add New Item</h3>
-            <input type="hidden" id="itemId">
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Item Name</label>
-                <input type="text" id="itemName">
+</header>
+
+
+<!-- =========================
+     PAGE
+========================= -->
+
+<main class="page">
+
+    <div class="layout">
+
+
+        <!-- =========================
+             LEFT SIDEBAR
+        ========================= -->
+
+        <aside class="sidebar">
+
+            <div class="profile-mini">
+
+                <div class="profile-avatar">
+                    D
+                </div>
+
+                <h3>Duarte Family Member</h3>
+
+                <p>Clan Member</p>
+
             </div>
-            <div class="form-group" style="margin-top: 10px;">
-                <label>Price (₱)</label>
-                <input type="number" id="itemPrice" step="0.01">
+
+
+            <div class="side-menu">
+
+                <button class="side-link active" onclick="showSection('home')">
+                    <span class="side-icon">🏠</span>
+                    Home
+                </button>
+
+                <button class="side-link" onclick="showSection('members')">
+                    <span class="side-icon">👥</span>
+                    Clan Members
+                </button>
+
+                <button class="side-link" onclick="showSection('events')">
+                    <span class="side-icon">📅</span>
+                    Clan Events
+                </button>
+
+                <button class="side-link" onclick="showSection('gallery')">
+                    <span class="side-icon">📷</span>
+                    Family Gallery
+                </button>
+
+                <button class="side-link" onclick="openProfile()">
+                    <span class="side-icon">👤</span>
+                    My Profile
+                </button>
+
+                <button class="side-link" onclick="logout()">
+                    <span class="side-icon">🚪</span>
+                    Logout
+                </button>
+
             </div>
-            <div class="form-group" style="margin-top: 10px;">
-                <label>Stock</label>
-                <input type="number" id="itemStock">
+
+        </aside>
+
+
+        <!-- =========================
+             MAIN FEED
+        ========================= -->
+
+        <section class="feed" id="homeFeed">
+
+            <div class="feed-header">
+
+                <h2>Welcome to the Duarte Clan</h2>
+
+                <p>
+                    Stay connected. Share memories. Celebrate family.
+                </p>
+
             </div>
-            <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
-                <button class="btn" style="background:var(--secondary);" onclick="closeModal('itemModal')">Cancel</button>
-                <button class="btn" onclick="saveItem()">Save Item</button>
+
+
+            <div class="gallery-manager" id="galleryManager">
+                <div class="gallery-head">
+                    <div>
+                        <h2 style="font-size:20px;margin-bottom:4px;">📷 Duarte Family Gallery</h2>
+                        <p style="color:var(--muted);font-size:12px;">Family memories shared by approved clan members</p>
+                    </div>
+                    <button class="publish-btn" onclick="openGalleryUpload()">+ UPLOAD PHOTO</button>
+                </div>
+                <div id="galleryGrid" class="gallery-grid">
+                    <div style="color:var(--muted);padding:20px;">Loading family photos...</div>
+                </div>
             </div>
-        </div>
+
+            <div class="profile-manager" id="profileManager">
+                <div class="profile-card-edit">
+                    <div class="profile-hero">
+                        <div class="profile-big-avatar" id="profileBigAvatar">DC</div>
+                        <div>
+                            <h2 id="profileHeading" style="font-size:20px;margin-bottom:4px;">My Profile</h2>
+                            <p id="profileRoleText" style="color:var(--muted);font-size:12px;">Duarte Clan Member</p>
+                        </div>
+                    </div>
+
+                    <div class="profile-field">
+                        <label>FULL NAME</label>
+                        <input id="profileFullName" type="text" maxlength="100" placeholder="Your full name">
+                    </div>
+
+                    <div class="profile-field">
+                        <label>CLAN ROLE</label>
+                        <input id="profileClanRole" type="text" class="profile-readonly" readonly>
+                    </div>
+
+                    <div class="profile-field">
+                        <label>AVATAR IMAGE URL</label>
+                        <input id="profileAvatarUrl" type="url" placeholder="https://example.com/photo.jpg">
+                    </div>
+
+                    <div class="profile-note">
+                        🔒 Your approval status and administrator permissions are protected and cannot be changed from My Profile.
+                    </div>
+
+                    <div class="profile-save-row">
+                        <button class="publish-btn" onclick="saveMyProfile()">SAVE PROFILE</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="members-manager" id="membersManager">
+                <div class="members-manager-head">
+                    <div>
+                        <h2 style="font-size:20px;margin-bottom:4px;">👥 Duarte Clan Members</h2>
+                        <p style="color:var(--muted);font-size:12px;">
+                            Approved members of the Duarte Clan community
+                        </p>
+                    </div>
+                    <input
+                        id="memberSearch"
+                        class="members-search"
+                        type="search"
+                        placeholder="Search clan members..."
+                        oninput="filterMembers()"
+                    >
+                </div>
+
+                <div id="membersCount" style="color:var(--muted);font-size:11px;margin-bottom:12px;"></div>
+
+                <div id="membersGrid" class="members-grid">
+                    <div style="color:var(--muted);padding:20px;">
+                        Loading clan members...
+                    </div>
+                </div>
+            </div>
+
+            <div class="event-manager" id="eventManager">
+                <div class="event-manager-head">
+                    <div>
+                        <h2 style="font-size:20px;margin-bottom:4px;">📅 Clan Events</h2>
+                        <p style="color:var(--muted);font-size:12px;">Duarte Clan gatherings and family activities</p>
+                    </div>
+                    <button id="addEventButton" class="publish-btn" style="display:none;" onclick="openEventModal()">+ ADD EVENT</button>
+                </div>
+                <div id="eventsList">Loading events...</div>
+            </div>
+
+            <!-- CREATE POST -->
+
+            <div class="create-post" id="createPostBox">
+
+                <div class="post-top">
+
+                    <div class="post-avatar">
+                        D
+                    </div>
+
+                    <textarea
+                        id="postInput"
+                        class="post-input"
+                        placeholder="What's happening in the Duarte Clan?"
+                        rows="1"
+                    ></textarea>
+
+                </div>
+
+
+                <div class="post-tools">
+
+                    <div class="post-actions">
+
+                        <button
+                            class="post-action"
+                            onclick="choosePhoto()"
+                        >
+                            📷 Photo
+                        </button>
+
+                        <button
+                            class="post-action"
+                            onclick="openPostModal()"
+                        >
+                            ✍️ Write
+                        </button>
+
+                        <button
+                            class="post-action"
+                            onclick="showEventMessage()"
+                        >
+                            📅 Event
+                        </button>
+
+                    </div>
+
+                    <button
+                        class="publish-btn"
+                        onclick="publishPost()"
+                    >
+                        POST
+                    </button>
+
+                </div>
+
+                <input
+                    type="file"
+                    id="photoInput"
+                    accept="image/*"
+                    style="display:none"
+                    onchange="photoSelected(event)"
+                >
+
+            </div>
+
+
+            <div id="postsContainer">
+                <div id="postsLoading" style="
+                    background:var(--panel);
+                    border:1px solid var(--border);
+                    border-radius:15px;
+                    padding:22px;
+                    color:var(--muted);
+                    text-align:center;
+                ">
+                    Loading Duarte Clan posts...
+                </div>
+            </div>
+
+
+        </section>
+
+
+        <!-- =========================
+             RIGHT SIDEBAR
+        ========================= -->
+
+        <aside class="right-sidebar">
+
+
+            <!-- ANNOUNCEMENTS -->
+
+            <div class="right-card">
+
+                <h3>📢 Clan Announcements</h3>
+
+                <div class="announcement">
+
+                    <strong>Welcome to Duarte Clan Online</strong>
+
+                    <span>Posted today</span>
+
+                </div>
+
+                <div class="announcement">
+
+                    <strong>Keep your family profile updated</strong>
+
+                    <span>Posted this week</span>
+
+                </div>
+
+                <div class="announcement">
+
+                    <strong>Share your favorite family memories</strong>
+
+                    <span>Posted this month</span>
+
+                </div>
+
+            </div>
+
+
+            <!-- EVENTS -->
+
+            <div class="right-card">
+
+                <h3>📅 Upcoming Events</h3>
+                <div id="upcomingEventsBody">
+                    <div style="color:var(--muted);font-size:12px;">Loading events...</div>
+                </div>
+
+            </div>
+
+
+            <!-- MEMBERS ONLINE -->
+
+            <div class="right-card">
+
+                <h3>👥 Clan Members</h3>
+                <div id="sidebarMembersBody">
+                    <div style="color:var(--muted);font-size:12px;">
+                        Loading members...
+                    </div>
+                </div>
+
+            </div>
+
+
+        </aside>
+
     </div>
 
-    <script>
-        let inventory = JSON.parse(localStorage.getItem('app_inventory')) || [
-            { id: 1, name: 'Sample Product A', price: 150.00, stock: 25 },
-            { id: 2, name: 'Sample Product B', price: 299.99, stock: 8 }
-        ];
+</main>
 
-        let sales = JSON.parse(localStorage.getItem('app_sales')) || [];
-        let currentAnalyticsFilter = 'daily';
-        let currentSelectedDay = 'today';   // 'today' or 1 (Mon) to 6 (Sat)
-        let currentSelectedMonth = 'current'; // 'current' or 0 (Jan) to 11 (Dec)
 
-        function init() {
-            renderDropdown();
-            renderSales(sales);
-            renderInventoryViews();
-            renderAnalytics();
+<div class="modal" id="galleryUploadModal">
+    <div class="modal-box">
+        <h2>Upload Family Photo</h2>
+        <div class="event-field">
+            <label>PHOTO *</label>
+            <input id="galleryFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewGalleryFile(this)">
+            <img id="galleryPreview" class="gallery-upload-preview" alt="Photo preview">
+        </div>
+        <div class="event-field">
+            <label>CAPTION</label>
+            <textarea id="galleryCaption" maxlength="500" placeholder="Write something about this family memory..."></textarea>
+        </div>
+        <div class="modal-buttons">
+            <button class="close-btn" onclick="closeGalleryUpload()">Cancel</button>
+            <button id="galleryUploadButton" class="confirm-btn" onclick="uploadGalleryPhoto()">UPLOAD PHOTO</button>
+        </div>
+    </div>
+</div>
+
+<div class="photo-viewer" id="photoViewer" onclick="if(event.target===this) closePhotoViewer()">
+    <button class="photo-viewer-close" onclick="closePhotoViewer()">×</button>
+    <img id="photoViewerImage" alt="Family photo">
+</div>
+
+<div class="modal" id="eventModal">
+    <div class="modal-box">
+        <h2 id="eventModalTitle">Create Clan Event</h2>
+        <input type="hidden" id="eventEditId">
+        <div class="event-field">
+            <label>EVENT TITLE *</label>
+            <input id="eventTitle" type="text" placeholder="Duarte Clan Reunion">
+        </div>
+        <div class="event-form-grid">
+            <div class="event-field">
+                <label>DATE & TIME *</label>
+                <input id="eventDate" type="datetime-local">
+            </div>
+            <div class="event-field">
+                <label>LOCATION</label>
+                <input id="eventLocation" type="text" placeholder="Event location">
+            </div>
+        </div>
+        <div class="event-field">
+            <label>DESCRIPTION</label>
+            <textarea id="eventDescription" placeholder="Event details..."></textarea>
+        </div>
+        <div class="modal-buttons">
+            <button class="close-btn" onclick="closeEventModal()">Cancel</button>
+            <button class="confirm-btn" onclick="saveEvent()">SAVE EVENT</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- =========================
+     WRITE POST MODAL
+========================= -->
+
+<div class="modal" id="postModal">
+
+    <div class="modal-box">
+
+        <h2>Create Clan Post</h2>
+
+        <textarea
+            id="modalPostText"
+            placeholder="Share something with the Duarte Clan..."
+        ></textarea>
+
+        <div class="modal-buttons">
+
+            <button
+                class="close-btn"
+                onclick="closePostModal()"
+            >
+                Cancel
+            </button>
+
+            <button
+                class="confirm-btn"
+                onclick="publishModalPost()"
+            >
+                Publish
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://mrrothkiygcxspiwotjx.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_wYyisTscusEPgTmpbZGYmw_e_mTcAwW";
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+);
+
+let currentUser = null;
+let currentProfile = null;
+
+function showPendingApproval(profile) {
+    document.body.style.visibility = "visible";
+    document.body.innerHTML = `
+        <div style="
+            min-height:100vh;display:flex;align-items:center;justify-content:center;
+            background:#0b0b0b;color:#f4f4f4;font-family:Arial,sans-serif;padding:25px;
+        ">
+            <div style="
+                width:min(480px,100%);background:#141414;border:1px solid #2b2b2b;
+                border-radius:16px;padding:32px;text-align:center;
+            ">
+                <div style="font-size:48px;margin-bottom:14px;">⏳</div>
+                <h2 style="color:#d4af37;margin-bottom:12px;">Membership Pending Approval</h2>
+                <p style="color:#929292;line-height:1.6;margin-bottom:8px;">
+                    ${escapeHTML(profile?.full_name || "Duarte Clan Member")}, your account has been registered successfully.
+                </p>
+                <p style="color:#929292;line-height:1.6;margin-bottom:24px;">
+                    A Duarte Clan administrator must approve your membership before you can access the private clan.
+                </p>
+                <button onclick="logout(true)" style="
+                    border:1px solid #d4af37;background:#191919;color:#d4af37;
+                    padding:11px 18px;border-radius:8px;cursor:pointer;
+                ">Logout</button>
+            </div>
+        </div>
+    `;
+}
+
+function applyMemberProfile(profile) {
+    const initials = getInitials(profile.full_name);
+
+    document.querySelectorAll(".avatar, .profile-avatar, .post-avatar").forEach(el => {
+        el.textContent = initials;
+    });
+
+    const nameEl = document.querySelector(".profile-mini h3");
+    const roleEl = document.querySelector(".profile-mini p");
+
+    if (nameEl) nameEl.textContent = profile.full_name || "Duarte Family Member";
+    if (roleEl) roleEl.textContent = profile.clan_role || "Member";
+
+    if (profile.is_admin === true) {
+        const sideMenu = document.querySelector(".side-menu");
+        if (sideMenu && !document.getElementById("adminPanelLink")) {
+            const adminButton = document.createElement("button");
+            adminButton.id = "adminPanelLink";
+            adminButton.className = "side-link";
+            adminButton.innerHTML = '<span class="side-icon">🛡️</span>Administration';
+            adminButton.onclick = () => window.location.href = "admin.html";
+            const logoutButton = Array.from(sideMenu.querySelectorAll(".side-link"))
+                .find(btn => btn.textContent.includes("Logout"));
+            sideMenu.insertBefore(adminButton, logoutButton || null);
+        }
+    }
+}
+
+function getInitials(name) {
+    if (!name) return "D";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+async function protectPrivateClan() {
+    try {
+        const { data: userData, error: userError } =
+            await supabaseClient.auth.getUser();
+
+        if (userError || !userData.user) {
+            window.location.replace("login.html");
+            return;
         }
 
-        function switchView(viewId, evt) {
-            document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        currentUser = userData.user;
 
-            document.getElementById(viewId).classList.add('active');
-            if (evt && evt.target) {
-                evt.target.classList.add('active');
-            }
+        const { data: profile, error: profileError } =
+            await supabaseClient
+                .from("profiles")
+                .select("id, full_name, clan_role, approved, is_admin, avatar_url")
+                .eq("id", currentUser.id)
+                .single();
+
+        if (profileError || !profile) {
+            console.error(profileError);
+            await supabaseClient.auth.signOut();
+            window.location.replace("login.html");
+            return;
         }
 
-        function captureGPS() {
-            const gpsInput = document.getElementById('custGPS');
-            const gpsStatus = document.getElementById('gpsStatus');
+        currentProfile = profile;
 
-            if (!navigator.geolocation) {
-                alert('Geolocation is not supported by your browser.');
-                return;
-            }
-
-            gpsStatus.textContent = 'Acquiring GPS position...';
-            gpsStatus.style.color = 'var(--primary)';
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude.toFixed(6);
-                    const lng = position.coords.longitude.toFixed(6);
-
-                    gpsInput.value = `${lat},${lng}`;
-                    gpsStatus.textContent = `Captured: ${lat}, ${lng}`;
-                    gpsStatus.style.color = 'var(--success)';
-                },
-                (error) => {
-                    let errorMsg = 'Failed to retrieve location.';
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMsg = 'Location permission denied by user.';
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            errorMsg = 'Location information is unavailable.';
-                            break;
-                        case error.TIMEOUT:
-                            errorMsg = 'Location request timed out.';
-                            break;
-                    }
-                    alert(errorMsg);
-                    gpsStatus.textContent = 'Location acquisition failed.';
-                    gpsStatus.style.color = 'var(--danger)';
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
+        if (profile.approved !== true && profile.is_admin !== true) {
+            showPendingApproval(profile);
+            return;
         }
 
-        function showMap(lat, lng, name) {
-            if (!lat || !lng) {
-                alert('Coordinates unavailable for this record.');
-                return;
-            }
-            const url = `https://www.google.com/maps?q=${lat},${lng}(${encodeURIComponent(name)})`;
-            window.open(url, '_blank');
-        }
+        applyMemberProfile(profile);
+        document.body.style.visibility = "visible";
+        await loadPosts();
+        await loadEvents();
+        await loadMembersDirectory();
+        startNotificationRefresh();
 
-        function filterSales() {
-            const query = document.getElementById('salesSearchInput').value.toLowerCase().trim();
-            if (!query) {
-                renderSales(sales);
-                return;
-            }
+    } catch (error) {
+        console.error("Private clan access check failed:", error);
+        window.location.replace("login.html");
+    }
+}
 
-            const filtered = sales.filter(s => 
-                (s.name && s.name.toLowerCase().includes(query)) ||
-                (s.address && s.address.toLowerCase().includes(query)) ||
-                (s.item && s.item.toLowerCase().includes(query)) ||
-                (s.date && s.date.toLowerCase().includes(query))
-            );
+/* =========================
+   NAVIGATION
+========================= */
 
-            renderSales(filtered);
-        }
+function showSection(section) {
+    const galleryManager = document.getElementById("galleryManager");
+    const profileManager = document.getElementById("profileManager");
+    const membersManager = document.getElementById("membersManager");
+    const eventManager = document.getElementById("eventManager");
+    const createPostBox = document.getElementById("createPostBox");
+    const postsContainer = document.getElementById("postsContainer");
+    const feedHeader = document.querySelector(".feed-header");
 
-        function clearSearch() {
-            document.getElementById('salesSearchInput').value = '';
-            renderSales(sales);
-        }
+    if (galleryManager) galleryManager.classList.remove("show");
+    if (profileManager) profileManager.classList.remove("show");
+    if (membersManager) membersManager.classList.remove("show");
+    if (eventManager) eventManager.classList.remove("show");
 
-        function setAnalyticsFilter(period, btnElement) {
-            currentAnalyticsFilter = period;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            if (btnElement) btnElement.classList.add('active');
+    if (section === "home") {
+        if (createPostBox) createPostBox.style.display = "";
+        if (postsContainer) postsContainer.style.display = "";
+        if (feedHeader) feedHeader.style.display = "";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+    }
 
-            const dayContainer = document.getElementById('dayFilterContainer');
-            const monthContainer = document.getElementById('monthFilterContainer');
+    if (section === "gallery") {
+        if (galleryManager) galleryManager.classList.add("show");
+        if (createPostBox) createPostBox.style.display = "none";
+        if (postsContainer) postsContainer.style.display = "none";
+        if (feedHeader) feedHeader.style.display = "none";
+        loadGallery();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+    }
 
-            dayContainer.style.display = 'none';
-            monthContainer.style.display = 'none';
+    if (section === "profile") {
+        if (profileManager) profileManager.classList.add("show");
+        if (createPostBox) createPostBox.style.display = "none";
+        if (postsContainer) postsContainer.style.display = "none";
+        if (feedHeader) feedHeader.style.display = "none";
+        loadMyProfile();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+    }
 
-            if (period === 'daily') {
-                dayContainer.style.display = 'flex';
-            } else if (period === 'monthly') {
-                monthContainer.style.display = 'flex';
-            }
+    if (section === "members") {
+        if (membersManager) membersManager.classList.add("show");
+        if (createPostBox) createPostBox.style.display = "none";
+        if (postsContainer) postsContainer.style.display = "none";
+        if (feedHeader) feedHeader.style.display = "none";
+        loadMembersDirectory();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+    }
 
-            renderAnalytics();
-        }
+    if (section === "events") {
+        if (eventManager) eventManager.classList.add("show");
+        if (createPostBox) createPostBox.style.display = "none";
+        if (postsContainer) postsContainer.style.display = "none";
+        if (feedHeader) feedHeader.style.display = "none";
+        loadEvents();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+    }
 
-        function setDayFilter(dayValue, btnElement) {
-            currentSelectedDay = dayValue;
-            document.querySelectorAll('#dayFilterContainer .sub-btn').forEach(btn => btn.classList.remove('active'));
-            if (btnElement) btnElement.classList.add('active');
-            renderAnalytics();
-        }
+}
 
-        function setMonthFilter(monthValue, btnElement) {
-            currentSelectedMonth = monthValue;
-            document.querySelectorAll('#monthFilterContainer .sub-btn').forEach(btn => btn.classList.remove('active'));
-            if (btnElement) btnElement.classList.add('active');
-            renderAnalytics();
-        }
 
-        function renderAnalytics() {
-            const now = new Date();
-            const todayStr = now.toLocaleDateString();
+/* =========================
+   LIKE
+========================= */
 
-            const filteredSales = sales.filter(s => {
-                const saleDate = new Date(s.timestamp || s.id);
-                
-                if (currentAnalyticsFilter === 'daily') {
-                    if (currentSelectedDay === 'today') {
-                        return saleDate.toLocaleDateString() === todayStr;
-                    } else {
-                        // 1 = Mon, 2 = Tue, ..., 6 = Sat
-                        return saleDate.getDay() === parseInt(currentSelectedDay);
-                    }
-                } else if (currentAnalyticsFilter === 'weekly') {
-                    const oneWeekAgo = new Date();
-                    oneWeekAgo.setDate(now.getDate() - 7);
-                    return saleDate >= oneWeekAgo;
-                } else if (currentAnalyticsFilter === 'monthly') {
-                    if (currentSelectedMonth === 'current') {
-                        return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
-                    } else {
-                        // 0 = Jan, 1 = Feb, ..., 11 = Dec
-                        return saleDate.getMonth() === parseInt(currentSelectedMonth);
-                    }
-                }
-                return true;
-            });
+const REACTION_META = {
+    like:  { emoji: "👍", label: "Like" },
+    love:  { emoji: "❤️", label: "Love" },
+    haha:  { emoji: "😂", label: "Haha" },
+    wow:   { emoji: "😮", label: "Wow" },
+    sad:   { emoji: "😢", label: "Sad" },
+    angry: { emoji: "😡", label: "Angry" }
+};
 
-            let totalRev = 0;
-            let totalQty = 0;
+function toggleReactionPicker(event, button) {
+    event.stopPropagation();
 
-            const tbody = document.getElementById('analyticsTable');
-            tbody.innerHTML = '';
+    const wrap = button.closest(".reaction-wrap");
+    const wasOpen = wrap.classList.contains("open");
 
-            if (filteredSales.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No records found for selected period.</td></tr>';
-            } else {
-                filteredSales.forEach(s => {
-                    totalRev += parseFloat(s.total);
-                    totalQty += s.qty;
+    document.querySelectorAll(".reaction-wrap.open").forEach(el => {
+        el.classList.remove("open");
+    });
 
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${s.date}</td>
-                            <td>${s.name}</td>
-                            <td>${s.item}</td>
-                            <td>${s.qty}</td>
-                            <td>₱${parseFloat(s.total).toFixed(2)}</td>
-                        </tr>`;
+    if (!wasOpen) wrap.classList.add("open");
+}
+
+async function chooseReaction(event, choiceButton, reaction) {
+    event.stopPropagation();
+
+    const wrap = choiceButton.closest(".reaction-wrap");
+    const card = choiceButton.closest(".post-card");
+    const postId = Number(card?.dataset.postId);
+
+    wrap?.classList.remove("open");
+
+    if (!postId || !currentUser || !currentProfile?.approved) return;
+    if (!REACTION_META[reaction]) return;
+
+    try {
+        const { data: existing, error: findError } = await supabaseClient
+            .from("reactions")
+            .select("id, reaction")
+            .eq("post_id", postId)
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
+
+        if (findError) throw findError;
+
+        if (existing && existing.reaction === reaction) {
+            const { error } = await supabaseClient
+                .from("reactions")
+                .delete()
+                .eq("id", existing.id);
+
+            if (error) throw error;
+
+        } else if (existing) {
+            const { error } = await supabaseClient
+                .from("reactions")
+                .update({ reaction })
+                .eq("id", existing.id);
+
+            if (error) throw error;
+
+        } else {
+            const { error } = await supabaseClient
+                .from("reactions")
+                .insert({
+                    post_id: postId,
+                    user_id: currentUser.id,
+                    reaction
                 });
-            }
 
-            document.getElementById('analyticRevenue').textContent = `₱${totalRev.toFixed(2)}`;
-            document.getElementById('analyticOrders').textContent = filteredSales.length;
-            document.getElementById('analyticItems').textContent = totalQty;
+            if (error) throw error;
         }
 
-        function handlePhoto(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('storePhotoData').value = e.target.result;
-                    const img = document.getElementById('photoPreview');
-                    img.src = e.target.result;
-                    img.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
+        await loadPostActivity(postId, card);
 
-        function viewFullPhoto(photoData, name) {
-            const win = window.open("");
-            win.document.write(`<img src="${photoData}" alt="${name}" style="max-width:100%;">`);
-        }
+    } catch (error) {
+        console.error("Reaction error:", error);
+        alert("Reaction could not be saved: " + (error.message || "Unknown error"));
+    }
+}
 
-        function renderDropdown() {
-            const select = document.getElementById('prodSelect');
-            select.innerHTML = '<option value="">-- Select Product --</option>';
-            inventory.forEach(item => {
-                select.innerHTML += `<option value="${item.id}">${item.name} (Stock: ${item.stock})</option>`;
-            });
-        }
+document.addEventListener("click", () => {
+    document.querySelectorAll(".reaction-wrap.open").forEach(el => {
+        el.classList.remove("open");
+    });
+});
 
-        function updatePrice() {
-            const id = document.getElementById('prodSelect').value;
-            const item = inventory.find(i => i.id == id);
-            document.getElementById('unitPrice').value = item ? item.price.toFixed(2) : '';
-            calcTotal();
-        }
 
-        function calcTotal() {
-            const price = parseFloat(document.getElementById('unitPrice').value) || 0;
-            const qty = parseInt(document.getElementById('qty').value) || 0;
-            document.getElementById('totalAmt').value = (price * qty).toFixed(2);
-        }
+/* =========================
+   COMMENTS
+========================= */
 
-        document.getElementById('saleForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const prodId = document.getElementById('prodSelect').value;
-            const item = inventory.find(i => i.id == prodId);
-            const qty = parseInt(document.getElementById('qty').value);
+function toggleComments(button) {
+    const card = button.closest(".post-card");
+    const area = card.querySelector(".comment-area");
+    area.classList.toggle("show");
 
-            if (!item) { alert('Please select a valid product.'); return; }
-            if (item.stock < qty) { alert('Insufficient stock level available!'); return; }
+    if (area.classList.contains("show")) {
+        area.querySelector(".comment-input")?.focus();
+    }
+}
 
-            item.stock -= qty;
-            localStorage.setItem('app_inventory', JSON.stringify(inventory));
+async function sendComment(button) {
+ const card=button.closest(".post-card"), postId=Number(card?.dataset.postId), input=card?.querySelector(".comment-input"), content=input?.value.trim();
+ if(!postId||!content)return;
+ try{const {error}=await supabaseClient.from("comments").insert({post_id:postId,user_id:currentUser.id,content,parent_comment_id:null});if(error)throw error;input.value="";await loadPostActivity(postId,card)}
+ catch(e){alert("Comment could not be sent: "+e.message)}
+}
+async function sendReply(button,parentId){
+ const card=button.closest(".post-card"),postId=Number(card?.dataset.postId),input=button.closest(".comment-reply-box")?.querySelector(".reply-input"),content=input?.value.trim();
+ if(!content)return;
+ try{const {error}=await supabaseClient.from("comments").insert({post_id:postId,user_id:currentUser.id,content,parent_comment_id:Number(parentId)});if(error)throw error;await loadPostActivity(postId,card)}
+ catch(e){alert("Reply could not be sent: "+e.message)}
+}
+function showReplyBox(button,id,name){
+ document.querySelectorAll(".comment-reply-box").forEach(x=>x.remove());
+ const item=button.closest(".comment-item"),box=document.createElement("div");box.className="comment-reply-box";
+ box.innerHTML=`<div class="replying-label"><span>Replying to ${escapeHTML(name)}</span><button onclick="this.closest('.comment-reply-box').remove()">Cancel</button></div><div class="reply-input-row"><input class="reply-input" maxlength="1000" placeholder="Write a reply..." onkeydown="if(event.key==='Enter'){event.preventDefault();this.nextElementSibling.click()}"><button class="reply-send" onclick="sendReply(this,${Number(id)})">Reply</button></div>`;
+ item.appendChild(box);box.querySelector("input").focus();
+}
+async function toggleCommentReactionPicker(event,button,commentId,postId,currentReaction){
+ event.stopPropagation();
 
-            const now = new Date();
-            const newSale = {
-                id: Date.now(),
-                name: document.getElementById('custName').value,
-                address: document.getElementById('custAddr').value,
-                contact: document.getElementById('custContact').value,
-                item: item.name,
-                qty: qty,
-                total: (item.price * qty).toFixed(2),
-                photo: document.getElementById('storePhotoData').value,
-                gps: document.getElementById('custGPS').value,
-                date: now.toLocaleDateString(),
-                isoDate: now.toISOString().split('T')[0],
-                timestamp: now.getTime()
-            };
+ // Facebook-style toggle:
+ // if this comment already has a reaction, clicking the selected reaction removes it.
+ if(currentReaction){
+   await setCommentReaction(button,commentId,currentReaction,postId);
+   return;
+ }
 
-            sales.unshift(newSale);
-            localStorage.setItem('app_sales', JSON.stringify(sales));
+ const wrap=button.closest(".comment-reaction-wrap");
+ document.querySelectorAll(".comment-reaction-wrap.open").forEach(x=>{if(x!==wrap)x.classList.remove("open")});
+ wrap?.classList.toggle("open");
+}
+document.addEventListener("click",()=>document.querySelectorAll(".comment-reaction-wrap.open").forEach(x=>x.classList.remove("open")));
 
-            this.reset();
-            document.getElementById('storePhotoData').value = '';
-            document.getElementById('custGPS').value = '';
-            document.getElementById('photoPreview').style.display = 'none';
-            document.getElementById('gpsStatus').textContent = 'GPS Coordinates not set';
-            document.getElementById('gpsStatus').style.color = 'var(--secondary)';
+async function setCommentReaction(button,id,reaction,postId){
+ try{
+  const {data:x,error:e}=await supabaseClient.from("comment_reactions").select("id,reaction").eq("comment_id",Number(id)).eq("user_id",currentUser.id).maybeSingle();
+  if(e)throw e;
+  if(x && x.reaction===reaction){
+   const {error}=await supabaseClient.from("comment_reactions").delete().eq("id",x.id);if(error)throw error;
+  }else if(x){
+   const {error}=await supabaseClient.from("comment_reactions").update({reaction}).eq("id",x.id);if(error)throw error;
+  }else{
+   const {error}=await supabaseClient.from("comment_reactions").insert({comment_id:Number(id),user_id:currentUser.id,reaction});if(error)throw error;
+  }
+  const card=document.querySelector(`.post-card[data-post-id="${Number(postId)}"]`);
+  if(card) await loadPostActivity(Number(postId),card);
+ }catch(e){alert("Comment reaction could not be saved: "+e.message)}
+}
+async function deleteComment(id,postId){
+ if(!confirm("Delete this comment and its replies?"))return;
+ const {error}=await supabaseClient.from("comments").delete().eq("id",Number(id));if(error){alert(error.message);return}
+ const card=document.querySelector(`.post-card[data-post-id="${postId}"]`);if(card)await loadPostActivity(Number(postId),card)
+}
+function renderThreadedComments(comments,likes,profiles,postId){
+ const tree={},lm={};
+ comments.forEach(c=>{const k=c.parent_comment_id==null?"root":String(c.parent_comment_id);(tree[k]??=[]).push(c)});
+ likes.forEach(r=>(lm[String(r.comment_id)]??=[]).push(r));
+ const render=c=>{
+  const name=profiles[c.user_id]?.full_name||"Duarte Clan Member",rs=lm[String(c.id)]||[],mine=rs.some(r=>r.user_id===currentUser?.id),del=c.user_id===currentUser?.id||currentProfile?.is_admin===true;
+  const safe=escapeHTML(name).replace(/'/g,"&#39;"), kids=tree[String(c.id)]||[];
+  return `<div class="comment-item"><div class="comment-row"><div class="comment-avatar">${escapeHTML(getInitials(name))}</div><div class="comment-bubble"><div class="comment-author">${escapeHTML(name)}</div><div class="comment-text">${escapeHTML(c.content)}</div></div></div><div class="comment-actions"><span class="comment-reaction-wrap"><button class="comment-action ${mine?"active":""}" onclick="toggleCommentReactionPicker(event,this,${c.id},${postId},${mine?`'${mine.reaction}'`:"null"})">${mine&&REACTION_META[mine.reaction]?REACTION_META[mine.reaction].emoji+" "+REACTION_META[mine.reaction].label:"👍 Like"}</button><span class="comment-reaction-picker" onclick="event.stopPropagation()"><button class="comment-reaction-choice" title="Like" onclick="setCommentReaction(this,${c.id},'like',${postId})">👍</button><button class="comment-reaction-choice" title="Love" onclick="setCommentReaction(this,${c.id},'love',${postId})">❤️</button><button class="comment-reaction-choice" title="Haha" onclick="setCommentReaction(this,${c.id},'haha',${postId})">😂</button><button class="comment-reaction-choice" title="Wow" onclick="setCommentReaction(this,${c.id},'wow',${postId})">😮</button><button class="comment-reaction-choice" title="Sad" onclick="setCommentReaction(this,${c.id},'sad',${postId})">😢</button><button class="comment-reaction-choice" title="Angry" onclick="setCommentReaction(this,${c.id},'angry',${postId})">😡</button></span></span><button class="comment-action" onclick="showReplyBox(this,${c.id},'${safe}')">↩ Reply</button>${rs.length?`<span class="comment-reaction-summary">· <span class="comment-reaction-icons">${[...new Set(rs.map(r=>(REACTION_META[r.reaction]||REACTION_META.like).emoji))].slice(0,3).join(" ")}</span> ${rs.length}</span>`:""}${del?`<button class="comment-action" onclick="deleteComment(${c.id},${postId})">Delete</button>`:""}</div>${kids.length?`<div class="comment-replies">${kids.map(render).join("")}</div>`:""}</div>`
+ };
+ return (tree.root||[]).map(render).join("");
+}
+async function loadPostActivity(postId,card){
+ try{
+  const [rr,cc]=await Promise.all([
+   supabaseClient.from("reactions").select("id,user_id,reaction").eq("post_id",postId),
+   supabaseClient.from("comments").select("id,user_id,content,parent_comment_id,created_at").eq("post_id",postId).order("created_at",{ascending:true})
+  ]);
+  if(rr.error)throw rr.error;if(cc.error)throw cc.error;
+  const reactions=rr.data||[],comments=cc.data||[],ids=comments.map(c=>c.id),uids=[...new Set(comments.map(c=>c.user_id))];
+  let likes=[],profiles={};
+  if(ids.length){const x=await supabaseClient.from("comment_reactions").select("id,comment_id,user_id,reaction").in("comment_id",ids);if(x.error)throw x.error;likes=x.data||[]}
+  if(uids.length){const x=await supabaseClient.from("profiles").select("id,full_name").in("id",uids);if(x.error)throw x.error;(x.data||[]).forEach(p=>profiles[p.id]=p)}
+  const mine=reactions.find(r=>r.user_id===currentUser?.id),rc=card.querySelector(".reaction-count"),ccount=card.querySelector(".comment-count"),btn=card.querySelector(".like-button"),list=card.querySelector(".comments-list");
+  if(rc){const icons=[];Object.keys(REACTION_META).forEach(t=>{if(reactions.some(r=>r.reaction===t))icons.push(REACTION_META[t].emoji)});rc.innerHTML=`<span class="reaction-summary"><span class="reaction-icons">${icons.slice(0,3).join(" ")}</span><span>${reactions.length} ${reactions.length===1?"reaction":"reactions"}</span></span>`}
+  if(ccount)ccount.textContent=`${comments.length} ${comments.length===1?"comment":"comments"}`;
+  if(btn){if(mine&&REACTION_META[mine.reaction]){const m=REACTION_META[mine.reaction];btn.innerHTML=`${m.emoji} ${m.label}`;btn.classList.add("selected-reaction")}else{btn.innerHTML="👍 Like";btn.classList.remove("selected-reaction")}}
+  if(list)list.innerHTML=renderThreadedComments(comments,likes,profiles,postId)
+ }catch(e){console.error("Post activity error:",e)}
+}
 
-            init();
-            alert('Transaction recorded successfully!');
-            switchView('view-sales-records');
+async function loadAllPostActivity() {
+    const cards = [...document.querySelectorAll(".post-card[data-post-id]")];
+    await Promise.all(
+        cards.map(card => loadPostActivity(Number(card.dataset.postId), card))
+    );
+}
+
+
+/* =========================
+   SHARE
+========================= */
+
+function sharePost() {
+
+    if (navigator.share) {
+
+        navigator.share({
+            title: "DUARTE CLAN",
+            text: "Check out this Duarte Clan update."
         });
 
-        function renderSales(data) {
-            const tbody = document.getElementById('salesTable');
-            const container = document.getElementById('salesGrandTotalContainer');
-            tbody.innerHTML = '';
-            let grandTotal = 0;
+    } else {
 
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No matching sales records found.</td></tr>';
-                container.innerHTML = '';
-                return;
-            }
+        alert("Share feature will be connected to the Duarte Clan system.");
 
-            data.forEach(s => {
-                grandTotal += parseFloat(s.total);
-                const imgTd = s.photo ? `<img src="${s.photo}" class="thumb-img" onclick="viewFullPhoto('${s.photo}', '${s.name}')">` : 'N/A';
-                
-                let gpsBtn = 'N/A';
-                if (s.gps) {
-                    const coords = s.gps.split(',');
-                    gpsBtn = `<button class="action-btn gps-btn" onclick="showMap(${coords[0]}, ${coords[1]}, '${s.name}')">Map</button>`;
-                }
+    }
+}
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${imgTd}</td>
-                        <td>${s.date}</td>
-                        <td>${s.name}</td>
-                        <td>${s.address || 'N/A'}</td>
-                        <td>${s.item}</td>
-                        <td>${s.qty}</td>
-                        <td>₱${parseFloat(s.total).toFixed(2)}</td>
-                        <td>${gpsBtn}</td>
-                        <td><button class="action-btn delete" onclick="deleteSale(${s.id})">Delete</button></td>
-                    </tr>`;
+
+/* =========================
+   CREATE POST
+========================= */
+
+async function publishPost() {
+
+    const input = document.getElementById("postInput");
+    const text = input.value.trim();
+
+    if (!text) {
+        alert("Please write something before posting.");
+        input.focus();
+        return;
+    }
+
+    if (!currentUser || !currentProfile || currentProfile.approved !== true) {
+        alert("Your membership must be approved before posting.");
+        return;
+    }
+
+    const button = document.querySelector(".publish-btn");
+    if (button) {
+        button.disabled = true;
+        button.textContent = "POSTING...";
+    }
+
+    try {
+        const { error } = await supabaseClient
+            .from("posts")
+            .insert({
+                user_id: currentUser.id,
+                content: text
             });
 
+        if (error) throw error;
+
+        input.value = "";
+        await loadPosts();
+
+    } catch (error) {
+        console.error("Publish post error:", error);
+        alert("Post could not be published: " + (error.message || "Unknown error"));
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.textContent = "POST";
+        }
+    }
+}
+
+
+function formatPostTime(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    return date.toLocaleString([], {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+    });
+}
+
+function renderPostCard(post, profile) {
+    const name = profile?.full_name || "Duarte Clan Member";
+    const role = profile?.clan_role || "Member";
+    const initials = getInitials(name);
+    const canDelete =
+        currentUser &&
+        (post.user_id === currentUser.id || currentProfile?.is_admin === true);
+
+    return `
+        <article class="post-card" data-post-id="${post.id}">
+            <div class="post-author">
+                <div class="author-avatar">${escapeHTML(initials)}</div>
+                <div class="author-info">
+                    <h3>${escapeHTML(name)}</h3>
+                    <span>${escapeHTML(formatPostTime(post.created_at))} • ${escapeHTML(role)}</span>
+                </div>
+                ${canDelete ? `
+                    <button class="post-menu"
+                        title="Delete post"
+                        onclick="deletePost(${Number(post.id)})">🗑</button>
+                ` : ""}
+            </div>
+
+            <p class="post-text">${escapeHTML(post.content || "")}</p>
+
+            ${post.image_url ? `
+                <img src="${escapeHTML(post.image_url)}"
+                     alt="Duarte Clan post image"
+                     style="width:100%;max-height:520px;object-fit:contain;border-radius:12px;margin-bottom:15px;background:#101010;">
+            ` : ""}
+
+            <div class="post-stats">
+                <span class="reaction-count">0 reactions</span>
+                <span class="comment-count">0 comments</span>
+            </div>
+
+            <div class="post-buttons">
+                <div class="reaction-wrap">
+                    <button class="post-btn like-button"
+                            onclick="toggleReactionPicker(event, this)">👍 Like</button>
+                    <div class="reaction-picker">
+                        <button class="reaction-choice" title="Like"
+                                onclick="chooseReaction(event, this, 'like')">👍</button>
+                        <button class="reaction-choice" title="Love"
+                                onclick="chooseReaction(event, this, 'love')">❤️</button>
+                        <button class="reaction-choice" title="Haha"
+                                onclick="chooseReaction(event, this, 'haha')">😂</button>
+                        <button class="reaction-choice" title="Wow"
+                                onclick="chooseReaction(event, this, 'wow')">😮</button>
+                        <button class="reaction-choice" title="Sad"
+                                onclick="chooseReaction(event, this, 'sad')">😢</button>
+                        <button class="reaction-choice" title="Angry"
+                                onclick="chooseReaction(event, this, 'angry')">😡</button>
+                    </div>
+                </div>
+                <button class="post-btn" onclick="toggleComments(this)">💬 Comment</button>
+                <button class="post-btn" onclick="sharePost()">↗ Share</button>
+            </div>
+
+            <div class="comments-list"></div>
+
+            <div class="comment-area">
+                <input class="comment-input"
+                       placeholder="Write a comment..."
+                       onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();this.nextElementSibling.click();}">
+                <button class="comment-send"
+                        onclick="sendComment(this)">Send</button>
+            </div>
+        </article>
+    `;
+}
+
+async function loadPosts() {
+    const container = document.getElementById("postsContainer");
+    if (!container || !currentProfile?.approved) return;
+
+    container.innerHTML = `
+        <div style="
+            background:var(--panel);
+            border:1px solid var(--border);
+            border-radius:15px;
+            padding:22px;
+            color:var(--muted);
+            text-align:center;
+        ">Loading Duarte Clan posts...</div>
+    `;
+
+    try {
+        const { data: posts, error: postsError } = await supabaseClient
+            .from("posts")
+            .select("id, user_id, content, image_url, created_at")
+            .order("created_at", { ascending: false });
+
+        if (postsError) throw postsError;
+
+        if (!posts || posts.length === 0) {
             container.innerHTML = `
-                <div style="margin-top: 15px; font-weight: bold; font-size: 1.1rem; text-align: right; color: var(--primary);">
-                    Displayed Total: ₱${grandTotal.toFixed(2)}
+                <div style="
+                    background:var(--panel);
+                    border:1px solid var(--border);
+                    border-radius:15px;
+                    padding:28px;
+                    color:var(--muted);
+                    text-align:center;
+                ">
+                    No clan posts yet.<br>
+                    <span style="color:var(--gold)">Be the first to share a Duarte Clan update.</span>
+                </div>
+            `;
+            return;
+        }
+
+        const userIds = [...new Set(posts.map(post => post.user_id).filter(Boolean))];
+        let profileMap = {};
+
+        if (userIds.length) {
+            const { data: profiles, error: profileError } = await supabaseClient
+                .from("profiles")
+                .select("id, full_name, clan_role")
+                .in("id", userIds);
+
+            if (profileError) throw profileError;
+
+            (profiles || []).forEach(profile => {
+                profileMap[profile.id] = profile;
+            });
+        }
+
+        container.innerHTML = posts
+            .map(post => renderPostCard(post, profileMap[post.user_id]))
+            .join("");
+
+        await loadAllPostActivity();
+
+    } catch (error) {
+        console.error("Load posts error:", error);
+        container.innerHTML = `
+            <div style="
+                background:var(--panel);
+                border:1px solid #633;
+                border-radius:15px;
+                padding:22px;
+                color:#e0a0a0;
+                text-align:center;
+            ">
+                Posts could not be loaded.<br>
+                ${escapeHTML(error.message || "Unknown error")}
+            </div>
+        `;
+    }
+}
+
+async function deletePost(postId) {
+    if (!currentUser || !currentProfile?.approved) return;
+
+    if (!confirm("Delete this clan post?")) return;
+
+    try {
+        const { error } = await supabaseClient
+            .from("posts")
+            .delete()
+            .eq("id", postId);
+
+        if (error) throw error;
+
+        await loadPosts();
+
+    } catch (error) {
+        console.error("Delete post error:", error);
+        alert("Post could not be deleted: " + (error.message || "Unknown error"));
+    }
+}
+
+
+/* =========================
+   PHOTO
+========================= */
+
+function choosePhoto() {
+
+    document.getElementById("photoInput").click();
+
+}
+
+
+function photoSelected(event) {
+
+    const file = event.target.files[0];
+
+    if (!file) {
+        return;
+    }
+
+    alert(
+        "Photo selected: " +
+        file.name +
+        "\n\nPhoto storage will be connected to Supabase next."
+    );
+
+}
+
+
+/* =========================
+   MODAL
+========================= */
+
+function openPostModal() {
+
+    document
+        .getElementById("postModal")
+        .classList.add("show");
+
+    document
+        .getElementById("modalPostText")
+        .focus();
+
+}
+
+
+function closePostModal() {
+
+    document
+        .getElementById("postModal")
+        .classList.remove("show");
+
+}
+
+
+async function publishModalPost() {
+
+    const textarea = document.getElementById("modalPostText");
+    const text = textarea.value.trim();
+
+    if (!text) {
+        alert("Please write something first.");
+        return;
+    }
+
+    document.getElementById("postInput").value = text;
+    closePostModal();
+    await publishPost();
+    textarea.value = "";
+}
+
+
+/* =========================
+   EVENT MESSAGE
+========================= */
+
+function showEventMessage() {
+    showSection("events");
+    if (currentProfile?.is_admin === true) openEventModal();
+}
+
+function formatEventDate(value) {
+    if (!value) return "";
+    return new Date(value).toLocaleString([], {
+        weekday:"short", year:"numeric", month:"short", day:"numeric",
+        hour:"numeric", minute:"2-digit"
+    });
+}
+
+async function loadEvents() {
+    const list = document.getElementById("eventsList");
+    const addBtn = document.getElementById("addEventButton");
+    if (addBtn) addBtn.style.display = currentProfile?.is_admin === true ? "" : "none";
+
+    try {
+        const {data,error}=await supabaseClient.from("events")
+            .select("id,title,description,event_date,location,created_by,created_at")
+            .order("event_date",{ascending:true});
+        if(error) throw error;
+
+        const now=new Date();
+        const events=(data||[]).filter(e=>new Date(e.event_date)>=new Date(now.getTime()-86400000));
+        if(!events.length){
+            list.innerHTML='<div style="color:var(--muted);padding:20px;text-align:center;">No upcoming clan events.</div>';
+        } else {
+            list.innerHTML=events.map(e=>`
+                <div class="event-list-card">
+                    <h3>${escapeHTML(e.title)}</h3>
+                    <p>🗓 ${escapeHTML(formatEventDate(e.event_date))}</p>
+                    ${e.location?`<p>📍 ${escapeHTML(e.location)}</p>`:""}
+                    ${e.description?`<p>${escapeHTML(e.description)}</p>`:""}
+                    ${currentProfile?.is_admin===true?`
+                    <div class="event-admin-actions">
+                        <button onclick="openEventModal(${Number(e.id)})">✏️ Edit</button>
+                        <button onclick="deleteEvent(${Number(e.id)})">🗑 Delete</button>
+                    </div>`:""}
+                </div>`).join("");
+        }
+        renderUpcomingEvents(events.slice(0,3));
+    } catch(error) {
+        console.error("Load events error:",error);
+        if(list) list.innerHTML=`<div style="color:#e0a0a0;">Events could not be loaded: ${escapeHTML(error.message||"Unknown error")}</div>`;
+    }
+}
+
+function renderUpcomingEvents(events) {
+    const box=document.getElementById("upcomingEventsBody");
+    if(!box) return;
+    if(!events.length){ box.innerHTML='<div style="color:var(--muted);font-size:12px;">No upcoming events.</div>'; return; }
+    box.innerHTML=events.map(e=>{
+        const d=new Date(e.event_date);
+        return `<div class="event">
+            <div class="event-date"><strong>${d.getDate()}</strong><span>${d.toLocaleString([], {month:"short"}).toUpperCase()}</span></div>
+            <div class="event-info"><strong>${escapeHTML(e.title)}</strong><span>${escapeHTML(e.location||formatEventDate(e.event_date))}</span></div>
+        </div>`;
+    }).join("");
+}
+
+async function openEventModal(eventId=null) {
+    if(currentProfile?.is_admin!==true){ showSection("events"); return; }
+    document.getElementById("eventEditId").value="";
+    document.getElementById("eventTitle").value="";
+    document.getElementById("eventDate").value="";
+    document.getElementById("eventLocation").value="";
+    document.getElementById("eventDescription").value="";
+    document.getElementById("eventModalTitle").textContent=eventId?"Edit Clan Event":"Create Clan Event";
+
+    if(eventId){
+        const {data,error}=await supabaseClient.from("events")
+            .select("id,title,description,event_date,location").eq("id",eventId).single();
+        if(error){ alert("Event could not be loaded: "+error.message); return; }
+        document.getElementById("eventEditId").value=data.id;
+        document.getElementById("eventTitle").value=data.title||"";
+        document.getElementById("eventLocation").value=data.location||"";
+        document.getElementById("eventDescription").value=data.description||"";
+        if(data.event_date){
+            const d=new Date(data.event_date);
+            const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);
+            document.getElementById("eventDate").value=local.toISOString().slice(0,16);
+        }
+    }
+    document.getElementById("eventModal").classList.add("show");
+}
+
+function closeEventModal(){ document.getElementById("eventModal").classList.remove("show"); }
+
+async function saveEvent() {
+    if(currentProfile?.is_admin!==true) return;
+    const id=document.getElementById("eventEditId").value;
+    const title=document.getElementById("eventTitle").value.trim();
+    const dateValue=document.getElementById("eventDate").value;
+    const location=document.getElementById("eventLocation").value.trim();
+    const description=document.getElementById("eventDescription").value.trim();
+    if(!title||!dateValue){ alert("Event title and date/time are required."); return; }
+
+    const payload={title, event_date:new Date(dateValue).toISOString(), location:location||null, description:description||null};
+    try {
+        let result;
+        if(id) result=await supabaseClient.from("events").update(payload).eq("id",Number(id));
+        else result=await supabaseClient.from("events").insert({...payload,created_by:currentUser.id});
+        if(result.error) throw result.error;
+        closeEventModal();
+        await loadEvents();
+    } catch(error){ alert("Event could not be saved: "+(error.message||"Unknown error")); }
+}
+
+async function deleteEvent(id) {
+    if(currentProfile?.is_admin!==true||!confirm("Delete this clan event?")) return;
+    const {error}=await supabaseClient.from("events").delete().eq("id",id);
+    if(error){ alert("Event could not be deleted: "+error.message); return; }
+    await loadEvents();
+}
+
+
+/* =========================
+   NOTIFICATIONS
+========================= */
+
+let notificationRefreshTimer = null;
+
+function toggleNotifications(event) {
+    event.stopPropagation();
+    const wrap = document.getElementById("notificationWrap");
+    wrap?.classList.toggle("open");
+    if (wrap?.classList.contains("open")) loadNotifications();
+}
+
+document.addEventListener("click", () => {
+    document.getElementById("notificationWrap")?.classList.remove("open");
+});
+
+async function loadNotifications() {
+    if (!currentUser) return;
+
+    const list = document.getElementById("notificationList");
+    const badge = document.getElementById("notificationBadge");
+
+    try {
+        const { data, error } = await supabaseClient
+            .from("notifications")
+            .select("id,type,post_id,event_id,message,is_read,created_at")
+            .eq("user_id", currentUser.id)
+            .order("created_at", { ascending: false })
+            .limit(50);
+
+        if (error) throw error;
+
+        const notifications = data || [];
+        const unread = notifications.filter(n => !n.is_read).length;
+
+        if (badge) {
+            badge.textContent = unread > 99 ? "99+" : String(unread);
+            badge.style.display = unread ? "flex" : "none";
+        }
+
+        if (!list) return;
+
+        if (!notifications.length) {
+            list.innerHTML = '<div class="notification-empty">No notifications yet.</div>';
+            return;
+        }
+
+        list.innerHTML = notifications.map(n => `
+            <div class="notification-item ${n.is_read ? "" : "unread"}"
+                 onclick="openNotification(${Number(n.id)}, '${escapeHTML(n.type)}', ${n.post_id ? Number(n.post_id) : "null"}, ${n.event_id ? Number(n.event_id) : "null"})">
+                <div class="notification-message">${escapeHTML(n.message)}</div>
+                <div class="notification-time">${escapeHTML(formatNotificationTime(n.created_at))}</div>
+            </div>
+        `).join("");
+
+    } catch (error) {
+        console.error("Notification load error:", error);
+        if (list) list.innerHTML = `<div class="notification-empty">Notifications could not be loaded.</div>`;
+    }
+}
+
+function formatNotificationTime(value) {
+    const date = new Date(value);
+    const diff = Date.now() - date.getTime();
+    const minute = 60000, hour = 3600000, day = 86400000;
+
+    if (diff < minute) return "Just now";
+    if (diff < hour) return `${Math.floor(diff/minute)}m ago`;
+    if (diff < day) return `${Math.floor(diff/hour)}h ago`;
+
+    return date.toLocaleString([], {
+        year:"numeric", month:"short", day:"numeric",
+        hour:"numeric", minute:"2-digit"
+    });
+}
+
+async function markNotificationRead(id) {
+    const { error } = await supabaseClient
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("id", id)
+        .eq("user_id", currentUser.id);
+
+    if (error) console.error("Mark notification read error:", error);
+}
+
+async function markAllNotificationsRead() {
+    if (!currentUser) return;
+
+    const { error } = await supabaseClient
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("user_id", currentUser.id)
+        .eq("is_read", false);
+
+    if (error) {
+        alert("Notifications could not be updated: " + error.message);
+        return;
+    }
+
+    await loadNotifications();
+}
+
+async function openNotification(id, type, postId, eventId) {
+    await markNotificationRead(id);
+    document.getElementById("notificationWrap")?.classList.remove("open");
+
+    if (type === "event" && eventId) {
+        showSection("events");
+        setTimeout(() => {
+            const cards = [...document.querySelectorAll(".event-list-card")];
+            const target = cards.find(card => card.innerHTML.includes(`openEventModal(${eventId})`) || card.innerHTML.includes(`deleteEvent(${eventId})`));
+            target?.scrollIntoView({ behavior:"smooth", block:"center" });
+        }, 250);
+    } else if (postId) {
+        showSection("home");
+        await loadPosts();
+        setTimeout(() => {
+            const post = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+            if (post) {
+                post.scrollIntoView({ behavior:"smooth", block:"center" });
+                post.style.outline = "2px solid var(--gold)";
+                setTimeout(() => post.style.outline = "", 2200);
+            }
+        }, 150);
+    }
+
+    await loadNotifications();
+}
+
+function startNotificationRefresh() {
+    if (notificationRefreshTimer) clearInterval(notificationRefreshTimer);
+    loadNotifications();
+    notificationRefreshTimer = setInterval(loadNotifications, 30000);
+}
+
+/* =========================
+   FAMILY GALLERY
+========================= */
+
+let selectedGalleryFile = null;
+
+async function loadGallery() {
+    const grid = document.getElementById("galleryGrid");
+    if (!grid || !currentProfile?.approved) return;
+
+    grid.innerHTML = '<div style="color:var(--muted);padding:20px;">Loading family photos...</div>';
+
+    try {
+        const { data: photos, error } = await supabaseClient
+            .from("gallery")
+            .select("id,user_id,image_url,storage_path,caption,created_at")
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        const ids = [...new Set((photos || []).map(p => p.user_id))];
+        let profileMap = {};
+
+        if (ids.length) {
+            const { data: people } = await supabaseClient
+                .from("profiles")
+                .select("id,full_name")
+                .in("id", ids);
+            (people || []).forEach(p => profileMap[p.id] = p.full_name);
+        }
+
+        if (!photos?.length) {
+            grid.innerHTML = '<div style="color:var(--muted);padding:20px;">No family photos yet. Be the first to upload one.</div>';
+            return;
+        }
+
+        grid.innerHTML = photos.map(photo => {
+            const canDelete = photo.user_id === currentUser?.id || currentProfile?.is_admin === true;
+            const who = profileMap[photo.user_id] || "Duarte Clan Member";
+            const when = new Date(photo.created_at).toLocaleString([], {
+                year:"numeric", month:"short", day:"numeric", hour:"numeric", minute:"2-digit"
+            });
+            return `
+                <div class="gallery-card">
+                    <img class="gallery-image"
+                         src="${escapeHTML(photo.image_url)}"
+                         alt="${escapeHTML(photo.caption || "Duarte family photo")}"
+                         onclick="openPhotoViewer('${escapeHTML(photo.image_url)}')">
+                    <div class="gallery-meta">
+                        ${photo.caption ? `<div class="gallery-caption">${escapeHTML(photo.caption)}</div>` : ""}
+                        <div class="gallery-by">Shared by ${escapeHTML(who)}<br>${escapeHTML(when)}</div>
+                        ${canDelete ? `<button class="gallery-delete" onclick="deleteGalleryPhoto(${Number(photo.id)}, '${escapeHTML(photo.storage_path)}')">🗑 Delete</button>` : ""}
+                    </div>
                 </div>`;
-        }
+        }).join("");
 
-        function deleteSale(id) {
-            if (confirm('Are you sure you want to delete this sale record?')) {
-                sales = sales.filter(s => s.id !== id);
-                localStorage.setItem('app_sales', JSON.stringify(sales));
-                init();
-            }
-        }
+    } catch (error) {
+        console.error("Gallery load error:", error);
+        grid.innerHTML = `<div style="color:#e0a0a0;padding:20px;">Gallery could not be loaded: ${escapeHTML(error.message || "Unknown error")}</div>`;
+    }
+}
 
-        function renderInventoryViews() {
-            const overviewTable = document.getElementById('inventoryOverviewTable');
-            const manageTable = document.getElementById('inventoryManageTable');
+function openGalleryUpload() {
+    selectedGalleryFile = null;
+    document.getElementById("galleryCaption").value = "";
+    document.getElementById("galleryFile").value = "";
+    const preview = document.getElementById("galleryPreview");
+    preview.style.display = "none";
+    preview.removeAttribute("src");
+    document.getElementById("galleryUploadModal").classList.add("show");
+}
 
-            overviewTable.innerHTML = '';
-            manageTable.innerHTML = '';
+function closeGalleryUpload() {
+    document.getElementById("galleryUploadModal").classList.remove("show");
+    selectedGalleryFile = null;
+}
 
-            inventory.forEach(item => {
-                const statusBadge = item.stock < 10 
-                    ? `<span style="color:var(--danger); font-weight:bold;">Low Stock</span>` 
-                    : `<span style="color:var(--success); font-weight:bold;">In Stock</span>`;
+function previewGalleryFile(input) {
+    const file = input.files?.[0];
+    if (!file) return;
 
-                overviewTable.innerHTML += `
-                    <tr>
-                        <td>${item.name}</td>
-                        <td>₱${item.price.toFixed(2)}</td>
-                        <td>${item.stock}</td>
-                        <td>${statusBadge}</td>
-                    </tr>`;
+    if (!["image/jpeg","image/png","image/webp","image/gif"].includes(file.type)) {
+        alert("Please select a JPG, PNG, WEBP, or GIF image.");
+        input.value = "";
+        return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+        alert("Photo must be 10 MB or smaller.");
+        input.value = "";
+        return;
+    }
 
-                manageTable.innerHTML += `
-                    <tr>
-                        <td>${item.name}</td>
-                        <td>₱${item.price.toFixed(2)}</td>
-                        <td>${item.stock}</td>
-                        <td>
-                            <button class="action-btn edit" onclick="editItem(${item.id})">Edit</button>
-                            <button class="action-btn delete" onclick="deleteItem(${item.id})">Delete</button>
-                        </td>
-                    </tr>`;
+    selectedGalleryFile = file;
+    const preview = document.getElementById("galleryPreview");
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
+}
+
+async function uploadGalleryPhoto() {
+    if (!selectedGalleryFile || !currentUser || !currentProfile?.approved) {
+        alert("Please select a photo first.");
+        return;
+    }
+
+    const caption = document.getElementById("galleryCaption").value.trim();
+    const button = document.getElementById("galleryUploadButton");
+    button.disabled = true;
+    button.textContent = "UPLOADING...";
+
+    const ext = (selectedGalleryFile.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
+    const path = `${currentUser.id}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+
+    try {
+        const { error: uploadError } = await supabaseClient.storage
+            .from("family-gallery")
+            .upload(path, selectedGalleryFile, {
+                cacheControl: "3600",
+                upsert: false,
+                contentType: selectedGalleryFile.type
             });
-        }
+        if (uploadError) throw uploadError;
 
-        function openItemModal() {
-            document.getElementById('itemId').value = '';
-            document.getElementById('itemName').value = '';
-            document.getElementById('itemPrice').value = '';
-            document.getElementById('itemStock').value = '';
-            document.getElementById('itemModalTitle').textContent = 'Add New Item';
-            document.getElementById('itemModal').style.display = 'flex';
-        }
+        const { data: publicData } = supabaseClient.storage
+            .from("family-gallery")
+            .getPublicUrl(path);
 
-        function editItem(id) {
-            const item = inventory.find(i => i.id === id);
-            if (item) {
-                document.getElementById('itemId').value = item.id;
-                document.getElementById('itemName').value = item.name;
-                document.getElementById('itemPrice').value = item.price;
-                document.getElementById('itemStock').value = item.stock;
-                document.getElementById('itemModalTitle').textContent = 'Edit Item';
-                document.getElementById('itemModal').style.display = 'flex';
-            }
-        }
+        const imageUrl = publicData?.publicUrl;
+        if (!imageUrl) throw new Error("Could not create photo URL.");
 
-        function saveItem() {
-            const id = document.getElementById('itemId').value;
-            const name = document.getElementById('itemName').value.trim();
-            const price = parseFloat(document.getElementById('itemPrice').value);
-            const stock = parseInt(document.getElementById('itemStock').value);
-
-            if (!name || isNaN(price) || isNaN(stock)) {
-                alert('Please fill in valid data for all item fields.');
-                return;
-            }
-
-            if (id) {
-                const item = inventory.find(i => i.id == id);
-                item.name = name;
-                item.price = price;
-                item.stock = stock;
-            } else {
-                inventory.push({ id: Date.now(), name, price, stock });
-            }
-
-            localStorage.setItem('app_inventory', JSON.stringify(inventory));
-            init();
-            closeModal('itemModal');
-        }
-
-        function deleteItem(id) {
-            if (confirm('Are you sure you want to delete this inventory item?')) {
-                inventory = inventory.filter(i => i.id !== id);
-                localStorage.setItem('app_inventory', JSON.stringify(inventory));
-                init();
-            }
-        }
-
-        function exportCSV() {
-            if (sales.length === 0) { alert('No sales data available to export.'); return; }
-            let csvContent = 'data:text/csv;charset=utf-8,Date,Customer,Address,Contact,Item,Qty,Total,GPS\n';
-
-            sales.forEach(s => {
-                const row = [
-                    `"${s.date}"`,
-                    `"${s.name}"`,
-                    `"${s.address || ''}"`,
-                    `"${s.contact || ''}"`,
-                    `"${s.item}"`,
-                    s.qty,
-                    s.total,
-                    `"${s.gps || ''}"`
-                ].join(',');
-                csvContent += row + '\n';
+        const { error: rowError } = await supabaseClient
+            .from("gallery")
+            .insert({
+                user_id: currentUser.id,
+                image_url: imageUrl,
+                storage_path: path,
+                caption: caption || null
             });
 
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement('a');
-            link.setAttribute('href', encodedUri);
-            link.setAttribute('download', `Sales_Report_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        if (rowError) {
+            await supabaseClient.storage.from("family-gallery").remove([path]);
+            throw rowError;
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+        closeGalleryUpload();
+        await loadGallery();
+
+    } catch (error) {
+        console.error("Gallery upload error:", error);
+        alert("Photo could not be uploaded: " + (error.message || "Unknown error"));
+    } finally {
+        button.disabled = false;
+        button.textContent = "UPLOAD PHOTO";
+    }
+}
+
+async function deleteGalleryPhoto(id, storagePath) {
+    if (!confirm("Delete this family photo?")) return;
+
+    try {
+        const { error: rowError } = await supabaseClient
+            .from("gallery")
+            .delete()
+            .eq("id", id);
+        if (rowError) throw rowError;
+
+        const { error: storageError } = await supabaseClient.storage
+            .from("family-gallery")
+            .remove([storagePath]);
+        if (storageError) console.warn("Storage cleanup warning:", storageError);
+
+        await loadGallery();
+    } catch (error) {
+        alert("Photo could not be deleted: " + (error.message || "Unknown error"));
+    }
+}
+
+function openPhotoViewer(url) {
+    document.getElementById("photoViewerImage").src = url;
+    document.getElementById("photoViewer").classList.add("show");
+}
+
+function closePhotoViewer() {
+    document.getElementById("photoViewer").classList.remove("show");
+    document.getElementById("photoViewerImage").removeAttribute("src");
+}
+
+
+/* =========================
+   MY PROFILE
+========================= */
+
+async function loadMyProfile() {
+    if (!currentUser) return;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from("profiles")
+            .select("id,full_name,avatar_url,clan_role,approved,is_admin")
+            .eq("id", currentUser.id)
+            .single();
+
+        if (error) throw error;
+
+        currentProfile = data;
+
+        document.getElementById("profileFullName").value = data.full_name || "";
+        document.getElementById("profileClanRole").value = data.clan_role || "Member";
+        document.getElementById("profileAvatarUrl").value = data.avatar_url || "";
+        document.getElementById("profileHeading").textContent = data.full_name || "My Profile";
+        document.getElementById("profileRoleText").textContent =
+            data.is_admin ? `${data.clan_role || "Administrator"} · Administrator` : (data.clan_role || "Member");
+
+        renderMyProfileAvatar(updatedProfile);
+    } catch (error) {
+        console.error("Profile load error:", error);
+        alert("Your profile could not be loaded: " + (error.message || "Unknown error"));
+    }
+}
+
+function renderMyProfileAvatar(profile) {
+    const avatar = document.getElementById("profileBigAvatar");
+    if (!avatar) return;
+
+    const url = (profile.avatar_url || "").trim();
+
+    if (url) {
+        avatar.innerHTML = `<img src="${escapeHTML(url)}" alt="Profile photo"
+            onerror="this.parentElement.textContent='${escapeHTML(getInitials(profile.full_name))}'">`;
+    } else {
+        avatar.textContent = getInitials(profile.full_name);
+    }
+}
+
+async function saveMyProfile() {
+    if (!currentUser || !currentProfile?.approved) return;
+
+    const fullName = document.getElementById("profileFullName").value.trim();
+    const avatarUrl = document.getElementById("profileAvatarUrl").value.trim();
+
+    if (!fullName) {
+        alert("Full name is required.");
+        return;
+    }
+
+    try {
+        const { data, error } = await supabaseClient.rpc("update_my_duarte_profile", {
+            p_full_name: fullName,
+            p_avatar_url: avatarUrl || null
+        });
+
+        if (error) throw error;
+
+        const updatedProfile = Array.isArray(data) ? data[0] : data;
+        if (!updatedProfile) throw new Error("Profile update returned no data.");
+
+        currentProfile = updatedProfile;
+        applyMemberProfile(updatedProfile);
+        renderMyProfileAvatar(data);
+        document.getElementById("profileHeading").textContent = updatedProfile.full_name;
+
+        await loadMembersDirectory();
+        await loadPosts();
+
+        alert("Your profile has been updated.");
+    } catch (error) {
+        console.error("Profile update error:", error);
+        alert("Profile could not be updated: " + (error.message || "Unknown error"));
+    }
+}
+
+/* =========================
+   MEMBERS DIRECTORY
+========================= */
+
+let approvedClanMembers = [];
+
+async function loadMembersDirectory() {
+    const grid = document.getElementById("membersGrid");
+    const count = document.getElementById("membersCount");
+
+    if (!grid || !currentProfile?.approved) return;
+
+    grid.innerHTML = `
+        <div style="color:var(--muted);padding:20px;">
+            Loading clan members...
+        </div>
+    `;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from("profiles")
+            .select("id, full_name, clan_role, avatar_url, approved, is_admin, created_at")
+            .eq("approved", true)
+            .order("full_name", { ascending: true });
+
+        if (error) throw error;
+
+        approvedClanMembers = data || [];
+        renderMembersDirectory(approvedClanMembers);
+
+        if (count) {
+            count.textContent =
+                `${approvedClanMembers.length} approved clan ${approvedClanMembers.length === 1 ? "member" : "members"}`;
         }
 
-        init();
-    </script>
+        renderSidebarMembers(approvedClanMembers.slice(0, 5));
+
+    } catch (error) {
+        console.error("Load members error:", error);
+        grid.innerHTML = `
+            <div style="color:#e0a0a0;padding:20px;">
+                Clan members could not be loaded:
+                ${escapeHTML(error.message || "Unknown error")}
+            </div>
+        `;
+    }
+}
+
+function renderMembersDirectory(members) {
+    const grid = document.getElementById("membersGrid");
+    if (!grid) return;
+
+    if (!members.length) {
+        grid.innerHTML = `
+            <div style="color:var(--muted);padding:20px;">
+                No approved clan members found.
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = members.map(member => {
+        const initials = getInitials(member.full_name);
+        const role = member.clan_role || "Member";
+
+        return `
+            <div class="clan-member-card"
+                 data-member-name="${escapeHTML((member.full_name || "").toLowerCase())}"
+                 data-member-role="${escapeHTML(role.toLowerCase())}">
+                <div class="member-avatar">${escapeHTML(initials)}</div>
+                <div style="min-width:0;">
+                    <h3>${escapeHTML(member.full_name || "Duarte Clan Member")}</h3>
+                    <p>${escapeHTML(role)}</p>
+                    ${member.is_admin === true
+                        ? '<span class="admin-badge">🛡 Administrator</span>'
+                        : ''}
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function filterMembers() {
+    const query = (document.getElementById("memberSearch")?.value || "")
+        .trim()
+        .toLowerCase();
+
+    if (!query) {
+        renderMembersDirectory(approvedClanMembers);
+        return;
+    }
+
+    const filtered = approvedClanMembers.filter(member => {
+        const name = (member.full_name || "").toLowerCase();
+        const role = (member.clan_role || "Member").toLowerCase();
+        return name.includes(query) || role.includes(query);
+    });
+
+    renderMembersDirectory(filtered);
+}
+
+function renderSidebarMembers(members) {
+    const box = document.getElementById("sidebarMembersBody");
+    if (!box) return;
+
+    if (!members.length) {
+        box.innerHTML = `
+            <div style="color:var(--muted);font-size:12px;">
+                No approved members.
+            </div>
+        `;
+        return;
+    }
+
+    box.innerHTML = members.map(member => `
+        <div class="member-row">
+            <div class="member-avatar">
+                ${escapeHTML(getInitials(member.full_name))}
+            </div>
+            <div>
+                <div class="member-name">
+                    ${escapeHTML(member.full_name || "Duarte Clan Member")}
+                </div>
+                <div class="member-status">
+                    ${escapeHTML(member.clan_role || "Member")}
+                </div>
+            </div>
+        </div>
+    `).join("");
+}
+
+
+/* =========================
+   PROFILE
+========================= */
+
+function openProfile() {
+
+    alert(
+        "Your Duarte Clan profile page will be added next."
+    );
+
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+async function logout(skipConfirm = false) {
+
+    const confirmLogout =
+        skipConfirm || confirm("Are you sure you want to log out?");
+
+    if (!confirmLogout) return;
+
+    try {
+        await supabaseClient.auth.signOut();
+    } catch (error) {
+        console.error("Logout error:", error);
+    }
+
+    window.location.replace("login.html");
+}
+
+
+/* =========================
+   SECURITY
+========================= */
+
+function escapeHTML(text) {
+
+    const div = document.createElement("div");
+
+    div.textContent = text;
+
+    return div.innerHTML;
+
+}
+
+
+/* VERIFY PRIVATE MEMBER ACCESS */
+protectPrivateClan();
+
+</script>
+
 </body>
 </html>
+```

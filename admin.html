@@ -1,0 +1,1117 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUARTE CLAN | Admin</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --gold: #d4af37;
+    --gold-light: #f0d477;
+    --bg: #090909;
+    --panel: #141414;
+    --panel2: #191919;
+    --border: #2b2b2b;
+    --text: #f5f5f5;
+    --muted: #8e8e8e;
+    --danger: #e06b6b;
+    --success: #69c783;
+}
+
+body {
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* TOP BAR */
+
+.topbar {
+    height: 72px;
+    background: #111;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+}
+
+.topbar-inner {
+    width: min(1400px, 94%);
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.brand h1 {
+    color: var(--gold);
+    letter-spacing: 3px;
+    font-size: 20px;
+}
+
+.brand span {
+    display: block;
+    color: #777;
+    font-size: 9px;
+    letter-spacing: 1px;
+    margin-top: 3px;
+}
+
+.back-btn {
+    border: 1px solid var(--border);
+    background: #181818;
+    color: #ccc;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.back-btn:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+}
+
+/* PAGE */
+
+.page {
+    width: min(1250px, 94%);
+    margin: 35px auto;
+}
+
+.page-header {
+    margin-bottom: 25px;
+}
+
+.page-header h2 {
+    font-size: 30px;
+    margin-bottom: 8px;
+}
+
+.page-header p {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+/* STATS */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+}
+
+.stat-label {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    color: var(--gold);
+    font-size: 30px;
+    font-weight: bold;
+}
+
+/* CARDS */
+
+.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    margin-bottom: 25px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-header h3 {
+    font-size: 16px;
+}
+
+.refresh {
+    border: 1px solid var(--border);
+    background: #1b1b1b;
+    color: #aaa;
+    padding: 8px 13px;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.refresh:hover {
+    color: var(--gold);
+}
+
+/* MEMBER ROW */
+
+.member {
+    padding: 18px 20px;
+    border-bottom: 1px solid #222;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.member:last-child {
+    border-bottom: none;
+}
+
+.member-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #72570c);
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.member-info {
+    flex: 1;
+}
+
+.member-info h4 {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.member-info p {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.member-date {
+    color: #666;
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.approve,
+.reject {
+    border: none;
+    padding: 9px 13px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.approve {
+    background: var(--success);
+    color: #07130b;
+}
+
+.reject {
+    background: rgba(224,107,107,.12);
+    border: 1px solid rgba(224,107,107,.3);
+    color: var(--danger);
+}
+
+.approve:hover {
+    filter: brightness(1.1);
+}
+
+.reject:hover {
+    background: rgba(224,107,107,.2);
+}
+
+/* EMPTY */
+
+.empty {
+    padding: 35px;
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+}
+
+/* LOADING */
+
+.loading {
+    padding: 30px;
+    text-align: center;
+    color: var(--gold);
+}
+
+/* MESSAGE */
+
+.message {
+    display: none;
+    padding: 13px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+
+.message.show {
+    display: block;
+}
+
+.message.error {
+    color: #ffaaaa;
+    background: rgba(220,70,70,.1);
+    border: 1px solid rgba(220,70,70,.25);
+}
+
+.message.success {
+    color: #a8e8b5;
+    background: rgba(70,180,100,.1);
+    border: 1px solid rgba(70,180,100,.25);
+}
+
+/* MOBILE */
+
+@media(max-width:750px) {
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .member {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .actions {
+        width: 100%;
+        margin-left: 63px;
+    }
+
+    .actions button {
+        flex: 1;
+    }
+
+    .brand span {
+        display: none;
+    }
+}
+
+@media(max-width:450px) {
+
+    .page {
+        width: 92%;
+    }
+
+    .brand h1 {
+        font-size: 16px;
+    }
+
+    .page-header h2 {
+        font-size: 24px;
+    }
+
+    .member {
+        padding: 15px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="topbar-inner">
+
+        <div class="brand">
+
+            <div class="logo">D</div>
+
+            <div>
+                <h1>DUARTE CLAN</h1>
+                <span>ADMINISTRATION</span>
+            </div>
+
+        </div>
+
+        <button
+            class="back-btn"
+            onclick="goHome()"
+        >
+            ← Back to Clan
+        </button>
+
+    </div>
+
+</header>
+
+
+<main class="page">
+
+    <div class="page-header">
+
+        <h2>Clan Administration</h2>
+
+        <p>
+            Manage Duarte Clan members and membership approvals.
+        </p>
+
+    </div>
+
+
+    <div
+        id="message"
+        class="message"
+    ></div>
+
+
+    <!-- STATISTICS -->
+
+    <section class="stats">
+
+        <div class="stat">
+
+            <div class="stat-label">
+                Pending Members
+            </div>
+
+            <div
+                class="stat-value"
+                id="pendingCount"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-label">
+                Approved Members
+            </div>
+
+            <div
+                class="stat-value"
+                id="approvedCount"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-label">
+                Total Members
+            </div>
+
+            <div
+                class="stat-value"
+                id="totalCount"
+            >
+                0
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- PENDING MEMBERS -->
+
+    <section class="card">
+
+        <div class="card-header">
+
+            <h3>
+                ⏳ Pending Membership Requests
+            </h3>
+
+            <button
+                class="refresh"
+                onclick="loadMembers()"
+            >
+                ↻ Refresh
+            </button>
+
+        </div>
+
+
+        <div id="pendingMembers">
+
+            <div class="loading">
+                Loading members...
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- APPROVED MEMBERS -->
+
+    <section class="card">
+
+        <div class="card-header">
+
+            <h3>
+                ✓ Approved Clan Members
+            </h3>
+
+        </div>
+
+
+        <div id="approvedMembers">
+
+            <div class="loading">
+                Loading members...
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- SUPABASE -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL =
+    "https://mrrothkiygcxspiwotjx.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_wYyisTscusEPgTmpbZGYmw_e_mTcAwW";
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+    );
+
+
+const pendingContainer =
+    document.getElementById("pendingMembers");
+
+const approvedContainer =
+    document.getElementById("approvedMembers");
+
+const pendingCount =
+    document.getElementById("pendingCount");
+
+const approvedCount =
+    document.getElementById("approvedCount");
+
+const totalCount =
+    document.getElementById("totalCount");
+
+const message =
+    document.getElementById("message");
+
+
+function showMessage(text, type) {
+
+    message.textContent = text;
+
+    message.className =
+        "message show " + type;
+
+    setTimeout(function() {
+
+        message.className = "message";
+
+    }, 4000);
+
+}
+
+
+/* GET CURRENT USER */
+
+async function getCurrentUser() {
+
+    const {
+        data,
+        error
+    } = await supabaseClient.auth.getUser();
+
+    if (error) {
+        return null;
+    }
+
+    return data.user;
+}
+
+
+/* LOAD MEMBERS */
+
+async function loadMembers() {
+
+    pendingContainer.innerHTML =
+        '<div class="loading">Checking administrator access...</div>';
+
+    approvedContainer.innerHTML =
+        '<div class="loading">Checking administrator access...</div>';
+
+    try {
+
+        const {
+            data: userData,
+            error: userError
+        } = await supabaseClient.auth.getUser();
+
+        if (userError || !userData.user) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        const user = userData.user;
+
+        const {
+            data: profile,
+            error: profileError
+        } = await supabaseClient
+            .from("profiles")
+            .select("is_admin, approved, full_name, clan_role")
+            .eq("id", user.id)
+            .single();
+
+        if (profileError) {
+            throw profileError;
+        }
+
+        if (!profile || profile.is_admin !== true) {
+
+            document.body.innerHTML = `
+                <div style="
+                    min-height:100vh;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    background:#090909;
+                    color:#f5f5f5;
+                    font-family:Arial,sans-serif;
+                    text-align:center;
+                    padding:30px;
+                ">
+                    <div>
+                        <div style="
+                            font-size:50px;
+                            margin-bottom:15px;
+                        ">🔒</div>
+
+                        <h2 style="margin-bottom:10px;">
+                            Administrator Access Required
+                        </h2>
+
+                        <p style="
+                            color:#888;
+                            margin-bottom:25px;
+                        ">
+                            Your Duarte Clan account does not have
+                            administrator privileges.
+                        </p>
+
+                        <button
+                            onclick="window.location.href='index.html'"
+                            style="
+                                border:1px solid #d4af37;
+                                background:#141414;
+                                color:#d4af37;
+                                padding:12px 20px;
+                                border-radius:8px;
+                                cursor:pointer;
+                            "
+                        >
+                            Back to Clan
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            return;
+        }
+
+        /* Administrator confirmed */
+
+        pendingContainer.innerHTML =
+            '<div class="loading">Loading members...</div>';
+
+        approvedContainer.innerHTML =
+            '<div class="loading">Loading members...</div>';
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("profiles")
+            .select("*")
+            .order("created_at", {
+                ascending: false
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        const members = data || [];
+
+        const pending =
+            members.filter(member =>
+                member.approved === false
+            );
+
+        const approved =
+            members.filter(member =>
+                member.approved === true
+            );
+
+        pendingCount.textContent =
+            pending.length;
+
+        approvedCount.textContent =
+            approved.length;
+
+        totalCount.textContent =
+            members.length;
+
+        renderPending(pending);
+        renderApproved(approved);
+
+    } catch (error) {
+
+        console.error(error);
+
+        pendingContainer.innerHTML =
+            '<div class="empty">Unable to load members.</div>';
+
+        approvedContainer.innerHTML =
+            '<div class="empty">Unable to load members.</div>';
+
+        showMessage(
+            error.message ||
+            "Unable to load members.",
+            "error"
+        );
+    }
+}
+
+
+/* RENDER PENDING */
+
+function renderPending(members) {
+
+    if (!members.length) {
+
+        pendingContainer.innerHTML = `
+            <div class="empty">
+                🎉 No pending membership requests.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    pendingContainer.innerHTML = "";
+
+
+    members.forEach(member => {
+
+        const row =
+            document.createElement("div");
+
+        row.className = "member";
+
+        row.innerHTML = `
+
+            <div class="member-avatar">
+                ${getInitials(member.full_name)}
+            </div>
+
+            <div class="member-info">
+
+                <h4>
+                    ${escapeHTML(member.full_name)}
+                </h4>
+
+                <p>
+                    ${escapeHTML(member.clan_role || "Member")}
+                </p>
+
+                <div class="member-date">
+                    Registered:
+                    ${formatDate(member.created_at)}
+                </div>
+
+            </div>
+
+            <div class="actions">
+
+                <button
+                    class="approve"
+                    onclick="approveMember('${member.id}')"
+                >
+                    APPROVE
+                </button>
+
+                <button
+                    class="reject"
+                    onclick="rejectMember('${member.id}')"
+                >
+                    REJECT
+                </button>
+
+            </div>
+        `;
+
+        pendingContainer.appendChild(row);
+
+    });
+
+}
+
+
+/* RENDER APPROVED */
+
+function renderApproved(members) {
+
+    if (!members.length) {
+
+        approvedContainer.innerHTML = `
+            <div class="empty">
+                No approved members yet.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    approvedContainer.innerHTML = "";
+
+
+    members.forEach(member => {
+
+        const row =
+            document.createElement("div");
+
+        row.className = "member";
+
+        row.innerHTML = `
+
+            <div class="member-avatar">
+                ${getInitials(member.full_name)}
+            </div>
+
+            <div class="member-info">
+
+                <h4>
+                    ${escapeHTML(member.full_name)}
+                </h4>
+
+                <p>
+                    ${escapeHTML(member.clan_role || "Member")}
+                </p>
+
+                <div class="member-date">
+                    Member since:
+                    ${formatDate(member.created_at)}
+                </div>
+
+            </div>
+
+            <div class="actions">
+
+                <button
+                    class="reject"
+                    onclick="removeMember('${member.id}')"
+                >
+                    REMOVE
+                </button>
+
+            </div>
+        `;
+
+        approvedContainer.appendChild(row);
+
+    });
+
+}
+
+
+/* APPROVE */
+
+async function approveMember(id) {
+
+    const confirmed =
+        confirm(
+            "Approve this person as a Duarte Clan member?"
+        );
+
+    if (!confirmed) return;
+
+
+    try {
+
+        const {
+            error
+        } = await supabaseClient
+            .from("profiles")
+            .update({
+                approved: true
+            })
+            .eq("id", id);
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        showMessage(
+            "Member approved successfully.",
+            "success"
+        );
+
+
+        loadMembers();
+
+
+    } catch(error) {
+
+        console.error(error);
+
+        showMessage(
+            error.message ||
+            "Unable to approve member.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* REMOVE */
+
+async function removeMember(id) {
+
+    const confirmed =
+        confirm(
+            "Remove this member from the approved clan list?"
+        );
+
+    if (!confirmed) return;
+
+
+    try {
+
+        const {
+            error
+        } = await supabaseClient
+            .from("profiles")
+            .update({
+                approved: false
+            })
+            .eq("id", id);
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        showMessage(
+            "Member moved back to pending.",
+            "success"
+        );
+
+
+        loadMembers();
+
+
+    } catch(error) {
+
+        console.error(error);
+
+        showMessage(
+            error.message ||
+            "Unable to update member.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* REJECT */
+
+async function rejectMember(id) {
+
+    const confirmed =
+        confirm(
+            "Reject this membership request?"
+        );
+
+    if (!confirmed) return;
+
+
+    /*
+     * Keep the profile instead of deleting it.
+     *
+     * The current profiles table has no separate rejected/status column,
+     * so a rejected request remains unapproved. This avoids orphaning the
+     * Supabase Auth user by deleting only the public profile row.
+     */
+
+    try {
+
+        const {
+            error
+        } = await supabaseClient
+            .from("profiles")
+            .update({
+                approved: false
+            })
+            .eq("id", id);
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        showMessage(
+            "Membership request rejected. The account remains unapproved.",
+            "success"
+        );
+
+
+        loadMembers();
+
+
+    } catch(error) {
+
+        console.error(error);
+
+        showMessage(
+            error.message ||
+            "Unable to reject member.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* NAVIGATION */
+
+function goHome() {
+
+    window.location.href = "index.html";
+
+}
+
+
+/* HELPERS */
+
+function getInitials(name) {
+
+    if (!name) return "D";
+
+    const parts =
+        name.trim().split(/\s+/);
+
+    if (parts.length === 1) {
+        return parts[0].substring(0,2).toUpperCase();
+    }
+
+    return (
+        parts[0][0] +
+        parts[parts.length - 1][0]
+    ).toUpperCase();
+
+}
+
+
+function formatDate(value) {
+
+    if (!value) return "";
+
+    return new Date(value).toLocaleDateString(
+        undefined,
+        {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        }
+    );
+
+}
+
+
+function escapeHTML(text) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        text || "";
+
+    return div.innerHTML;
+
+}
+
+
+/* START */
+
+loadMembers();
+
+</script>
+
+</body>
+</html>
+```
