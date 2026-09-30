@@ -1124,6 +1124,42 @@ button,input,textarea,select{max-width:100%}
   .notification-panel{top:52px !important}
 }
 
+
+/* FACEBOOK-STYLE COMMENT MODAL */
+.ff-comment-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:3000;display:none;align-items:center;justify-content:center;padding:14px}
+.ff-comment-modal.open{display:flex}
+.ff-comment-dialog{width:min(650px,100%);height:min(760px,92vh);background:#171717;border:1px solid #353535;border-radius:14px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 22px 60px rgba(0,0,0,.65)}
+.ff-comment-head{height:52px;flex:0 0 52px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid #303030;position:relative;padding:0 50px;font-weight:700}
+.ff-comment-close{position:absolute;right:12px;top:9px;width:34px;height:34px;border:0;border-radius:50%;background:#2a2a2a;color:#fff;font-size:18px;cursor:pointer}
+.ff-comment-body{flex:1;overflow-y:auto;padding:12px}
+.ff-comment-post{padding:8px 4px 13px;border-bottom:1px solid #303030;margin-bottom:8px}
+.ff-comment-post-author{font-size:12px;font-weight:700;margin-bottom:5px}.ff-comment-post-text{font-size:13px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.ff-comment-footer{flex:0 0 auto;border-top:1px solid #303030;padding:9px;background:#171717}
+.ff-comment-compose{display:flex;gap:7px}.ff-comment-compose input{flex:1;min-width:0;background:#222;border:1px solid #3a3a3a;border-radius:20px;color:#fff;padding:10px 13px;font-size:13px}.ff-comment-compose button{border:0;border-radius:20px;background:var(--gold);color:#111;font-weight:700;padding:8px 14px;cursor:pointer}
+
+/* PORTRAIT MOBILE NAVIGATION */
+.ff-mobile-menu-btn{display:none;border:1px solid #3a3a3a;background:#191919;color:#fff;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:18px}
+.ff-mobile-nav{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.72);z-index:2800}
+.ff-mobile-nav.open{display:block}
+.ff-mobile-nav-panel{width:min(310px,84vw);height:100%;background:#171717;border-right:1px solid #333;padding:16px;overflow-y:auto}
+.ff-mobile-nav-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;font-weight:700;color:var(--gold)}
+.ff-mobile-nav-close{border:0;background:#292929;color:#fff;border-radius:50%;width:34px;height:34px;font-size:18px}
+.ff-mobile-nav-link{display:flex;width:100%;align-items:center;gap:10px;border:0;border-bottom:1px solid #292929;background:transparent;color:#fff;text-align:left;padding:14px 7px;font-size:14px;cursor:pointer}
+.ff-mobile-nav-link:hover{color:var(--gold)}
+
+@media (max-width:700px) and (orientation:portrait){
+ .ff-mobile-menu-btn{display:inline-flex!important;align-items:center;justify-content:center}
+ nav a,.nav-link{display:none!important}
+ .notification-wrap{margin-left:auto}
+ .ff-comment-modal{padding:0}
+ .ff-comment-dialog{width:100%;height:100dvh;max-height:none;border:0;border-radius:0}
+ .ff-comment-body{padding:10px}
+}
+
+
+/* Feed stays clean: comments only appear in the Facebook-style modal. */
+.post-card > .comments-list,.post-card .comments-section > .comments-list{display:none}
+@media (max-width:700px) and (orientation:portrait){.ff-mobile-menu-btn{display:inline-flex!important}}
 </style>
 </head>
 
@@ -1186,7 +1222,7 @@ button,input,textarea,select{max-width:100%}
                     </div>
                 </div>
             </div>
-</nav>
+<button class="ff-mobile-menu-btn" type="button" onclick="openMobileClanMenu()" title="Menu">☰</button></nav>
 
 
         <div class="user-area">
@@ -2126,7 +2162,7 @@ function renderPostCard(post, profile) {
 
             <div class="post-stats">
                 <span class="reaction-count">0 reactions</span>
-                <span class="comment-count">0 comments</span>
+                <span class="comment-count" style="cursor:pointer" onclick="openFacebookComments(Number(this.closest('.post-card').dataset.postId))">0 comments</span>
             </div>
 
             <div class="post-buttons">
@@ -2459,6 +2495,51 @@ async function deleteEvent(id) {
     await loadEvents();
 }
 
+
+
+let ffActiveCommentPostId=null;
+let ffActiveCommentSourceCard=null;
+
+function openMobileClanMenu(){document.getElementById("ffMobileNav")?.classList.add("open")}
+function closeMobileClanMenu(){document.getElementById("ffMobileNav")?.classList.remove("open")}
+function mobileGo(section){closeMobileClanMenu();showSection(section)}
+
+async function openFacebookComments(postId){
+ const source=document.querySelector(`.post-card[data-post-id="${Number(postId)}"]`);
+ if(!source)return;
+ ffActiveCommentPostId=Number(postId);ffActiveCommentSourceCard=source;
+ const modal=document.getElementById("ffCommentModal"),body=document.getElementById("ffCommentBody");
+ const author=source.querySelector(".post-author-name,.post-author,strong")?.textContent?.trim()||"Duarte Clan Member";
+ const text=source.querySelector(".post-content,.post-text")?.textContent?.trim()||"";
+ body.innerHTML=`<div class="ff-comment-post"><div class="ff-comment-post-author">${escapeHTML(author)}</div><div class="ff-comment-post-text">${escapeHTML(text)}</div></div><div class="comments-list"></div>`;
+ modal.classList.add("open");document.body.style.overflow="hidden";
+ await loadModalComments();
+ setTimeout(()=>document.getElementById("ffModalCommentInput")?.focus(),80);
+}
+async function loadModalComments(){
+ if(!ffActiveCommentPostId)return;
+ const fake=document.createElement("div");fake.className="post-card";fake.dataset.postId=ffActiveCommentPostId;
+ fake.innerHTML='<span class="reaction-count"></span><span class="comment-count"></span><button class="like-button"></button><div class="comments-list"></div>';
+ await loadPostActivity(ffActiveCommentPostId,fake);
+ const target=document.querySelector("#ffCommentBody .comments-list");
+ if(target)target.innerHTML=fake.querySelector(".comments-list").innerHTML;
+}
+async function sendModalComment(){
+ const input=document.getElementById("ffModalCommentInput"),content=input?.value.trim();
+ if(!content||!ffActiveCommentPostId)return;
+ try{
+  const {error}=await supabaseClient.from("comments").insert({post_id:ffActiveCommentPostId,user_id:currentUser.id,content,parent_comment_id:null});
+  if(error)throw error;input.value="";await loadModalComments();
+ }catch(e){alert("Comment could not be sent: "+e.message)}
+}
+async function closeFacebookComments(){
+ const modal=document.getElementById("ffCommentModal");modal?.classList.remove("open");document.body.style.overflow="";
+ if(ffActiveCommentPostId&&ffActiveCommentSourceCard){
+  await loadPostActivity(ffActiveCommentPostId,ffActiveCommentSourceCard);
+  ffActiveCommentSourceCard.scrollIntoView({block:"center"});
+ }
+ ffActiveCommentPostId=null;ffActiveCommentSourceCard=null;
+}
 
 /* =========================
    NOTIFICATIONS
@@ -3053,6 +3134,32 @@ protectPrivateClan();
 
 </script>
 
+
+<div class="ff-mobile-nav" id="ffMobileNav" onclick="if(event.target===this)closeMobileClanMenu()">
+ <div class="ff-mobile-nav-panel">
+  <div class="ff-mobile-nav-head"><span>DUARTE CLAN</span><button class="ff-mobile-nav-close" onclick="closeMobileClanMenu()">×</button></div>
+  <button class="ff-mobile-nav-link" onclick="mobileGo('home')">🏠 Home</button>
+  <button class="ff-mobile-nav-link" onclick="mobileGo('members')">👥 Clan Members</button>
+  <button class="ff-mobile-nav-link" onclick="mobileGo('events')">📅 Clan Events</button>
+  <button class="ff-mobile-nav-link" onclick="mobileGo('gallery')">🖼️ Family Gallery</button>
+  <button class="ff-mobile-nav-link" onclick="mobileGo('profile')">👤 My Profile</button>
+  <button class="ff-mobile-nav-link" onclick="closeMobileClanMenu(); logout()">🚪 Logout</button>
+ </div>
+</div>
+
+<div class="ff-comment-modal" id="ffCommentModal" onclick="if(event.target===this)closeFacebookComments()">
+ <div class="ff-comment-dialog">
+  <div class="ff-comment-head"><span id="ffCommentTitle">Comments</span><button class="ff-comment-close" onclick="closeFacebookComments()">×</button></div>
+  <div class="ff-comment-body" id="ffCommentBody"></div>
+  <div class="ff-comment-footer">
+   <div class="ff-comment-compose">
+    <input id="ffModalCommentInput" maxlength="1000" placeholder="Write a comment..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendModalComment()}">
+    <button onclick="sendModalComment()">Send</button>
+   </div>
+  </div>
+ </div>
+</div>
+
 </body>
 </html>
-
+```
