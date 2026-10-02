@@ -3296,8 +3296,10 @@ async function uploadDuartePostPhoto(file) {
 async function publishPost() {
     const input = document.getElementById("postInput");
     const text = input.value.trim();
+    const multiFiles = window.ffRichComposerV41?.getFiles?.() || [];
+    const hasPhoto = !!selectedPostPhotoFile || multiFiles.length > 0;
 
-    if (!text && !selectedPostPhotoFile) {
+    if (!text && !hasPhoto) {
         alert("Write something or select a photo before posting.");
         input.focus();
         return;
@@ -3311,24 +3313,43 @@ async function publishPost() {
     const button = document.querySelector(".publish-btn");
     if (button) {
         button.disabled = true;
-        button.textContent = "POSTING...";
+        button.textContent = multiFiles.length > 1 ? "UPLOADING PHOTOS..." : "POSTING...";
     }
 
     try {
         let imageUrl = null;
-        if (selectedPostPhotoFile) imageUrl = await uploadDuartePostPhoto(selectedPostPhotoFile);
 
-        const { error } = await supabaseClient.from("posts").insert({
-            user_id: currentUser.id,
-            content: text,
-            image_url: imageUrl
-        });
+        // Preserve the existing single-photo system.
+        if (multiFiles.length === 1) {
+            imageUrl = await uploadDuartePostPhoto(multiFiles[0]);
+        } else if (selectedPostPhotoFile && multiFiles.length === 0) {
+            imageUrl = await uploadDuartePostPhoto(selectedPostPhotoFile);
+        }
+
+        // We need the new post ID so V4.2 can attach 2–4 photos to post_photos.
+        const { data: createdPost, error } = await supabaseClient
+            .from("posts")
+            .insert({
+                user_id: currentUser.id,
+                content: text,
+                image_url: imageUrl
+            })
+            .select("id")
+            .single();
 
         if (error) throw error;
+        if (!createdPost?.id) throw new Error("The new post ID was not returned.");
+
+        if (multiFiles.length > 1) {
+            if (button) button.textContent = "SAVING PHOTOS...";
+            await window.ffV42AttachPhotosToPost(createdPost.id);
+        }
 
         input.value = "";
         clearSelectedPostPhoto();
+        window.ffRichComposerV41?.clear?.();
         await loadPosts();
+        setTimeout(() => window.ffV42RefreshPostPhotos?.(), 150);
 
     } catch (error) {
         console.error("Publish post error:", error);
@@ -7099,6 +7120,214 @@ window.openMemberProfileById=openClanProfile;
    new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true});
  });
  window.ffNotificationCenterV3Refresh=enhance;
+})();
+</script>
+
+
+<style id="duarte-home-feed-v4">
+/* Home Feed V4 — Facebook-style composer/feed polish, preserving existing Supabase logic */
+.create-post{padding:14px!important;border-radius:12px!important}
+.create-post .post-top{align-items:center!important}
+.create-post .post-input{min-height:46px!important;background:#24262a!important;border:0!important;font-size:14px!important}
+.create-post .post-tools{margin-top:11px!important;padding-top:9px!important}
+.create-post .post-action{flex:1!important;min-height:38px!important;font-weight:700!important}
+.post-card{border-radius:12px!important;overflow:hidden!important}
+.post-card .post-author{padding:14px 15px 4px!important;margin:0!important}
+.post-card .post-text{padding:10px 15px 12px!important;margin:0!important;font-size:15px!important;line-height:1.48!important}
+.post-card .post-image{width:100%!important;height:auto!important;max-height:650px!important;object-fit:contain!important;border:0!important;border-radius:0!important;margin:0!important;background:#080808!important}
+.post-card .post-stats{margin:0 15px!important;padding:10px 0!important}
+.post-card .post-buttons{padding:5px 10px!important;border-bottom:1px solid #2c2e31!important}
+.post-card .post-btn{font-weight:700!important;min-height:38px!important}
+.ff-v4-menu{position:relative;margin-left:auto}
+.ff-v4-menu-pop{position:absolute;right:0;top:34px;width:160px;padding:5px;background:#24262a;border:1px solid #3a3c40;border-radius:9px;box-shadow:0 12px 30px rgba(0,0,0,.5);display:none;z-index:30}
+.ff-v4-menu.open .ff-v4-menu-pop{display:block}
+.ff-v4-menu-pop button{display:block;width:100%;border:0;background:transparent;color:#eee;text-align:left;padding:9px 10px;border-radius:6px;cursor:pointer}
+.ff-v4-menu-pop button:hover{background:#33353a}
+.ff-v4-menu-pop button.danger{color:#ef8e8e}
+.ff-v4-editbox{padding:10px 15px 13px}
+.ff-v4-editbox textarea{width:100%;min-height:90px;background:#24262a;border:1px solid #3b3d42;color:#fff;border-radius:9px;padding:10px;resize:vertical}
+.ff-v4-edit-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:7px}.ff-v4-edit-actions button{border:0;border-radius:7px;padding:8px 12px;font-weight:800;cursor:pointer}
+.ff-v4-save{background:var(--gold);color:#111}.ff-v4-cancel{background:#303238;color:#fff}
+.ff-v4-reaction-bar{display:flex;gap:3px;align-items:center}
+@media(max-width:700px){.post-card{border-left:0!important;border-right:0!important;border-radius:0!important}.create-post{border-left:0!important;border-right:0!important;border-radius:0!important}}
+</style>
+<script id="duarte-home-feed-v4-js">
+(function(){
+ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ function postId(card){const v=card?.dataset?.postId||card?.getAttribute("data-id");const m=String(v||"").match(/\d+/);return m?Number(m[0]):null}
+ function ownerId(card){return card?.dataset?.userId||card?.dataset?.authorId||null}
+ function textNode(card){return card?.querySelector(".post-text,.post-content")}
+ function enhance(){
+   document.querySelectorAll(".post-card").forEach(card=>{
+     if(card.dataset.v4==="1")return;card.dataset.v4="1";
+     const pid=postId(card);if(!pid)return;
+     const own=ownerId(card)&&window.currentUser?.id&&String(ownerId(card))===String(currentUser.id);
+     const existing=card.querySelector(".post-menu");
+     if(own&&existing){
+       const wrap=document.createElement("div");wrap.className="ff-v4-menu";
+       existing.parentNode.insertBefore(wrap,existing);wrap.appendChild(existing);
+       const pop=document.createElement("div");pop.className="ff-v4-menu-pop";
+       pop.innerHTML='<button type="button" data-v4edit>✏️ Edit post</button><button type="button" class="danger" data-v4delete>🗑️ Delete post</button>';
+       wrap.appendChild(pop);existing.onclick=e=>{e.stopPropagation();document.querySelectorAll(".ff-v4-menu.open").forEach(x=>{if(x!==wrap)x.classList.remove("open")});wrap.classList.toggle("open")};
+       pop.querySelector("[data-v4edit]").onclick=e=>{e.stopPropagation();wrap.classList.remove("open");edit(card,pid)};
+       pop.querySelector("[data-v4delete]").onclick=e=>{e.stopPropagation();wrap.classList.remove("open");remove(card,pid)};
+     }
+   });
+ }
+ function edit(card,pid){
+   if(card.querySelector(".ff-v4-editbox"))return;
+   const node=textNode(card);if(!node)return;
+   const old=node.textContent.trim(),box=document.createElement("div");box.className="ff-v4-editbox";
+   box.innerHTML=`<textarea maxlength="5000">${esc(old)}</textarea><div class="ff-v4-edit-actions"><button class="ff-v4-cancel">Cancel</button><button class="ff-v4-save">Save</button></div>`;
+   node.style.display="none";node.insertAdjacentElement("afterend",box);
+   box.querySelector(".ff-v4-cancel").onclick=()=>{box.remove();node.style.display=""};
+   box.querySelector(".ff-v4-save").onclick=async()=>{
+     const content=box.querySelector("textarea").value.trim();if(!content)return;
+     const b=box.querySelector(".ff-v4-save");b.disabled=true;
+     try{
+       const q=await supabaseClient.from("posts").update({content}).eq("id",pid).eq("user_id",currentUser.id);if(q.error)throw q.error;
+       node.textContent=content;box.remove();node.style.display="";
+     }catch(e){alert("Post could not be updated: "+(e?.message||e))}finally{b.disabled=false}
+   };
+   box.querySelector("textarea").focus();
+ }
+ async function remove(card,pid){
+   if(!confirm("Delete this post?"))return;
+   try{
+     const q=await supabaseClient.from("posts").delete().eq("id",pid).eq("user_id",currentUser.id);if(q.error)throw q.error;
+     card.remove();
+   }catch(e){alert("Post could not be deleted: "+(e?.message||e))}
+ }
+ document.addEventListener("click",()=>document.querySelectorAll(".ff-v4-menu.open").forEach(x=>x.classList.remove("open")));
+ document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true})});
+ window.ffHomeFeedV4Refresh=enhance;
+})();
+</script>
+
+
+<style id="duarte-rich-composer-v41">
+.ff-v41-photo-preview{display:none;margin-top:10px;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.ff-v41-photo-preview.show{display:grid}
+.ff-v41-preview-item{position:relative;aspect-ratio:16/10;background:#111;border-radius:9px;overflow:hidden}
+.ff-v41-preview-item img{width:100%;height:100%;object-fit:cover}
+.ff-v41-preview-remove{position:absolute;right:6px;top:6px;width:28px;height:28px;border:0;border-radius:50%;background:rgba(0,0,0,.72);color:#fff;font-size:17px;cursor:pointer}
+.ff-v41-note{display:none;margin-top:7px;font-size:10px;color:#999}
+.ff-v41-note.show{display:block}
+.ff-v41-collage{display:grid;gap:3px;margin-top:10px;border-radius:10px;overflow:hidden;background:#090909}
+.ff-v41-collage[data-count="2"]{grid-template-columns:1fr 1fr}
+.ff-v41-collage[data-count="3"]{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}.ff-v41-collage[data-count="3"]>*:first-child{grid-row:1/3}
+.ff-v41-collage[data-count="4"]{grid-template-columns:1fr 1fr}
+.ff-v41-collage img{width:100%;height:100%;min-height:180px;max-height:320px;object-fit:cover;display:block}
+</style>
+<script id="duarte-rich-composer-v41-js">
+(function(){
+ let files=[];
+ function composer(){
+   const cp=document.querySelector(".create-post"); if(!cp)return null;
+   let input=cp.querySelector('input[type="file"]');
+   if(!input){
+     input=document.createElement("input");input.type="file";input.accept="image/jpeg,image/png,image/webp";input.multiple=true;input.hidden=true;input.id="ffV41MultiPhoto";
+     cp.appendChild(input);
+   } else {input.multiple=true;input.accept="image/jpeg,image/png,image/webp"}
+   let preview=cp.querySelector(".ff-v41-photo-preview");
+   if(!preview){preview=document.createElement("div");preview.className="ff-v41-photo-preview";cp.appendChild(preview)}
+   let note=cp.querySelector(".ff-v41-note");if(!note){note=document.createElement("div");note.className="ff-v41-note";note.textContent="You can select up to 4 photos.";cp.appendChild(note)}
+   input.onchange=()=>{files=[...(input.files||[])].slice(0,4);draw(preview,note)};
+   const photoBtns=[...cp.querySelectorAll("button,.post-action")].filter(b=>/photo|image/i.test(b.textContent||""));
+   photoBtns.forEach(b=>{if(b.dataset.v41)return;b.dataset.v41="1";b.addEventListener("click",e=>{if(input){e.preventDefault();input.click()}},true)});
+   return {cp,input,preview,note};
+ }
+ function draw(preview,note){
+   preview.innerHTML="";
+   files.forEach((f,i)=>{
+     const d=document.createElement("div");d.className="ff-v41-preview-item";
+     const img=document.createElement("img");img.src=URL.createObjectURL(f);img.onload=()=>URL.revokeObjectURL(img.src);
+     const x=document.createElement("button");x.type="button";x.className="ff-v41-preview-remove";x.textContent="×";x.onclick=()=>{files.splice(i,1);draw(preview,note)};
+     d.append(img,x);preview.appendChild(d);
+   });
+   preview.classList.toggle("show",files.length>0);note.classList.toggle("show",files.length>0);
+ }
+ function enhancePostImages(){
+   document.querySelectorAll(".post-card").forEach(card=>{
+     if(card.dataset.v41imgs)return;card.dataset.v41imgs="1";
+     const imgs=[...card.querySelectorAll("img.post-image,.post-image img")];
+     if(imgs.length>1){
+       const col=document.createElement("div");col.className="ff-v41-collage";col.dataset.count=Math.min(imgs.length,4);
+       const first=imgs[0];first.parentNode.insertBefore(col,first);
+       imgs.slice(0,4).forEach(i=>col.appendChild(i));
+     }
+   });
+ }
+ document.addEventListener("DOMContentLoaded",()=>{composer();enhancePostImages();new MutationObserver(()=>{composer();enhancePostImages()}).observe(document.body,{childList:true,subtree:true})});
+ window.ffRichComposerV41={getFiles:()=>files.slice(),clear:()=>{files=[];const c=composer();if(c){c.input.value="";draw(c.preview,c.note)}}};
+})();
+</script>
+
+
+<style id="duarte-multi-photo-v42">
+.ff-v42-collage{display:grid;gap:3px;margin-top:10px;border-radius:10px;overflow:hidden;background:#080808}
+.ff-v42-collage[data-count="1"]{grid-template-columns:1fr}
+.ff-v42-collage[data-count="2"]{grid-template-columns:1fr 1fr}
+.ff-v42-collage[data-count="3"]{grid-template-columns:1.15fr .85fr;grid-template-rows:1fr 1fr}
+.ff-v42-collage[data-count="3"] .ff-v42-photo:first-child{grid-row:1/3}
+.ff-v42-collage[data-count="4"]{grid-template-columns:1fr 1fr}
+.ff-v42-photo{position:relative;min-height:190px;background:#111;cursor:pointer;overflow:hidden}
+.ff-v42-photo img{width:100%;height:100%;max-height:430px;object-fit:cover;display:block}
+.ff-v42-more{position:absolute;inset:0;background:rgba(0,0,0,.48);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:#fff}
+.ff-v42-uploading{pointer-events:none;opacity:.7}
+@media(max-width:600px){.ff-v42-photo{min-height:135px}}
+</style>
+<script id="duarte-multi-photo-v42-js">
+(function(){
+ const BUCKET="family-gallery";
+ async function uploadSelected(postId){
+   const api=window.ffRichComposerV41;
+   const files=api?.getFiles?.()||[];
+   if(files.length<2)return [];
+   const rows=[];
+   for(let i=0;i<Math.min(files.length,4);i++){
+     const f=files[i], ext=(f.name.split(".").pop()||"jpg").toLowerCase();
+     const path=`${currentUser.id}/posts/${postId}/${Date.now()}-${i}.${ext}`;
+     const up=await supabaseClient.storage.from(BUCKET).upload(path,f,{upsert:false,contentType:f.type||"image/jpeg"});
+     if(up.error)throw up.error;
+     const pub=supabaseClient.storage.from(BUCKET).getPublicUrl(path);
+     const url=pub?.data?.publicUrl;
+     if(!url)throw new Error("Photo URL could not be created.");
+     rows.push({post_id:Number(postId),user_id:currentUser.id,image_url:url,storage_path:path,sort_order:i});
+   }
+   const ins=await supabaseClient.from("post_photos").insert(rows);
+   if(ins.error)throw ins.error;
+   return rows;
+ }
+ async function loadForCards(){
+   const cards=[...document.querySelectorAll(".post-card[data-post-id]")];
+   const ids=cards.map(c=>Number(c.dataset.postId)).filter(Boolean);
+   if(!ids.length)return;
+   const q=await supabaseClient.from("post_photos").select("id,post_id,image_url,sort_order").in("post_id",ids).order("sort_order",{ascending:true});
+   if(q.error){ if(!/post_photos/i.test(q.error.message||""))console.warn(q.error); return; }
+   const by={};(q.data||[]).forEach(x=>(by[x.post_id]??=[]).push(x));
+   cards.forEach(card=>{
+     const arr=by[Number(card.dataset.postId)]||[]; if(arr.length<2||card.querySelector(".ff-v42-collage"))return;
+     card.querySelectorAll(".post-image").forEach(x=>x.remove());
+     const col=document.createElement("div");col.className="ff-v42-collage";col.dataset.count=Math.min(arr.length,4);
+     arr.slice(0,4).forEach((p,i)=>{
+       const d=document.createElement("div");d.className="ff-v42-photo";
+       const im=document.createElement("img");im.src=p.image_url;im.alt="Post photo";im.loading="lazy";
+       d.appendChild(im);d.onclick=()=>{if(typeof window.openPhotoViewer==="function")openPhotoViewer(p.image_url);else window.open(p.image_url,"_blank")};
+       col.appendChild(d);
+     });
+     const text=card.querySelector(".post-text,.post-content"); if(text)text.insertAdjacentElement("afterend",col);else card.appendChild(col);
+   });
+ }
+ // Called by the existing publish flow after a post row exists.
+ window.ffV42AttachPhotosToPost=async function(postId){
+   const rows=await uploadSelected(postId);
+   if(rows.length)window.ffRichComposerV41?.clear?.();
+   setTimeout(loadForCards,150);
+   return rows;
+ };
+ window.ffV42RefreshPostPhotos=loadForCards;
+ document.addEventListener("DOMContentLoaded",()=>{loadForCards();new MutationObserver(()=>{clearTimeout(window.__ffv42t);window.__ffv42t=setTimeout(loadForCards,120)}).observe(document.body,{childList:true,subtree:true})});
 })();
 </script>
 
