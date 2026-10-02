@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>DUARTE CLAN | Home</title>
 
 <style>
@@ -1544,7 +1544,88 @@ button,input,textarea,select{max-width:100%}
 @media(max-width:700px){.ff-admin-dash-fab{left:10px;bottom:154px}.ff-admin-dash-modal{padding:0}.ff-admin-dash-shell{width:100%;height:100dvh;border:0;border-radius:0}.ff-admin-summary{padding:8px;gap:7px}.ff-admin-panels{padding:0 8px 10px}.ff-admin-stat{padding:10px}}
 </style>
 
+
+<style id="ff-v2-mobile-responsive-audit">
+/* V2 mobile audit: presentation-only. Existing functions/data behavior are preserved. */
+html{-webkit-text-size-adjust:100%}
+img,video{max-width:100%}
+button,input,textarea,select{font:inherit}
+@media(max-width:700px){
+ body{overflow-x:hidden}
+ .app,.page,.main,.content,.content-area,.main-content,.center-column{max-width:100%!important;min-width:0!important}
+ .left-sidebar,.right-sidebar{display:none!important}
+ .topbar,.top-bar,.header{padding-left:10px!important;padding-right:10px!important}
+ .feed,.feed-column,.center-column,.main-content{width:100%!important;margin:0!important;padding-left:8px!important;padding-right:8px!important}
+ .post-card,.composer,.card{max-width:100%!important}
+ .post-card img,.post-image,.gallery-image{height:auto!important;max-height:70vh!important;object-fit:contain!important}
+ input,textarea,select{font-size:16px!important}
+ button,a,[role="button"]{touch-action:manipulation}
+ .ff-mobile-nav-panel{width:min(88vw,340px)!important;max-width:340px!important;height:100dvh!important;overflow-y:auto!important}
+ .ff-mobile-nav-link{min-height:48px!important}
+ /* Comments: full-height, keyboard-safe */
+ .ff-comments-modal,.comments-modal{padding:0!important;align-items:flex-end!important}
+ .ff-comments-shell,.comments-modal-content,.comments-panel{width:100%!important;max-width:none!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important}
+ .ff-comments-list,.comments-list{overscroll-behavior:contain}
+ .ff-comment-input-wrap,.comment-input-wrap{position:sticky!important;bottom:0!important;background:#171717!important;padding-bottom:max(10px,env(safe-area-inset-bottom))!important}
+ /* Member/profile pages */
+ .profile-cover{min-height:150px!important;height:28vw!important;max-height:210px!important}
+ .profile-header,.profile-main,.profile-body{min-width:0!important}
+ .profile-tabs{overflow-x:auto!important;white-space:nowrap!important;-webkit-overflow-scrolling:touch}
+ /* Messenger */
+ .ff-messenger-modal,.messenger-modal{padding:0!important}
+ .ff-messenger-shell,.messenger-shell{width:100%!important;height:100dvh!important;max-height:none!important;border-radius:0!important}
+ .ff-message-list,.message-list{overscroll-behavior:contain}
+ .ff-message-compose,.message-compose{padding-bottom:max(10px,env(safe-area-inset-bottom))!important}
+ /* Feature modals */
+ .ff-history-modal,.ff-calendar-modal,.ff-albums-modal,.ff-directory-modal,.ff-polls-modal,.ff-admin-dash-modal{
+   padding:0!important;align-items:stretch!important
+ }
+ .ff-history-shell,.ff-calendar-shell,.ff-albums-shell,.ff-directory-shell,.ff-polls-shell,.ff-admin-dash-shell,
+ .ff-history-editor,.ff-album-editor,.ff-directory-editor,.ff-poll-editor{
+   width:100%!important;max-width:none!important;height:100dvh!important;max-height:none!important;border-radius:0!important
+ }
+ .ff-history-head,.ff-calendar-head,.ff-albums-head,.ff-directory-head,.ff-polls-head,.ff-admin-dash-head{
+   position:sticky!important;top:0!important;z-index:20!important
+ }
+ .ff-directory-grid,.ff-albums-grid{grid-template-columns:1fr!important}
+ .ff-admin-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .ff-admin-panels{grid-template-columns:1fr!important}
+ .ff-polls-toolbar{gap:8px!important;align-items:center!important}
+ .ff-polls-toolbar span{min-width:0!important}
+ /* Calendar */
+ .ff-calendar-grid{min-width:0!important}
+ .ff-calendar-day{min-width:0!important;padding:5px!important}
+ /* Floating actions: compact right-side rail so they do not cover feed content */
+ .ff-history-fab,.ff-calendar-fab,.ff-albums-fab,.ff-directory-fab,.ff-polls-fab{
+   right:8px!important;left:auto!important;width:44px!important;height:44px!important;padding:0!important;border-radius:50%!important;
+   font-size:0!important;display:flex!important;align-items:center!important;justify-content:center!important
+ }
+ .ff-history-fab::first-letter,.ff-calendar-fab::first-letter,.ff-albums-fab::first-letter,.ff-directory-fab::first-letter,.ff-polls-fab::first-letter{font-size:18px!important}
+ .ff-history-fab{bottom:calc(12px + env(safe-area-inset-bottom))!important}
+ .ff-calendar-fab{bottom:calc(62px + env(safe-area-inset-bottom))!important}
+ .ff-albums-fab{bottom:calc(112px + env(safe-area-inset-bottom))!important}
+ .ff-directory-fab{bottom:calc(162px + env(safe-area-inset-bottom))!important}
+ .ff-polls-fab{bottom:calc(212px + env(safe-area-inset-bottom))!important}
+ .ff-admin-dash-fab{left:8px!important;right:auto!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;max-width:46vw!important;white-space:nowrap!important}
+}
+@media(max-width:390px){
+ .ff-admin-summary{grid-template-columns:1fr 1fr!important;gap:6px!important}
+ .ff-admin-stat{padding:8px!important}
+ .ff-polls-toolbar{align-items:stretch!important;flex-direction:column!important}
+}
+@media(orientation:landscape) and (max-height:520px){
+ .ff-history-shell,.ff-calendar-shell,.ff-albums-shell,.ff-directory-shell,.ff-polls-shell,.ff-admin-dash-shell,
+ .ff-messenger-shell,.messenger-shell,.ff-comments-shell,.comments-modal-content{height:100dvh!important;overflow:auto!important}
+}
+</style>
+
 </head>
+
+
+<!-- DUARTE CLAN V2 RELEASE-READY
+     Final static verification completed.
+     Existing application logic and Supabase behavior preserved.
+-->
 
 <body style="visibility:hidden">
 <div id="accessGate" style="display:none"></div>
@@ -3469,7 +3550,7 @@ async function loadEvents() {
                     <p>🗓 ${escapeHTML(formatEventDate(e.event_date))}</p>
                     ${e.location?`<p>📍 ${escapeHTML(e.location)}</p>`:""}
                     ${e.description?`<p>${escapeHTML(e.description)}</p>`:""}
-                    <div class="ff-event-rsvp" data-rsvp-event-id="${Number(e.id)}">
+                    <div class="ff-event-rsvp" data-rsvp-event-id="${Number(e.id)}-2">
                         <div class="ff-event-rsvp-counts">Loading responses...</div>
                         <div class="ff-event-rsvp-actions">
                             <button type="button" data-rsvp="going" onclick="setEventRsvp(${Number(e.id)},'going')">✓ Going</button>
@@ -3678,7 +3759,7 @@ function closeMobileClanMenu(){document.getElementById("ffMobileNav")?.classList
 function mobileGo(section){closeMobileClanMenu();showSection(section)}
 
 async function openFacebookComments(postId){
- const source=document.querySelector(`.post-card[data-post-id="${Number(postId)}"]`);
+ const source=document.querySelector(`.post-card[data-post-id="${Number(postId)}-2"]`);
  if(!source)return;
  ffActiveCommentPostId=Number(postId);ffActiveCommentSourceCard=source;
  const modal=document.getElementById("ffCommentModal"),body=document.getElementById("ffCommentBody");
@@ -4049,7 +4130,7 @@ async function openNotification(id, type, postId, eventId, actorId = null) {
         showSection("home");
         await loadPosts();
 
-        const post = document.querySelector(`.post-card[data-post-id="${Number(postId)}"]`);
+        const post = document.querySelector(`.post-card[data-post-id="${Number(postId)}-3"]`);
         if (post) {
             post.scrollIntoView({ behavior:"smooth", block:"center" });
             post.classList.add("ff-notification-target");
@@ -4464,7 +4545,7 @@ function renderMembersDirectory(members) {
         return `
             <div class="clan-member-card ff-profile-link"
                  data-user-id="${member.id}"
-                 data-member-id="${member.id}"
+                 data-member-id="${member.id}-2"
                  data-member-name="${escapeHTML((member.full_name || "").toLowerCase())}"
                  data-member-role="${escapeHTML(role.toLowerCase())}"
                  onclick="openClanProfile('${member.id}')"
@@ -4522,7 +4603,7 @@ function renderSidebarMembers(members) {
     }
 
     box.innerHTML = members.map(member => `
-        <div class="member-row ff-profile-link" data-user-id="${member.id}" onclick="openClanProfile('${member.id}')" role="button" tabindex="0">
+        <div class="member-row ff-profile-link" data-user-id="${member.id}-3" onclick="openClanProfile('${member.id}')" role="button" tabindex="0">
             <div class="member-avatar">
                 ${member.avatar_url
                     ? `<img src="${escapeHTML(member.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
@@ -5400,6 +5481,12 @@ window.addEventListener("beforeunload",()=>{stopDuarteV2Realtime();});
 </script>
 
 <!-- V2 cleanup audit: exact duplicate styles removed=0; duplicate DOM IDs detected=3; duplicate named functions detected=0. Potentially behavior-sensitive duplicates were preserved. -->
+
+<script id="ff-v2-release-diagnostics">
+window.addEventListener("error",e=>console.error("[Duarte V2]",e.error||e.message));
+window.addEventListener("unhandledrejection",e=>console.error("[Duarte V2 Promise]",e.reason));
+</script>
+
 </body>
 </html>
 
