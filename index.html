@@ -8106,6 +8106,83 @@ function ffMobileToast(msg){
 window.ffMobileSharePost=ffMobileSharePost;
 </script>
 
+
+<style id="duarte-mobile-floating-menu-fix">
+@media(max-width:760px){
+  /* Only the round Family Menu button stays visible until opened. */
+  .family-tree-button,.messenger-button{
+    position:fixed!important;
+    right:14px!important;
+    width:auto!important;
+    max-width:210px!important;
+    z-index:9997!important;
+    transform:translateY(12px) scale(.94)!important;
+    opacity:0!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+    transition:opacity .18s ease,transform .18s ease,visibility .18s ease!important;
+  }
+  .family-tree-button{bottom:86px!important}
+  .messenger-button{bottom:20px!important}
+  body.ff-mobile-family-open .family-tree-button,
+  body.ff-mobile-family-open .messenger-button{
+    opacity:1!important;
+    visibility:visible!important;
+    pointer-events:auto!important;
+    transform:translateY(0) scale(1)!important;
+  }
+  .ff-family-menu-btn,.family-menu-button{
+    position:fixed!important;
+    right:14px!important;
+    bottom:18px!important;
+    z-index:9999!important;
+  }
+  body.ff-mobile-family-open .ff-family-menu-btn,
+  body.ff-mobile-family-open .family-menu-button{
+    bottom:152px!important;
+  }
+
+  /* Feed stays unobstructed. */
+  .post-card{margin-left:0!important;margin-right:0!important}
+  .post-actions,.action-bar{padding-right:4px!important}
+}
+</style>
+<script id="duarte-mobile-floating-menu-js">
+(function(){
+  function isMobile(){return matchMedia("(max-width:760px)").matches}
+  function menuButtons(){
+    return [...document.querySelectorAll(".ff-family-menu-btn,.family-menu-button")];
+  }
+  function install(){
+    menuButtons().forEach(btn=>{
+      if(btn.dataset.mobileFamilyToggle==="1")return;
+      btn.dataset.mobileFamilyToggle="1";
+      btn.addEventListener("click",function(e){
+        if(!isMobile())return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        document.body.classList.toggle("ff-mobile-family-open");
+      },true);
+    });
+    document.querySelectorAll(".family-tree-button,.messenger-button").forEach(btn=>{
+      if(btn.dataset.mobileFamilyClose==="1")return;
+      btn.dataset.mobileFamilyClose="1";
+      btn.addEventListener("click",()=>{if(isMobile())document.body.classList.remove("ff-mobile-family-open")});
+    });
+  }
+  document.addEventListener("click",e=>{
+    if(!isMobile()||!document.body.classList.contains("ff-mobile-family-open"))return;
+    if(e.target.closest(".ff-family-menu-btn,.family-menu-button,.family-tree-button,.messenger-button"))return;
+    document.body.classList.remove("ff-mobile-family-open");
+  });
+  addEventListener("resize",()=>{if(!isMobile())document.body.classList.remove("ff-mobile-family-open")});
+  document.addEventListener("DOMContentLoaded",()=>{
+    install();
+    new MutationObserver(install).observe(document.body,{childList:true,subtree:true});
+  });
+})();
+</script>
+
 </body>
 </html>
 
