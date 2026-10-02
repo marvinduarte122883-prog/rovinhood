@@ -4047,20 +4047,29 @@ async function loadPrivateMessages(){
  if(!ffActiveConversationId)return;
  const box=document.getElementById("ffChatMessages");if(!box)return;
  try{
-  const r=await supabaseClient.from("messages").select("id,sender_id,content,is_read,created_at").eq("conversation_id",ffActiveConversationId).order("created_at",{ascending:true});
+  const r=await supabaseClient.from("messages")
+   .select("id,sender_id,content,is_read,created_at,reply_to_id,attachment_url")
+   .eq("conversation_id",ffActiveConversationId).order("created_at",{ascending:true});
   if(r.error)throw r.error;
-  const a=r.data||[];
+  const a=r.data||[], ids=a.map(x=>x.id), byId=Object.fromEntries(a.map(x=>[x.id,x]));
+  let react={};
+  if(ids.length){
+   const rr=await supabaseClient.from("message_reactions").select("message_id,user_id,reaction").in("message_id",ids);
+   if(!rr.error)(rr.data||[]).forEach(x=>(react[x.message_id]??=[]).push(x));
+  }
   box.innerHTML=a.length?a.map((x,idx)=>{
-   const mine=x.sender_id===currentUser.id;
+   const mine=x.sender_id===currentUser.id, replied=x.reply_to_id?byId[x.reply_to_id]:null;
    let seen="";
    if(mine){
     const laterMine=a.slice(idx+1).some(y=>y.sender_id===currentUser.id);
     if(!laterMine)seen=`<div class="ff-seen-status">${x.is_read?"Seen":"Sent"}</div>`;
    }
-   return `<div class="ff-bubble-row ${mine?"mine":""}"><div class="ff-bubble">${escapeHTML(x.content)}<div class="ff-bubble-time">${new Date(x.created_at).toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</div>${seen}</div></div>`
+   const reply=replied?`<div class="ff-v4-replied">↪ ${escapeHTML((replied.content||"Photo").slice(0,120))}</div>`:"";
+   const photo=x.attachment_url?`<img class="ff-v4-msg-photo" src="${escapeHTML(x.attachment_url)}" alt="Message photo" onclick="window.open(this.src,'_blank')">`:"";
+   const reactions=(react[x.id]||[]).map(z=>z.reaction).join(" ");
+   return `<div class="ff-bubble-row ${mine?"mine":""}" data-message-id="${x.id}"><div class="ff-bubble">${reply}${x.content?escapeHTML(x.content):""}${photo}<div class="ff-bubble-time">${new Date(x.created_at).toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</div>${reactions?`<div class="ff-v4-msg-reactions">${escapeHTML(reactions)}</div>`:""}${seen}<div class="ff-v4-msg-tools"><button onclick="ffV4Reply(${x.id},${JSON.stringify((x.content||"Photo").slice(0,120)).replace(/"/g,"&quot;")})">↩</button>${["👍","❤️","😂","😮"].map(e=>`<button onclick="ffV4React(${x.id},'${e}')">${e}</button>`).join("")}</div></div></div>`
   }).join(""):'<div class="ff-chat-empty">No messages yet. Say hello 👋</div>';
   box.scrollTop=box.scrollHeight;
-
   const unread=a.filter(x=>x.sender_id!==currentUser.id&&!x.is_read).map(x=>x.id);
   if(unread.length){
    const u=await supabaseClient.from("messages").update({is_read:true}).in("id",unread);
@@ -4070,15 +4079,47 @@ async function loadPrivateMessages(){
  }catch(e){box.innerHTML='<div class="ff-chat-empty">Messages could not be loaded.</div>';console.error(e)}
 }
 
-async function sendPrivateMessage(){
- const i=document.getElementById("ffChatInput"),c=i?.value.trim();
- if(!c||!ffActiveConversationId)return;
- const r=await supabaseClient.from("messages").insert({conversation_id:ffActiveConversationId,sender_id:currentUser.id,content:c});
- if(r.error){alert("Message could not be sent: "+r.error.message);return}
- i.value="";
- await loadPrivateMessages();
- loadConversations();
+let ffV4ReplyToId=null;
+function ffV4Reply(id,text){
+ ffV4ReplyToId=Number(id);
+ const p=document.getElementById("ffV4ReplyPreview");if(!p)return;
+ p.hidden=false;p.innerHTML=`<span>Replying to: ${escapeHTML(text||"Message")}</span><button type="button" onclick="ffV4CancelReply()">×</button>`;
+ document.getElementById("ffChatInput")?.focus();
 }
+function ffV4CancelReply(){ffV4ReplyToId=null;const p=document.getElementById("ffV4ReplyPreview");if(p){p.hidden=true;p.innerHTML=""}}
+async function ffV4React(messageId,reaction){
+ try{
+  const q=await supabaseClient.from("message_reactions").upsert({message_id:Number(messageId),user_id:currentUser.id,reaction},{onConflict:"message_id,user_id"});
+  if(q.error)throw q.error;await loadPrivateMessages();
+ }catch(e){alert("Reaction could not be saved: "+(e.message||e))}
+}
+async function ffV4UploadMessagePhoto(file){
+ if(!file)return null;
+ if(file.size>10*1024*1024)throw new Error("Photo must be 10 MB or smaller.");
+ const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+ const path=`${currentUser.id}/messages/${ffActiveConversationId}/${Date.now()}.${ext}`;
+ const u=await supabaseClient.storage.from("family-gallery").upload(path,file,{upsert:false,contentType:file.type||"image/jpeg"});
+ if(u.error)throw u.error;
+ return supabaseClient.storage.from("family-gallery").getPublicUrl(path)?.data?.publicUrl||null;
+}
+async function sendPrivateMessage(){
+ const i=document.getElementById("ffChatInput"),c=i?.value.trim()||"";
+ const fi=document.getElementById("ffV4MsgPhoto"),file=fi?.files?.[0]||null;
+ if((!c&&!file)||!ffActiveConversationId)return;
+ const btn=document.querySelector(".ff-chat-compose button:last-child");if(btn){btn.disabled=true;btn.textContent="Sending..."}
+ try{
+  const attachment_url=await ffV4UploadMessagePhoto(file);
+  const r=await supabaseClient.from("messages").insert({
+   conversation_id:ffActiveConversationId,sender_id:currentUser.id,content:c,
+   reply_to_id:ffV4ReplyToId||null,attachment_url
+  });
+  if(r.error)throw r.error;
+  i.value="";if(fi)fi.value="";ffV4CancelReply();
+  await loadPrivateMessages();loadConversations();
+ }catch(e){alert("Message could not be sent: "+(e.message||e))}
+ finally{if(btn){btn.disabled=false;btn.textContent="Send"}}
+}
+window.ffV4Reply=ffV4Reply;window.ffV4CancelReply=ffV4CancelReply;window.ffV4React=ffV4React;
 
 async function refreshMessengerUnread(){
  if(!currentUser)return;
@@ -4865,7 +4906,7 @@ protectPrivateClan();
 <button class="ff-msg-fab" onclick="openMessenger()">💬 Messenger <span class="ff-msg-badge" id="ffMsgBadge">0</span></button>
 <div class="ff-msg-modal" id="ffMsgModal" onclick="if(event.target===this)closeMessenger()"><div class="ff-msg-shell" id="ffMsgShell">
 <div class="ff-msg-list"><div class="ff-msg-title"><span>💬 Messages</span><button class="ff-msg-close" onclick="closeMessenger()">×</button></div><div class="ff-msg-search"><input id="ffConversationSearch" placeholder="Search conversations..." oninput="filterMessengerConversations(this.value)"></div><div id="ffConversationList"><div class="ff-chat-empty" style="padding:25px">No conversations yet.</div></div></div>
-<div class="ff-chat"><div class="ff-chat-head"><button class="ff-chat-back" onclick="messengerBack()">‹</button><span id="ffChatName">Select a conversation</span></div><div class="ff-chat-messages" id="ffChatMessages"><div class="ff-chat-empty">Choose a clan member to start chatting.</div></div><div class="ff-chat-compose"><input id="ffChatInput" maxlength="2000" placeholder="Write a message..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendPrivateMessage()}"><button onclick="sendPrivateMessage()">Send</button></div></div>
+<div class="ff-chat"><div class="ff-chat-head"><button class="ff-chat-back" onclick="messengerBack()">‹</button><span id="ffChatName">Select a conversation</span></div><div class="ff-chat-messages" id="ffChatMessages"><div class="ff-chat-empty">Choose a clan member to start chatting.</div></div><div class="ff-v4-reply-preview" id="ffV4ReplyPreview" hidden></div><div class="ff-chat-compose"><input id="ffV4MsgPhoto" type="file" accept="image/jpeg,image/png,image/webp" hidden><button type="button" class="ff-v4-attach" onclick="document.getElementById('ffV4MsgPhoto').click()" title="Attach photo">📷</button><input id="ffChatInput" maxlength="2000" placeholder="Write a message..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendPrivateMessage()}"><button onclick="sendPrivateMessage()">Send</button></div></div>
 </div></div>
 
 
@@ -7328,6 +7369,147 @@ window.openMemberProfileById=openClanProfile;
  };
  window.ffV42RefreshPostPhotos=loadForCards;
  document.addEventListener("DOMContentLoaded",()=>{loadForCards();new MutationObserver(()=>{clearTimeout(window.__ffv42t);window.__ffv42t=setTimeout(loadForCards,120)}).observe(document.body,{childList:true,subtree:true})});
+})();
+</script>
+
+
+<style id="duarte-messenger-v4-functional">
+.ff-v4-reply-preview{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 12px;background:#202226;border-left:3px solid var(--gold);font-size:11px;color:#bbb}
+.ff-v4-reply-preview[hidden]{display:none!important}.ff-v4-reply-preview button{border:0;background:transparent;color:#aaa;font-size:18px;cursor:pointer}
+.ff-v4-attach{flex:0 0 38px!important;width:38px!important;border-radius:50%!important;background:#292b30!important;color:#fff!important}
+.ff-v4-replied{padding:6px 8px;margin-bottom:6px;border-left:2px solid var(--gold);background:rgba(0,0,0,.18);border-radius:5px;font-size:10px;opacity:.8}
+.ff-v4-msg-photo{display:block;max-width:260px;max-height:320px;width:auto;height:auto;border-radius:9px;margin-top:7px;cursor:pointer;object-fit:cover}
+.ff-v4-msg-reactions{display:inline-block;margin-top:5px;padding:2px 6px;border-radius:12px;background:#2d2f34;font-size:12px}
+.ff-v4-msg-tools{display:none;position:absolute;top:-30px;right:2px;gap:2px;padding:3px;background:#24262a;border:1px solid #3a3c40;border-radius:16px;z-index:5;white-space:nowrap}
+.ff-bubble{position:relative}.ff-bubble:hover .ff-v4-msg-tools{display:flex}.ff-v4-msg-tools button{border:0;background:transparent;color:#ddd;cursor:pointer;padding:3px 4px;font-size:12px}
+@media(max-width:700px){.ff-v4-msg-tools{display:flex;position:static;margin-top:5px;background:transparent;border:0;padding:0}.ff-v4-msg-photo{max-width:220px}}
+</style>
+
+
+<style id="duarte-notification-routing-v4">
+.notification-item{cursor:pointer!important}
+.notification-item:focus{outline:2px solid rgba(212,175,55,.55);outline-offset:-2px}
+.ff-n4-route{display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-size:10px;color:#cdbb72}
+</style>
+<script id="duarte-notification-routing-v4-js">
+(function(){
+ function num(v){const n=Number(v);return Number.isFinite(n)&&n>0?n:null}
+ async function markRead(id){
+   if(!id)return;
+   const q=await supabaseClient.from("notifications").update({is_read:true}).eq("id",id).eq("user_id",currentUser.id);
+   if(q.error)console.warn("Notification read:",q.error);
+   if(typeof window.loadNotifications==="function")setTimeout(()=>window.loadNotifications(),80);
+ }
+ async function route(n){
+   if(!n)return;
+   await markRead(n.id);
+   const type=String(n.type||"").toLowerCase();
+   if(type.includes("message")){
+     if(typeof window.openMessenger==="function")window.openMessenger();
+     return;
+   }
+   if(n.post_id){
+     if(typeof window.closeNotifications==="function")window.closeNotifications();
+     if(typeof window.showSection==="function")window.showSection("home");
+     setTimeout(()=>{
+       const card=document.querySelector(`.post-card[data-post-id="${num(n.post_id)}"]`);
+       if(card){card.scrollIntoView({behavior:"smooth",block:"center"});card.classList.add("ff-notification-target");setTimeout(()=>card.classList.remove("ff-notification-target"),1800)}
+       if(/comment|reply/i.test(type)&&typeof window.openFacebookComments==="function")window.openFacebookComments(num(n.post_id));
+     },220);
+     return;
+   }
+   if(n.event_id){
+     if(typeof window.closeNotifications==="function")window.closeNotifications();
+     if(typeof window.showSection==="function")window.showSection("events");
+     return;
+   }
+   if(/birthday/i.test(type)){
+     if(typeof window.closeNotifications==="function")window.closeNotifications();
+     if(typeof window.showSection==="function")window.showSection("members");
+     return;
+   }
+   if(/tree|family/i.test(type)){
+     if(typeof window.closeNotifications==="function")window.closeNotifications();
+     if(typeof window.openFamilyTree==="function")window.openFamilyTree();
+     return;
+   }
+   if(/announcement/i.test(type)){
+     if(typeof window.closeNotifications==="function")window.closeNotifications();
+     if(typeof window.showSection==="function")window.showSection("home");
+   }
+ }
+ async function fetchAndRoute(id){
+   const q=await supabaseClient.from("notifications").select("id,type,post_id,event_id,message,is_read").eq("id",Number(id)).eq("user_id",currentUser.id).maybeSingle();
+   if(q.error){console.warn(q.error);return}
+   if(q.data)route(q.data);
+ }
+ function enhance(){
+   document.querySelectorAll(".notification-item").forEach(el=>{
+     if(el.dataset.n4==="1")return;
+     const raw=el.dataset.notificationId||el.dataset.id||el.getAttribute("data-notification-id");
+     const id=num(raw);if(!id)return;
+     el.dataset.n4="1";el.tabIndex=0;
+     el.addEventListener("click",e=>{if(e.target.closest("button,a"))return;e.preventDefault();fetchAndRoute(id)});
+     el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fetchAndRoute(id)}});
+   });
+ }
+ document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true})});
+ window.ffNotificationV4Route=route;
+})();
+</script>
+<style>
+.ff-notification-target{animation:ffN4Glow 1.8s ease}
+@keyframes ffN4Glow{0%,100%{box-shadow:inherit}30%{box-shadow:0 0 0 3px rgba(212,175,55,.55),0 0 28px rgba(212,175,55,.25)}}
+</style>
+
+
+<style id="duarte-final-social-ux-v41">
+/* Final social UX pass: responsive navigation, loading feedback, touch targets */
+.ff-v41-loading{position:relative;pointer-events:none;opacity:.72}
+.ff-v41-loading:after{content:"";position:absolute;width:18px;height:18px;border:2px solid rgba(255,255,255,.28);border-top-color:var(--gold);border-radius:50%;right:12px;top:50%;margin-top:-9px;animation:ffV41Spin .7s linear infinite}
+@keyframes ffV41Spin{to{transform:rotate(360deg)}}
+button:disabled{cursor:not-allowed!important;opacity:.62!important}
+.post-btn,.ff-member-message,.ff-member-profile-message,.ff-member-profile-own,.notification-item button{min-height:38px}
+.ff-v41-online-state{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:99999;padding:7px 12px;border-radius:18px;background:#26282d;border:1px solid #3c3f45;color:#ddd;font-size:11px;font-weight:700;box-shadow:0 8px 28px rgba(0,0,0,.4);display:none}
+.ff-v41-online-state.show{display:block}
+@media(max-width:700px){
+ body{overflow-x:hidden}
+ .main-content,.content,.feed{max-width:100%!important}
+ button,.post-btn,.ff-n3-tab{touch-action:manipulation}
+ .notification-panel{position:fixed!important;left:8px!important;right:8px!important;top:58px!important;width:auto!important;max-height:calc(100dvh - 72px)!important}
+ .ff-full-profile-modal,.ff-full-profile-shell{max-width:100vw!important}
+}
+</style>
+<div id="ffV41NetState" class="ff-v41-online-state" role="status" aria-live="polite"></div>
+<script id="duarte-final-social-ux-v41-js">
+(function(){
+ const state=document.getElementById("ffV41NetState");
+ let timer=null;
+ function net(msg){
+   if(!state)return;clearTimeout(timer);state.textContent=msg;state.classList.add("show");
+   timer=setTimeout(()=>state.classList.remove("show"),2200);
+ }
+ window.addEventListener("offline",()=>net("You are offline"));
+ window.addEventListener("online",()=>net("Connection restored"));
+ function busy(btn,on,label){
+   if(!btn)return;
+   if(on){btn.dataset.ffOldText=btn.textContent;btn.disabled=true;btn.classList.add("ff-v41-loading");if(label)btn.textContent=label}
+   else{btn.disabled=false;btn.classList.remove("ff-v41-loading");if(btn.dataset.ffOldText){btn.textContent=btn.dataset.ffOldText;delete btn.dataset.ffOldText}}
+ }
+ window.ffSocialBusy=busy;
+ // Accessibility and touch pass without changing existing actions.
+ function enhance(){
+   document.querySelectorAll('[onclick]:not([tabindex]),.post-card[role="button"],.clan-member-card').forEach(el=>{
+     if(/^(BUTTON|A|INPUT|TEXTAREA|SELECT)$/.test(el.tagName))return;
+     if(!el.hasAttribute("tabindex"))el.tabIndex=0;
+   });
+   document.querySelectorAll("img:not([alt])").forEach(img=>img.alt="Duarte Clan photo");
+   document.querySelectorAll("button:not([type])").forEach(b=>b.type="button");
+ }
+ document.addEventListener("DOMContentLoaded",()=>{
+   enhance();
+   new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true});
+ });
 })();
 </script>
 
