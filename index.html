@@ -7919,6 +7919,193 @@ window.ffV42DeleteOwnMessage=ffV42DeleteOwnMessage;
 })();
 </script>
 
+
+<style id="duarte-v43-dark-gold-refined">
+/* Duarte Clan V4.3 — current dark/gold design refined only.
+   Layout, navigation, modules, JS and Supabase behavior are unchanged. */
+:root{
+  --dc-bg:#0d0e10;
+  --dc-surface:#15171a;
+  --dc-surface-2:#1b1e22;
+  --dc-border:#30343a;
+  --dc-gold:#e9b52d;
+  --dc-gold-soft:#f5ca55;
+  --dc-text:#f5f7fa;
+  --dc-muted:#aab1bb;
+}
+html,body{
+  background:var(--dc-bg)!important;
+  color:var(--dc-text)!important;
+}
+body,button,input,textarea,select{
+  font-family:Inter,Arial,Helvetica,sans-serif!important;
+}
+
+/* Header — keep current structure, improve clarity */
+header,.topbar,.top-nav,.main-header,.navbar{
+  background:#101113!important;
+  border-color:#292c31!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.03)!important;
+}
+.logo,.brand,.brand-name{color:var(--dc-gold)!important}
+
+/* Existing cards */
+.profile-card,.post-card,.composer,.post-composer,.sidebar-card,
+.announcement-card,.events-card,.members-card,.panel,.card{
+  background:var(--dc-surface)!important;
+  border-color:var(--dc-border)!important;
+  color:var(--dc-text)!important;
+  box-shadow:0 6px 18px rgba(0,0,0,.16)!important;
+}
+h1,h2,h3,h4,h5,h6,.post-author,.member-name,.profile-name,strong{
+  color:#fff!important;
+}
+small,.muted,.subtitle,.post-time,.post-meta,.role{
+  color:var(--dc-muted)!important;
+}
+
+/* Left navigation — same position and items */
+.sidebar,.left-sidebar,.side-nav,.profile-sidebar,
+.right-sidebar,.right-rail{
+  background:transparent!important;
+}
+.sidebar a,.side-nav a,.nav-item,.menu-item{
+  color:#e7e9ed!important;
+  border-radius:9px!important;
+}
+.sidebar a:hover,.side-nav a:hover,.nav-item:hover,.menu-item:hover{
+  background:#202329!important;
+}
+.sidebar .active,.side-nav .active,.nav-item.active,.menu-item.active{
+  background:rgba(233,181,45,.12)!important;
+  color:var(--dc-gold-soft)!important;
+}
+
+/* Composer and form readability */
+input:not([type="checkbox"]):not([type="radio"]),textarea,select,
+.post-input,.composer-input{
+  background:#22252a!important;
+  color:#f7f8fa!important;
+  border-color:#343941!important;
+}
+input::placeholder,textarea::placeholder{
+  color:#939ba7!important;
+}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--dc-gold)!important;
+  outline:2px solid rgba(233,181,45,.10)!important;
+}
+
+/* Gold primary actions */
+.publish-btn,.primary-btn,.btn-primary,button.primary{
+  background:var(--dc-gold)!important;
+  color:#111!important;
+  border-color:var(--dc-gold)!important;
+  font-weight:800!important;
+}
+.publish-btn:hover,.primary-btn:hover,.btn-primary:hover{
+  background:var(--dc-gold-soft)!important;
+}
+
+/* Feed */
+.post-card{overflow:hidden!important}
+.post-actions,.action-bar{
+  border-color:#30343a!important;
+}
+.post-action,.post-actions button,.action-bar button{
+  color:#d4d8de!important;
+  background:transparent!important;
+  border-radius:8px!important;
+}
+.post-action:hover,.post-actions button:hover,.action-bar button:hover{
+  background:#23262b!important;
+  color:#fff!important;
+}
+.post-action.active,.reaction-active{
+  color:var(--dc-gold-soft)!important;
+}
+
+/* Right-side information cards */
+.announcement-card,.events-card,.members-card,
+.right-sidebar .card,.right-rail .card{
+  background:#15171a!important;
+}
+.right-sidebar a,.right-rail a{
+  color:var(--dc-gold-soft)!important;
+}
+
+/* Keep floating controls, but make them visually consistent */
+.ff-family-menu-btn,.family-menu-button{
+  background:#17191c!important;
+  color:var(--dc-gold-soft)!important;
+  border-color:#d7b34d!important;
+}
+.family-tree-button,.messenger-button{
+  background:var(--dc-gold)!important;
+  color:#111!important;
+  border-color:var(--dc-gold)!important;
+}
+.family-tree-button:hover,.messenger-button:hover{
+  background:var(--dc-gold-soft)!important;
+}
+
+/* Better scrollbar without changing scrolling behavior */
+*{scrollbar-color:#555b64 #17191c;scrollbar-width:thin}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:#17191c}
+::-webkit-scrollbar-thumb{background:#555b64;border-radius:10px}
+
+/* Mobile keeps the same structure/functions */
+@media(max-width:760px){
+  .post-card,.composer,.post-composer{border-radius:10px!important}
+}
+</style>
+
+
+<style id="duarte-mobile-fixes">
+@media(max-width:760px){
+  html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+  .post-card{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+  .post-actions,.action-bar{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:4px!important}
+  .post-action,.post-actions button,.action-bar button{min-width:0!important;padding:10px 4px!important;font-size:13px!important}
+  .ff-family-menu-btn,.family-menu-button{right:14px!important;bottom:152px!important}
+  .family-tree-button{right:14px!important;bottom:82px!important}
+  .messenger-button{right:14px!important;bottom:14px!important}
+}
+.ff-mobile-toast{
+ position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+ z-index:200000;background:#24262a;color:#fff;border:1px solid #444;
+ border-radius:22px;padding:10px 16px;font-size:13px;box-shadow:0 6px 20px #0008
+}
+</style>
+<script id="duarte-mobile-share-fix">
+async function ffMobileSharePost(btn){
+  const card=btn?.closest?.(".post-card");
+  const postId=card?.dataset?.postId||"";
+  const text=(card?.querySelector(".post-content,.post-text")?.innerText||"Duarte Clan post").trim();
+  const url=location.href.split("#")[0]+(postId?"#post-"+postId:"");
+  try{
+    if(navigator.share){
+      await navigator.share({title:"Duarte Clan",text:text.slice(0,500),url});
+      return;
+    }
+    await navigator.clipboard.writeText(url);
+    ffMobileToast("Post link copied.");
+  }catch(e){
+    if(e?.name!=="AbortError"){
+      try{await navigator.clipboard.writeText(url);ffMobileToast("Post link copied.");}
+      catch(_){ffMobileToast("Share is not available on this browser.");}
+    }
+  }
+}
+function ffMobileToast(msg){
+  document.querySelector(".ff-mobile-toast")?.remove();
+  const el=document.createElement("div");el.className="ff-mobile-toast";el.textContent=msg;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),2200);
+}
+window.ffMobileSharePost=ffMobileSharePost;
+</script>
+
 </body>
 </html>
 
