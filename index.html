@@ -7513,6 +7513,89 @@ button:disabled{cursor:not-allowed!important;opacity:.62!important}
 })();
 </script>
 
+
+<style id="duarte-v42-profile-comment-sync">
+.ff-v42-profile-comments{padding:8px 14px 12px;border-top:1px solid #2d2f32}
+.ff-v42-profile-comment-list{display:flex;flex-direction:column;gap:7px;margin-bottom:8px}
+.ff-v42-profile-comment{display:flex;gap:7px;align-items:flex-start}
+.ff-v42-profile-comment img{width:28px;height:28px;border-radius:50%;object-fit:cover;background:#333}
+.ff-v42-profile-comment-body{background:#282a2e;border-radius:12px;padding:6px 9px;min-width:0}
+.ff-v42-profile-comment-name{font-size:10px;font-weight:800;color:#e7d27a;cursor:pointer}
+.ff-v42-profile-comment-text{font-size:11px;color:#eee;line-height:1.35;white-space:pre-wrap}
+.ff-v42-profile-compose{display:flex;gap:6px}
+.ff-v42-profile-compose input{flex:1;min-width:0;background:#24262a;border:1px solid #3a3d42;color:#fff;border-radius:18px;padding:8px 11px}
+.ff-v42-profile-compose button{border:0;border-radius:17px;background:var(--gold);color:#111;font-weight:800;padding:7px 11px;cursor:pointer}
+</style>
+<script id="duarte-v42-home-profile-comment-sync-js">
+(function(){
+ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ async function load(pid,host){
+   if(!pid||!host)return;
+   const q=await supabaseClient.from("comments").select("id,user_id,content,created_at,parent_comment_id").eq("post_id",Number(pid)).order("created_at",{ascending:true});
+   if(q.error){console.warn("Profile comments:",q.error);return}
+   const rows=(q.data||[]).filter(x=>!x.parent_comment_id);
+   const ids=[...new Set(rows.map(x=>x.user_id).filter(Boolean))];
+   let profiles={};
+   if(ids.length){
+     const p=await supabaseClient.from("profiles").select("id,full_name,avatar_url").in("id",ids);
+     if(!p.error)(p.data||[]).forEach(x=>profiles[x.id]=x);
+   }
+   const list=host.querySelector(".ff-v42-profile-comment-list");if(!list)return;
+   list.innerHTML=rows.slice(-8).map(x=>{
+     const p=profiles[x.user_id]||{},name=p.full_name||"Clan Member",av=p.avatar_url||"";
+     return `<div class="ff-v42-profile-comment"><img src="${esc(av)}" alt=""><div class="ff-v42-profile-comment-body"><div class="ff-v42-profile-comment-name" onclick="openClanProfile('${esc(x.user_id)}')">${esc(name)}</div><div class="ff-v42-profile-comment-text">${esc(x.content)}</div></div></div>`;
+   }).join("") || '<div style="font-size:10px;color:#888">No comments yet.</div>';
+ }
+ async function send(pid,btn){
+   const host=btn.closest(".ff-v42-profile-comments"),input=host?.querySelector("input");
+   const content=input?.value.trim();if(!content||!currentUser?.id)return;
+   btn.disabled=true;
+   try{
+     const q=await supabaseClient.from("comments").insert({post_id:Number(pid),user_id:currentUser.id,content,parent_comment_id:null});
+     if(q.error)throw q.error;input.value="";await load(pid,host);
+     if(typeof window.loadPostActivity==="function"){
+       const home=document.querySelector(`.post-card[data-post-id="${Number(pid)}"]`);
+       if(home)window.loadPostActivity(Number(pid),home);
+     }
+   }catch(e){alert("Comment could not be saved: "+(e.message||e))}
+   finally{btn.disabled=false}
+ }
+ function install(){
+   const root=document.getElementById("ffFullPosts")||document.querySelector(".ff-fb-post-column");if(!root)return;
+   root.querySelectorAll(".ff-full-post-card").forEach(card=>{
+     if(card.querySelector(".ff-v42-profile-comments"))return;
+     const raw=card.dataset.postId||card.getAttribute("data-post-id")||card.querySelector("[data-post-id]")?.dataset.postId;
+     let pid=Number(raw);
+     if(!pid){
+       const m=card.innerHTML.match(/(?:post_id|postId|data-post-id)[^0-9]{0,20}(\d+)/i);pid=m?Number(m[1]):0;
+     }
+     if(!pid)return;
+     card.dataset.postId=pid;
+     const host=document.createElement("div");host.className="ff-v42-profile-comments";host.dataset.postId=pid;
+     host.innerHTML=`<div class="ff-v42-profile-comment-list"></div><div class="ff-v42-profile-compose"><input maxlength="1000" placeholder="Write a comment..." onkeydown="if(event.key==='Enter'){event.preventDefault();this.nextElementSibling.click()}"><button type="button">Send</button></div>`;
+     host.querySelector("button").onclick=function(){send(pid,this)};
+     card.appendChild(host);load(pid,host);
+   });
+ }
+ function refresh(pid){
+   document.querySelectorAll(`.ff-v42-profile-comments[data-post-id="${Number(pid)}"]`).forEach(h=>load(pid,h));
+   const home=document.querySelector(`.post-card[data-post-id="${Number(pid)}"]`);
+   if(home&&typeof window.loadPostActivity==="function")window.loadPostActivity(Number(pid),home);
+ }
+ document.addEventListener("DOMContentLoaded",()=>{
+   install();new MutationObserver(install).observe(document.body,{childList:true,subtree:true});
+   try{
+     supabaseClient.channel("duarte-v42-home-profile-comment-sync")
+      .on("postgres_changes",{event:"*",schema:"public",table:"comments"},payload=>{
+        const pid=Number(payload?.new?.post_id||payload?.old?.post_id);if(pid)refresh(pid);
+      }).subscribe();
+   }catch(e){console.warn("Comment realtime sync:",e)}
+ });
+ window.ffV42ProfileCommentRefresh=refresh;
+ window.ffV42ProfileCommentSend=send;
+})();
+</script>
+
 </body>
 </html>
 
