@@ -8645,6 +8645,69 @@ window.ffMobileSharePost=ffMobileSharePost;
 }
 </style>
 
+
+<style id="duarte-v43-mobile-performance">
+@media(max-width:980px),(hover:none) and (pointer:coarse){
+  html{scroll-behavior:auto!important}
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.08s!important;
+  }
+  .post-card,.ff-chat-messages,.comments-list,.ff-comments-list{
+    contain:layout style;
+  }
+  img{content-visibility:auto}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+<script id="duarte-v43-mobile-performance-js">
+(function(){
+  const mobile=()=>matchMedia("(max-width:980px),(hover:none) and (pointer:coarse)").matches;
+  if(!mobile()) return;
+
+  /* Batch resize/orientation work to one animation frame. */
+  let raf=0;
+  function settle(){
+    if(raf) cancelAnimationFrame(raf);
+    raf=requestAnimationFrame(()=>{
+      raf=0;
+      document.documentElement.style.setProperty("--ff-vh",(innerHeight*.01)+"px");
+    });
+  }
+  addEventListener("resize",settle,{passive:true});
+  addEventListener("orientationchange",settle,{passive:true});
+  settle();
+
+  /* Native lazy loading/async decoding for feed and gallery images. */
+  function tune(root){
+    const scope=root&&root.querySelectorAll?root:document;
+    scope.querySelectorAll("img:not([data-ff-perf])").forEach(img=>{
+      img.dataset.ffPerf="1";
+      if(!img.closest("header,.topbar,.ff-chat-header,.ff-profile-cover")) img.loading="lazy";
+      img.decoding="async";
+    });
+  }
+  tune(document);
+
+  /* One small observer for newly rendered images only; callback is frame-batched. */
+  let queued=false, roots=[];
+  const mo=new MutationObserver(records=>{
+    for(const r of records) for(const n of r.addedNodes) if(n.nodeType===1) roots.push(n);
+    if(queued) return;
+    queued=true;
+    requestAnimationFrame(()=>{
+      queued=false;
+      const batch=roots.splice(0);
+      for(const n of batch) tune(n);
+    });
+  });
+  mo.observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+
 </body>
 </html>
 
