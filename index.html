@@ -8183,6 +8183,99 @@ window.ffMobileSharePost=ffMobileSharePost;
 })();
 </script>
 
+
+<style id="duarte-mobile-normal-view-fix">
+/* Phones keep the same compact/normal mobile layout even when physically rotated.
+   This does not lock device orientation; it prevents the desktop layout from taking over. */
+@media (max-width: 980px), (hover:none) and (pointer:coarse) {
+  html,body{
+    width:100%!important;max-width:100%!important;overflow-x:hidden!important;
+  }
+  header,.topbar,.top-nav,.main-header,.navbar{
+    width:100%!important;max-width:100%!important;
+  }
+
+  /* Hide desktop-only nav rows on phone-sized/coarse-pointer screens. */
+  .desktop-nav,.top-nav .nav-links,.navbar .nav-links{
+    max-width:100%!important;
+  }
+
+  /* Force the dashboard back to one normal mobile column. */
+  .dashboard,.main-content,.content-area,.app-shell,.home-layout,
+  .dashboard-grid,.main-grid,.content-grid{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+  }
+  .left-sidebar,.sidebar,.profile-sidebar,
+  .right-sidebar,.right-rail{
+    max-width:100%!important;
+    min-width:0!important;
+  }
+
+  /* Main feed gets full available width instead of desktop center-column sizing. */
+  .feed,.feed-column,.center-column,.main-feed,.posts-column,
+  .composer,.post-composer,.post-card{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Prevent desktop minimum widths from creating the landscape-style zoomed-out page. */
+  body *{min-width:0}
+  img,video{max-width:100%!important}
+
+  /* Keep post controls usable and fully visible. */
+  .post-actions,.action-bar{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    width:100%!important;
+  }
+
+  /* On a phone, keep Family Tree/Messenger collapsed until Family Menu is opened. */
+  .family-tree-button,.messenger-button{
+    opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+  }
+  body.ff-mobile-family-open .family-tree-button,
+  body.ff-mobile-family-open .messenger-button{
+    opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+  }
+}
+
+/* Extra handling for a rotated phone: still use the mobile feed, not desktop dashboard. */
+@media (orientation:landscape) and (hover:none) and (pointer:coarse) {
+  .left-sidebar,.sidebar,.profile-sidebar,
+  .right-sidebar,.right-rail{
+    display:none!important;
+  }
+  .main-content,.content-area,.feed,.feed-column,.center-column,.main-feed{
+    width:min(100%,760px)!important;
+    max-width:760px!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+  }
+  .ff-family-menu-btn,.family-menu-button{
+    right:12px!important;bottom:14px!important;
+  }
+}
+</style>
+<script id="duarte-mobile-normal-view-js">
+(function(){
+  function phoneLayout(){
+    return matchMedia("(max-width:980px), (hover:none) and (pointer:coarse)").matches;
+  }
+  function apply(){
+    document.documentElement.classList.toggle("ff-phone-normal-view",phoneLayout());
+    document.body?.classList.toggle("ff-phone-normal-view",phoneLayout());
+  }
+  document.addEventListener("DOMContentLoaded",apply);
+  addEventListener("resize",apply);
+  addEventListener("orientationchange",()=>setTimeout(apply,120));
+})();
+</script>
+
 </body>
 </html>
 
