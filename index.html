@@ -3265,7 +3265,14 @@ function sharePost() {
 
     } else {
 
-        alert("Share feature will be connected to the Duarte Clan system.");
+        
+(async()=>{
+  try{
+    const shareData={title:"DUARTE CLAN",text:"Check out this Duarte Clan update.",url:location.href};
+    if(navigator.share){ await navigator.share(shareData); }
+    else if(navigator.clipboard){ await navigator.clipboard.writeText(location.href); if(typeof showToast==="function") showToast("Post link copied."); }
+  }catch(e){ if(e && e.name!=="AbortError") console.warn("Share:",e); }
+})();
 
     }
 }
@@ -8708,6 +8715,17 @@ window.ffMobileSharePost=ffMobileSharePost;
 })();
 </script>
 
+
+<script id="duarte-v43-share-final-fix">
+window.sharePost=async function(){
+  try{
+    const data={title:"DUARTE CLAN",text:"Check out this Duarte Clan update.",url:location.href};
+    if(navigator.share){await navigator.share(data);return}
+    if(navigator.clipboard){await navigator.clipboard.writeText(location.href)}
+    if(typeof showToast==="function")showToast("Post link copied.");
+  }catch(e){if(e&&e.name!=="AbortError")console.warn("Share failed",e)}
+};
+</script>
 </body>
 </html>
 

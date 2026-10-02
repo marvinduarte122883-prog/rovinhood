@@ -454,6 +454,78 @@ document
 
 </script>
 
+
+<style id="duarte-login-mobile-dialog-fix">
+.dc-auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:99999;display:none;align-items:center;justify-content:center;padding:18px}
+.dc-auth-modal.open{display:flex}
+.dc-auth-card{width:min(100%,430px);background:#111315;border:1px solid #3b3520;border-radius:18px;padding:20px;color:#f4f4f4;box-shadow:0 20px 60px rgba(0,0,0,.55)}
+.dc-auth-card h3{margin:0 0 6px;color:#e9b52d}.dc-auth-card p{margin:0 0 16px;color:#aeb3ba}
+.dc-auth-card label{display:block;margin:11px 0 6px;font-weight:700}
+.dc-auth-card input{width:100%;height:46px;border:1px solid #454950;border-radius:10px;background:#1b1e22;color:#fff;padding:0 12px;font-size:16px}
+.dc-auth-actions{display:flex;gap:9px;margin-top:18px}.dc-auth-actions button{flex:1;height:44px;border-radius:10px;border:1px solid #454950;font-weight:800}
+.dc-auth-cancel{background:#22252a;color:#fff}.dc-auth-submit{background:#e9b52d;color:#151515;border-color:#e9b52d!important}
+.dc-auth-error{min-height:20px;color:#ff8b84;margin-top:10px;font-size:13px}
+</style>
+<div id="dcAuthModal" class="dc-auth-modal" aria-hidden="true">
+  <div class="dc-auth-card">
+    <h3 id="dcAuthTitle">Create Account</h3>
+    <p id="dcAuthHelp"></p>
+    <form id="dcAuthForm">
+      <div id="dcNameRow"><label for="dcAuthName">Full Name</label><input id="dcAuthName" autocomplete="name"></div>
+      <label for="dcAuthEmail">Email Address</label><input id="dcAuthEmail" type="email" autocomplete="email" required>
+      <div id="dcPasswordRow"><label for="dcAuthPassword">Password</label><input id="dcAuthPassword" type="password" autocomplete="new-password" minlength="6"></div>
+      <div id="dcAuthError" class="dc-auth-error"></div>
+      <div class="dc-auth-actions"><button type="button" class="dc-auth-cancel">Cancel</button><button type="submit" class="dc-auth-submit">Continue</button></div>
+    </form>
+  </div>
+</div>
+<script id="duarte-login-dialog-fix-js">
+(function(){
+ const modal=document.getElementById("dcAuthModal"), form=document.getElementById("dcAuthForm"),
+ title=document.getElementById("dcAuthTitle"), help=document.getElementById("dcAuthHelp"),
+ nameRow=document.getElementById("dcNameRow"), passRow=document.getElementById("dcPasswordRow"),
+ name=document.getElementById("dcAuthName"), email=document.getElementById("dcAuthEmail"),
+ pass=document.getElementById("dcAuthPassword"), err=document.getElementById("dcAuthError");
+ let mode="signup";
+ function close(){modal.classList.remove("open");modal.setAttribute("aria-hidden","true");form.reset();err.textContent=""}
+ function open(m){
+   mode=m; form.reset(); err.textContent="";
+   const signup=m==="signup";
+   title.textContent=signup?"Create Duarte Clan Account":"Reset Password";
+   help.textContent=signup?"Enter your details below. Your clan account may still require approval.":"Enter your Duarte Clan account email and we’ll send the reset link.";
+   nameRow.style.display=signup?"block":"none"; passRow.style.display=signup?"block":"none";
+   name.required=signup; pass.required=signup;
+   modal.classList.add("open");modal.setAttribute("aria-hidden","false");setTimeout(()=>email.focus(),50);
+ }
+ function replaceLink(id,handler){
+   const old=document.getElementById(id); if(!old)return;
+   const fresh=old.cloneNode(true); old.replaceWith(fresh);
+   fresh.addEventListener("click",e=>{e.preventDefault();handler()});
+ }
+ replaceLink("createAccount",()=>open("signup"));
+ replaceLink("forgotPassword",()=>open("reset"));
+ modal.querySelector(".dc-auth-cancel").onclick=close;
+ modal.addEventListener("click",e=>{if(e.target===modal)close()});
+ form.addEventListener("submit",async e=>{
+   e.preventDefault();err.textContent="";
+   const em=email.value.trim();
+   try{
+     if(mode==="signup"){
+       if(!name.value.trim()){err.textContent="Enter your full name.";return}
+       if(pass.value.length<6){err.textContent="Password must contain at least 6 characters.";return}
+       const {error}=await supabaseClient.auth.signUp({email:em,password:pass.value,options:{data:{full_name:name.value.trim()}}});
+       if(error)throw error;
+       close(); if(typeof showMessage==="function")showMessage("Account created. Please check your email or wait for clan approval.","success");
+     }else{
+       const {error}=await supabaseClient.auth.resetPasswordForEmail(em,{redirectTo:location.origin+"/reset-password.html"});
+       if(error)throw error;
+       close(); if(typeof showMessage==="function")showMessage("Password reset link sent. Please check your email.","success");
+     }
+   }catch(ex){err.textContent=ex?.message||"Unable to complete this request."}
+ });
+})();
+</script>
+
 </body>
 </html>
 
