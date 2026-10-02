@@ -7596,6 +7596,81 @@ button:disabled{cursor:not-allowed!important;opacity:.62!important}
 })();
 </script>
 
+
+<style id="duarte-v42-messenger-file-input-hide">
+/* Keep Messenger photo upload functional but hide the browser-native Choose File control. */
+.ff-chat-compose input[type="file"],
+.ff-messenger input[type="file"],
+#ffMessenger input[type="file"],
+#ffV4MsgPhoto{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+</style>
+
+
+<script id="duarte-v42-profile-uuid-fix">
+(function(){
+  const UUID_RE=/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i;
+  function cleanUserId(value){
+    const m=String(value||"").match(UUID_RE);
+    return m ? m[0] : null;
+  }
+
+  // Preserve the existing profile renderer, but never send UI suffixes such as "-3"
+  // to Supabase UUID comparisons.
+  function wrap(name){
+    const original=window[name];
+    if(typeof original!=="function" || original.__duarteUuidSafe)return;
+    const safe=async function(userId,...args){
+      const id=cleanUserId(userId);
+      if(!id){
+        console.warn("Invalid clan profile user id:",userId);
+        alert("Clan member profile could not be opened because its user ID is invalid.");
+        return;
+      }
+      return original.call(this,id,...args);
+    };
+    safe.__duarteUuidSafe=true;
+    window[name]=safe;
+  }
+
+  function install(){
+    ["openClanProfile","openMemberProfile","openMemberProfileById"].forEach(wrap);
+  }
+  document.addEventListener("DOMContentLoaded",install);
+  setTimeout(install,0);
+
+  // Capture member/profile clicks before malformed DOM suffixes reach Supabase.
+  document.addEventListener("click",function(e){
+    const el=e.target.closest("[data-user-id],[data-member-id],[data-profile-id]");
+    if(!el)return;
+    const raw=el.dataset.userId||el.dataset.memberId||el.dataset.profileId;
+    if(!raw || cleanUserId(raw)===raw)return;
+    const id=cleanUserId(raw);
+    if(!id)return;
+    if(el.matches(".clan-member-card,.ff-member-card,[data-open-profile]") ||
+       e.target.closest(".member-name,.ff-member-name,.ff-profile-link")){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const fn=window.openClanProfile||window.openMemberProfile;
+      if(typeof fn==="function")fn(id);
+    }
+  },true);
+
+  window.ffCleanDuarteUserId=cleanUserId;
+})();
+</script>
+
 </body>
 </html>
 
