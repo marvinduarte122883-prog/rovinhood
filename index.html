@@ -8276,6 +8276,375 @@ window.ffMobileSharePost=ffMobileSharePost;
 })();
 </script>
 
+
+<style id="duarte-mobile-header-menu-css">
+@media(max-width:980px),(hover:none) and (pointer:coarse){
+  .ff-mobile-nav-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.64);z-index:120000;
+    opacity:0;visibility:hidden;transition:.18s ease;
+  }
+  .ff-mobile-nav-drawer{
+    position:fixed;top:0;right:0;height:100dvh;width:min(86vw,360px);
+    background:#141619;border-left:1px solid #34383f;z-index:120001;
+    transform:translateX(105%);transition:transform .2s ease;
+    box-shadow:-18px 0 45px rgba(0,0,0,.45);overflow:auto;color:#fff;
+  }
+  body.ff-mobile-nav-open .ff-mobile-nav-backdrop{opacity:1;visibility:visible}
+  body.ff-mobile-nav-open .ff-mobile-nav-drawer{transform:translateX(0)}
+  body.ff-mobile-nav-open{overflow:hidden!important}
+  .ff-mobile-nav-head{display:flex;align-items:center;justify-content:space-between;padding:18px;border-bottom:1px solid #30343a}
+  .ff-mobile-nav-head strong{color:#e9b52d!important;font-size:18px}
+  .ff-mobile-nav-close{width:36px;height:36px;border:1px solid #3a3e45;border-radius:50%;background:#22252a;color:#fff;font-size:20px}
+  .ff-mobile-nav-profile{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #30343a}
+  .ff-mobile-nav-profile img{width:48px;height:48px;border-radius:50%;object-fit:cover;background:#292c31}
+  .ff-mobile-nav-profile b{display:block;color:#fff!important}
+  .ff-mobile-nav-profile small{color:#aab1bb!important}
+  .ff-mobile-nav-list{padding:10px}
+  .ff-mobile-nav-list button{display:flex;width:100%;align-items:center;gap:12px;padding:13px 14px;border:0;border-radius:10px;background:transparent;color:#eef0f3;text-align:left;font-size:15px;cursor:pointer}
+  .ff-mobile-nav-list button:hover{background:#22252a}
+  .ff-mobile-nav-list button span:first-child{width:24px;text-align:center}
+  .ff-mobile-nav-list .ff-logout{color:#ff8b84;margin-top:8px;border-top:1px solid #30343a;border-radius:0;padding-top:16px}
+}
+</style>
+<script id="duarte-mobile-header-menu-js">
+(function(){
+ const items=[
+   ["🏠","Home","home"],["👥","Clan Members","members"],["📅","Clan Events","events"],
+   ["📷","Family Gallery","gallery"],["👤","My Profile","profile"],["🔔","Notifications","notifications"]
+ ];
+ function mobile(){return matchMedia("(max-width:980px),(hover:none) and (pointer:coarse)").matches}
+ function close(){document.body.classList.remove("ff-mobile-nav-open")}
+ function go(section){
+   close();
+   if(typeof window.showSection==="function"){window.showSection(section);return}
+   const candidates=[`[data-section="${section}"]`,`[data-target="${section}"]`,`#${section}`];
+   for(const q of candidates){const el=document.querySelector(q);if(el){el.click?.();break}}
+ }
+ function installDrawer(){
+   if(document.querySelector(".ff-mobile-nav-drawer"))return;
+   const back=document.createElement("div");back.className="ff-mobile-nav-backdrop";back.onclick=close;
+   const drawer=document.createElement("aside");drawer.className="ff-mobile-nav-drawer";
+   const avatar=document.querySelector("header img,.topbar img,.profile-card img")?.src||"";
+   const name=document.querySelector(".profile-name,.member-name,.profile-card strong,.profile-card h3")?.textContent?.trim()||"Duarte Clan";
+   drawer.innerHTML=`<div class="ff-mobile-nav-head"><strong>DUARTE CLAN</strong><button class="ff-mobile-nav-close" type="button">×</button></div>
+     <div class="ff-mobile-nav-profile"><img src="${avatar}" alt=""><div><b>${name}</b><small>Family member</small></div></div>
+     <div class="ff-mobile-nav-list">${items.map(x=>`<button type="button" data-go="${x[2]}"><span>${x[0]}</span><span>${x[1]}</span></button>`).join("")}
+     <button type="button" class="ff-logout"><span>🚪</span><span>Logout</span></button></div>`;
+   drawer.querySelector(".ff-mobile-nav-close").onclick=close;
+   drawer.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+   drawer.querySelector(".ff-logout").onclick=()=>{
+     close();
+     const existing=[...document.querySelectorAll("button,a")].find(x=>/^\s*logout\s*$/i.test(x.textContent||""));
+     if(existing){existing.click();return}
+     if(typeof window.logout==="function")window.logout();
+   };
+   document.body.append(back,drawer);
+ }
+ function installToggle(){
+   installDrawer();
+   const candidates=[...document.querySelectorAll("button")].filter(b=>{
+     const t=(b.textContent||"").trim();
+     return t==="☰" || /menu/i.test(b.getAttribute("aria-label")||"");
+   });
+   candidates.forEach(btn=>{
+     if(btn.dataset.ffHeaderMenu==="1")return;
+     /* Do not hijack the floating Family Menu control. */
+     if(btn.matches(".ff-family-menu-btn,.family-menu-button")||/family menu/i.test(btn.textContent||""))return;
+     btn.dataset.ffHeaderMenu="1";
+     btn.addEventListener("click",e=>{
+       if(!mobile())return;
+       e.preventDefault();e.stopImmediatePropagation();
+       document.body.classList.add("ff-mobile-nav-open");
+     },true);
+   });
+ }
+ document.addEventListener("DOMContentLoaded",()=>{
+   installToggle();
+   new MutationObserver(installToggle).observe(document.body,{childList:true,subtree:true});
+ });
+ addEventListener("resize",()=>{if(!mobile())close()});
+ window.ffCloseMobileHeaderMenu=close;
+})();
+</script>
+
+
+<style id="duarte-mobile-profile-v43">
+@media(max-width:980px),(hover:none) and (pointer:coarse){
+  /* Full member profile becomes a clean single-column phone view. */
+  #ffFullProfile,.ff-full-profile,.ff-member-profile-modal{
+    padding:0!important;
+  }
+  #ffFullProfile .ff-profile-shell,
+  #ffFullProfile .ff-full-profile-card,
+  .ff-full-profile .ff-profile-shell{
+    width:100%!important;max-width:100%!important;height:100dvh!important;
+    max-height:100dvh!important;border-radius:0!important;margin:0!important;
+    overflow:auto!important;
+  }
+  #ffFullProfile .ff-profile-cover,
+  #ffFullProfile [class*="cover"]{
+    max-width:100%!important;
+  }
+  #ffFullProfile .ff-profile-avatar,
+  #ffFullProfile [class*="avatar"] img{
+    max-width:112px!important;max-height:112px!important;
+  }
+  #ffFullProfile .ff-profile-main,
+  #ffFullProfile .ff-profile-body,
+  #ffFullProfile .ff-profile-columns,
+  #ffFullProfile .ff-profile-grid{
+    display:block!important;width:100%!important;max-width:100%!important;
+  }
+  #ffFullProfile .ff-profile-left,
+  #ffFullProfile .ff-profile-right,
+  #ffFullProfile .ff-profile-intro,
+  #ffFullProfile .ff-profile-posts{
+    width:100%!important;max-width:100%!important;min-width:0!important;
+  }
+  #ffFullProfile .post-card{
+    width:100%!important;max-width:100%!important;box-sizing:border-box!important;
+  }
+  #ffFullProfile img{max-width:100%!important}
+  #ffFullProfile .ff-profile-tabs{
+    display:flex!important;overflow-x:auto!important;white-space:nowrap!important;
+    scrollbar-width:none!important;
+  }
+  #ffFullProfile .ff-profile-tabs::-webkit-scrollbar{display:none}
+  #ffFullProfile .ff-profile-tabs button{flex:0 0 auto!important}
+  #ffFullActions{
+    display:flex!important;flex-wrap:wrap!important;gap:8px!important;
+  }
+  #ffFullActions button{flex:1 1 145px!important;min-width:0!important}
+}
+
+/* Editable My Profile section also stays phone-sized. */
+@media(max-width:760px){
+  #profile .card,#profile .panel,#profile form{
+    width:100%!important;max-width:100%!important;box-sizing:border-box!important;
+  }
+  #profile input,#profile textarea,#profile select,#profile button{
+    max-width:100%!important;box-sizing:border-box!important;
+  }
+}
+</style>
+<script id="duarte-mobile-profile-v43-js">
+(function(){
+ function normalizeProfile(){
+   if(!matchMedia("(max-width:980px),(hover:none) and (pointer:coarse)").matches)return;
+   const p=document.getElementById("ffFullProfile");
+   if(!p)return;
+   p.querySelectorAll("img").forEach(img=>{img.style.maxWidth="100%"});
+ }
+ document.addEventListener("DOMContentLoaded",()=>{
+   normalizeProfile();
+   new MutationObserver(normalizeProfile).observe(document.body,{childList:true,subtree:true});
+ });
+ addEventListener("resize",normalizeProfile);
+})();
+</script>
+
+
+<style id="duarte-mobile-messenger-v43">
+@media(max-width:760px){
+  /* Messenger occupies the phone viewport cleanly. */
+  .ff-messenger,.ff-chat-shell,.ff-chat-modal,.ff-messenger-modal{
+    position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+    max-width:none!important;max-height:none!important;margin:0!important;border-radius:0!important;
+    z-index:130000!important;
+  }
+  .ff-messenger .ff-chat-layout,.ff-chat-shell .ff-chat-layout{
+    width:100%!important;height:100%!important;display:block!important;
+  }
+
+  /* Conversation list is the first mobile screen. */
+  .ff-messenger .ff-chat-sidebar,.ff-chat-shell .ff-chat-sidebar,
+  .ff-messenger [class*="conversation-list"],.ff-chat-shell [class*="conversation-list"]{
+    width:100%!important;max-width:100%!important;height:100%!important;
+  }
+  body.ff-mobile-chat-open .ff-messenger .ff-chat-sidebar,
+  body.ff-mobile-chat-open .ff-chat-shell .ff-chat-sidebar{
+    display:none!important;
+  }
+
+  /* Selected conversation becomes a full-screen second screen. */
+  .ff-messenger .ff-chat-main,.ff-chat-shell .ff-chat-main{
+    display:none!important;width:100%!important;height:100%!important;max-width:100%!important;
+  }
+  body.ff-mobile-chat-open .ff-messenger .ff-chat-main,
+  body.ff-mobile-chat-open .ff-chat-shell .ff-chat-main{
+    display:flex!important;flex-direction:column!important;
+  }
+  .ff-chat-messages{
+    flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;
+    padding-bottom:12px!important;
+  }
+  .ff-chat-compose{
+    position:sticky!important;bottom:0!important;flex:0 0 auto!important;
+    width:100%!important;box-sizing:border-box!important;padding-bottom:max(8px,env(safe-area-inset-bottom))!important;
+  }
+  .ff-chat-compose input{min-width:0!important;flex:1 1 auto!important}
+
+  /* Mobile back button inserted into the chat header. */
+  .ff-mobile-chat-back{
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    width:36px!important;height:36px!important;border:0!important;border-radius:50%!important;
+    background:#272a2f!important;color:#fff!important;font-size:21px!important;margin-right:6px!important;
+  }
+}
+@media(min-width:761px){.ff-mobile-chat-back{display:none!important}}
+</style>
+<script id="duarte-mobile-messenger-v43-js">
+(function(){
+ function mobile(){return matchMedia("(max-width:760px)").matches}
+ function closeChat(){document.body.classList.remove("ff-mobile-chat-open")}
+ function install(){
+   document.querySelectorAll(".ff-chat-main").forEach(main=>{
+     const head=main.querySelector(".ff-chat-header,.ff-chat-head")||main.firstElementChild;
+     if(head&&!head.querySelector(".ff-mobile-chat-back")){
+       const b=document.createElement("button");b.type="button";b.className="ff-mobile-chat-back";
+       b.textContent="‹";b.title="Back to conversations";b.onclick=closeChat;head.prepend(b);
+     }
+   });
+   document.querySelectorAll(".ff-chat-sidebar [data-conversation-id],.ff-chat-sidebar .conversation-item,.ff-chat-sidebar .ff-conversation-item").forEach(row=>{
+     if(row.dataset.ffMobileOpen==="1")return;row.dataset.ffMobileOpen="1";
+     row.addEventListener("click",()=>{if(mobile())document.body.classList.add("ff-mobile-chat-open")});
+   });
+ }
+ document.addEventListener("DOMContentLoaded",()=>{
+   install();new MutationObserver(install).observe(document.body,{childList:true,subtree:true});
+ });
+ addEventListener("resize",()=>{if(!mobile())closeChat()});
+ window.ffMobileMessengerBack=closeChat;
+})();
+</script>
+
+
+<style id="duarte-mobile-comments-v43">
+@media(max-width:760px){
+  /* Existing comments modal becomes a mobile bottom sheet. */
+  .comments-modal,.comment-modal,.ff-comments-modal,
+  [class*="comments-modal"],[class*="comment-modal"]{
+    align-items:flex-end!important;
+    padding:0!important;
+  }
+  .comments-modal-content,.comment-modal-content,.ff-comments-box,
+  [class*="comments-modal"] > div,[class*="comment-modal"] > div{
+    width:100%!important;max-width:100%!important;
+    max-height:88dvh!important;margin:0!important;
+    border-radius:18px 18px 0 0!important;
+    box-sizing:border-box!important;
+  }
+  .comments-list,.comment-list,.ff-comments-list{
+    max-height:calc(88dvh - 150px)!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+  }
+  .comment-compose,.comments-compose,.ff-comment-compose,
+  .ff-core-profile-comment-compose{
+    position:sticky!important;bottom:0!important;z-index:5!important;
+    background:#17191c!important;padding-bottom:max(10px,env(safe-area-inset-bottom))!important;
+  }
+  .comment-compose input,.comments-compose input,.ff-comment-compose input,
+  .ff-core-profile-comment-compose input{
+    min-width:0!important;max-width:100%!important;
+  }
+
+  /* Reaction people viewer also behaves like a bottom sheet. */
+  .ff-v42-react-modal{align-items:flex-end!important;padding:0!important}
+  .ff-v42-react-box{
+    width:100%!important;max-width:100%!important;max-height:78dvh!important;
+    border-radius:18px 18px 0 0!important;margin:0!important;
+  }
+}
+</style>
+<script id="duarte-mobile-comments-v43-js">
+(function(){
+ function mobile(){return matchMedia("(max-width:760px)").matches}
+ function enhance(){
+   if(!mobile())return;
+   document.querySelectorAll(".comments-modal,.comment-modal,.ff-comments-modal,[class*='comments-modal'],[class*='comment-modal']").forEach(m=>{
+     if(m.dataset.ffMobileSheet==="1")return;
+     m.dataset.ffMobileSheet="1";
+     const box=m.firstElementChild;
+     if(box && !box.querySelector(".ff-mobile-sheet-handle")){
+       const h=document.createElement("div");
+       h.className="ff-mobile-sheet-handle";
+       h.style.cssText="width:42px;height:4px;border-radius:4px;background:#555;margin:8px auto 5px";
+       box.prepend(h);
+     }
+   });
+ }
+ document.addEventListener("DOMContentLoaded",()=>{
+   enhance();
+   new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true});
+ });
+ addEventListener("resize",enhance);
+})();
+</script>
+
+
+<style id="duarte-v43-responsive-final">
+/* Final responsive guardrails for common phone widths.
+   Visual/layout only — no application logic is changed. */
+@media(max-width:760px){
+  html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+  *,*::before,*::after{box-sizing:border-box}
+  img,video,canvas{max-width:100%!important;height:auto}
+  .main-content,.content-area,.main-feed,.feed,.feed-column,.center-column,
+  .post-card,.composer,.post-composer{
+    width:100%!important;max-width:100%!important;min-width:0!important
+  }
+  .post-card,.composer,.post-composer{margin-left:0!important;margin-right:0!important}
+  .post-actions,.action-bar{
+    display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:3px!important
+  }
+  .post-action,.post-actions button,.action-bar button{
+    min-width:0!important;white-space:nowrap!important;overflow:hidden!important;
+    text-overflow:ellipsis!important;padding-left:4px!important;padding-right:4px!important
+  }
+  input,textarea,select,button{max-width:100%}
+}
+
+/* 360px compact phones */
+@media(max-width:374px){
+  body{font-size:13px!important}
+  .post-card{padding-left:10px!important;padding-right:10px!important}
+  .post-action,.post-actions button,.action-bar button{font-size:11px!important}
+  .ff-mobile-nav-drawer{width:92vw!important}
+  .ff-v42-react-person{padding-left:10px!important;padding-right:10px!important}
+}
+
+/* 375–399px */
+@media(min-width:375px) and (max-width:399px){
+  .post-card{padding-left:11px!important;padding-right:11px!important}
+  .post-action,.post-actions button,.action-bar button{font-size:12px!important}
+}
+
+/* 400–419px */
+@media(min-width:400px) and (max-width:419px){
+  .post-card{padding-left:12px!important;padding-right:12px!important}
+}
+
+/* 420–760px */
+@media(min-width:420px) and (max-width:760px){
+  .main-feed,.feed,.feed-column,.center-column{
+    width:100%!important;max-width:560px!important;margin-left:auto!important;margin-right:auto!important
+  }
+}
+
+/* Tablet / rotated-phone guardrail */
+@media(min-width:761px) and (max-width:980px){
+  .main-feed,.feed,.feed-column,.center-column{
+    width:min(100%,760px)!important;max-width:760px!important;margin-left:auto!important;margin-right:auto!important
+  }
+}
+
+/* Desktop keeps the established Duarte layout. */
+@media(min-width:981px){
+  .ff-mobile-nav-drawer,.ff-mobile-nav-backdrop,.ff-mobile-chat-back{display:none!important}
+}
+</style>
+
 </body>
 </html>
 
