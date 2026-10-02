@@ -4067,7 +4067,7 @@ async function loadPrivateMessages(){
    const reply=replied?`<div class="ff-v4-replied">↪ ${escapeHTML((replied.content||"Photo").slice(0,120))}</div>`:"";
    const photo=x.attachment_url?`<img class="ff-v4-msg-photo" src="${escapeHTML(x.attachment_url)}" alt="Message photo" onclick="window.open(this.src,'_blank')">`:"";
    const reactions=(react[x.id]||[]).map(z=>z.reaction).join(" ");
-   return `<div class="ff-bubble-row ${mine?"mine":""}" data-message-id="${x.id}"><div class="ff-bubble">${reply}${x.content?escapeHTML(x.content):""}${photo}<div class="ff-bubble-time">${new Date(x.created_at).toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</div>${reactions?`<div class="ff-v4-msg-reactions">${escapeHTML(reactions)}</div>`:""}${seen}<div class="ff-v4-msg-tools"><button onclick="ffV4Reply(${x.id},${JSON.stringify((x.content||"Photo").slice(0,120)).replace(/"/g,"&quot;")})">↩</button>${["👍","❤️","😂","😮"].map(e=>`<button onclick="ffV4React(${x.id},'${e}')">${e}</button>`).join("")}</div></div></div>`
+   return `<div class="ff-bubble-row ${mine?"mine":""}" data-message-id="${x.id}"><div class="ff-bubble">${reply}${x.content?escapeHTML(x.content):""}${photo}<div class="ff-bubble-time">${new Date(x.created_at).toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</div>${reactions?`<div class="ff-v4-msg-reactions">${escapeHTML(reactions)}</div>`:""}${seen}<div class="ff-v4-msg-tools"><button onclick="ffV4Reply(${x.id},${JSON.stringify((x.content||"Photo").slice(0,120)).replace(/"/g,"&quot;")})">↩</button>${["👍","❤️","😂","😮"].map(e=>`<button onclick="ffV4React(${x.id},'${e}')">${e}</button>`).join("")}${mine?`<button class="ff-v42-msg-delete" title="Delete my message" onclick="ffV42DeleteOwnMessage(${x.id},${JSON.stringify(x.attachment_url||"").replace(/"/g,"&quot;")})">🗑</button>`:""}</div></div></div>`
   }).join(""):'<div class="ff-chat-empty">No messages yet. Say hello 👋</div>';
   box.scrollTop=box.scrollHeight;
   const unread=a.filter(x=>x.sender_id!==currentUser.id&&!x.is_read).map(x=>x.id);
@@ -7668,6 +7668,254 @@ button:disabled{cursor:not-allowed!important;opacity:.62!important}
   },true);
 
   window.ffCleanDuarteUserId=cleanUserId;
+})();
+</script>
+
+
+<style id="duarte-v42-messenger-delete-own">
+.ff-v42-msg-delete{color:#ff7777!important}
+.ff-v42-msg-delete:hover{background:rgba(255,80,80,.12)!important;border-radius:50%}
+</style>
+<script id="duarte-v42-messenger-delete-own-js">
+async function ffV42DeleteOwnMessage(messageId,attachmentUrl){
+  if(!currentUser?.id || !messageId)return;
+  if(!confirm("Delete this message"+(attachmentUrl?" and its uploaded photo":"")+"?"))return;
+  try{
+    // Verify ownership before deleting anything from Storage.
+    const q=await supabaseClient.from("messages")
+      .select("id,sender_id,attachment_url")
+      .eq("id",Number(messageId)).eq("sender_id",currentUser.id).maybeSingle();
+    if(q.error)throw q.error;
+    if(!q.data)throw new Error("You can only delete your own message.");
+
+    const url=q.data.attachment_url||attachmentUrl||"";
+    // Delete the database message first. message_reactions cascade automatically.
+    const d=await supabaseClient.from("messages")
+      .delete().eq("id",Number(messageId)).eq("sender_id",currentUser.id);
+    if(d.error)throw d.error;
+
+    // Best-effort cleanup of the uploaded family-gallery object.
+    if(url){
+      try{
+        const marker="/storage/v1/object/public/family-gallery/";
+        const pos=url.indexOf(marker);
+        if(pos>=0){
+          const storagePath=decodeURIComponent(url.slice(pos+marker.length).split("?")[0]);
+          if(storagePath.startsWith(currentUser.id+"/messages/")){
+            const rm=await supabaseClient.storage.from("family-gallery").remove([storagePath]);
+            if(rm.error)console.warn("Message photo storage cleanup:",rm.error);
+          }
+        }
+      }catch(storageErr){console.warn("Message photo storage cleanup:",storageErr)}
+    }
+    await loadPrivateMessages();
+    if(typeof loadConversations==="function")loadConversations();
+  }catch(e){
+    console.error("Delete own message:",e);
+    alert("Message could not be deleted: "+(e.message||e));
+  }
+}
+window.ffV42DeleteOwnMessage=ffV42DeleteOwnMessage;
+</script>
+
+
+<style id="ff-msg-delete-always-visible-css">
+.ff-own-delete-row{display:flex!important;justify-content:flex-end!important;margin-top:7px!important}
+.ff-own-delete-btn{display:inline-flex!important;align-items:center!important;gap:4px!important;border:1px solid rgba(120,20,20,.45)!important;background:rgba(80,15,15,.20)!important;color:#781717!important;border-radius:12px!important;padding:4px 8px!important;font-size:10px!important;font-weight:800!important;cursor:pointer!important;opacity:.8!important;visibility:visible!important}
+.ff-own-delete-btn:hover{opacity:1!important;background:rgba(100,15,15,.3)!important}
+</style>
+<script id="ff-msg-delete-always-visible-js">
+(function(){
+ function addDeleteButtons(){
+   document.querySelectorAll(".ff-bubble-row.mine[data-message-id]").forEach(row=>{
+     const bubble=row.querySelector(".ff-bubble");
+     if(!bubble || bubble.querySelector(".ff-own-delete-row"))return;
+     const id=Number(row.dataset.messageId);
+     if(!id)return;
+     const wrap=document.createElement("div");
+     wrap.className="ff-own-delete-row";
+     const btn=document.createElement("button");
+     btn.type="button";btn.className="ff-own-delete-btn";btn.textContent="🗑 Delete";
+     btn.title="Delete this message";
+     btn.addEventListener("click",e=>{
+       e.preventDefault();e.stopPropagation();
+       const img=bubble.querySelector(".ff-v4-msg-photo");
+       window.ffV42DeleteOwnMessage?.(id,img?.src||"");
+     });
+     wrap.appendChild(btn);bubble.appendChild(wrap);
+   });
+ }
+ document.addEventListener("DOMContentLoaded",()=>{
+   addDeleteButtons();
+   new MutationObserver(addDeleteButtons).observe(document.body,{childList:true,subtree:true});
+ });
+ window.ffRefreshOwnMessageDeleteButtons=addDeleteButtons;
+})();
+</script>
+
+
+<style id="ff-v42-photo-delete-overlay-css">
+.ff-v42-own-photo-wrap{position:relative;display:inline-block;max-width:100%}
+.ff-v42-photo-delete-btn{
+ position:absolute!important;top:7px!important;right:7px!important;z-index:20!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ width:31px!important;height:31px!important;min-height:31px!important;padding:0!important;
+ border:1px solid rgba(255,255,255,.55)!important;border-radius:50%!important;
+ background:rgba(20,20,20,.78)!important;color:#fff!important;font-size:15px!important;
+ cursor:pointer!important;opacity:1!important;visibility:visible!important;
+ box-shadow:0 2px 8px rgba(0,0,0,.45)!important
+}
+.ff-v42-photo-delete-btn:hover{background:#8b1d1d!important}
+</style>
+<script id="ff-v42-photo-delete-overlay-js">
+(function(){
+ function installPhotoDelete(){
+   document.querySelectorAll(".ff-bubble-row.mine[data-message-id]").forEach(row=>{
+     const img=row.querySelector(".ff-v4-msg-photo");
+     if(!img || img.closest(".ff-v42-own-photo-wrap"))return;
+     const id=Number(row.dataset.messageId);if(!id)return;
+     const wrap=document.createElement("span");wrap.className="ff-v42-own-photo-wrap";
+     img.parentNode.insertBefore(wrap,img);wrap.appendChild(img);
+     const del=document.createElement("button");
+     del.type="button";del.className="ff-v42-photo-delete-btn";
+     del.textContent="🗑";del.title="Delete this photo message";
+     del.setAttribute("aria-label","Delete this photo message");
+     del.onclick=function(e){
+       e.preventDefault();e.stopPropagation();
+       window.ffV42DeleteOwnMessage?.(id,img.src||"");
+     };
+     wrap.appendChild(del);
+   });
+ }
+ document.addEventListener("DOMContentLoaded",()=>{
+   installPhotoDelete();
+   new MutationObserver(installPhotoDelete).observe(document.body,{childList:true,subtree:true});
+ });
+ window.ffRefreshPhotoDeleteButtons=installPhotoDelete;
+})();
+</script>
+
+
+<style id="ff-v42-photo-longpress-css">
+/* Long-press photo action sheet */
+.ff-v42-photo-menu-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:100000;display:flex;align-items:flex-end;justify-content:center;padding:12px}
+.ff-v42-photo-menu{width:min(420px,100%);background:#202124;border:1px solid #3a3b3f;border-radius:16px;padding:8px;box-shadow:0 -10px 35px rgba(0,0,0,.5)}
+.ff-v42-photo-menu button,.ff-v42-photo-menu a{display:flex;width:100%;box-sizing:border-box;align-items:center;gap:10px;border:0;background:transparent;color:#eee;padding:13px 14px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;cursor:pointer}
+.ff-v42-photo-menu button:hover,.ff-v42-photo-menu a:hover{background:#303136}
+.ff-v42-photo-menu .danger{color:#ff7474}.ff-v42-photo-menu .cancel{justify-content:center;color:#aaa;border-top:1px solid #333;margin-top:3px}
+.ff-v4-msg-photo{-webkit-touch-callout:none;user-select:none}
+</style>
+<script id="ff-v42-photo-longpress-js">
+(function(){
+ let timer=null,startX=0,startY=0;
+ function closeMenu(){document.querySelector(".ff-v42-photo-menu-backdrop")?.remove()}
+ function openMenu(img,row){
+   closeMenu();
+   const own=row?.classList.contains("mine");
+   const id=Number(row?.dataset.messageId||0);
+   const bg=document.createElement("div");bg.className="ff-v42-photo-menu-backdrop";
+   const menu=document.createElement("div");menu.className="ff-v42-photo-menu";
+   const save=document.createElement("a");save.href=img.src;save.download="duarte-clan-photo.jpg";save.textContent="💾 Save image";
+   save.onclick=e=>e.stopPropagation();menu.appendChild(save);
+   if(own&&id){
+     const del=document.createElement("button");del.type="button";del.className="danger";del.textContent="🗑 Delete photo";
+     del.onclick=()=>{closeMenu();window.ffV42DeleteOwnMessage?.(id,img.src||"")};
+     menu.appendChild(del);
+   }
+   const cancel=document.createElement("button");cancel.type="button";cancel.className="cancel";cancel.textContent="Cancel";cancel.onclick=closeMenu;
+   menu.appendChild(cancel);bg.appendChild(menu);bg.onclick=e=>{if(e.target===bg)closeMenu()};document.body.appendChild(bg);
+ }
+ function install(){
+   document.querySelectorAll(".ff-v4-msg-photo").forEach(img=>{
+     if(img.dataset.longPressMenu==="1")return;img.dataset.longPressMenu="1";
+     const row=img.closest(".ff-bubble-row");
+     const begin=e=>{
+       const p=e.touches?.[0]||e;startX=p.clientX;startY=p.clientY;
+       clearTimeout(timer);timer=setTimeout(()=>{timer=null;openMenu(img,row)},650);
+     };
+     const move=e=>{
+       if(!timer)return;const p=e.touches?.[0]||e;
+       if(Math.abs(p.clientX-startX)>12||Math.abs(p.clientY-startY)>12){clearTimeout(timer);timer=null}
+     };
+     const end=()=>{if(timer){clearTimeout(timer);timer=null}};
+     img.addEventListener("touchstart",begin,{passive:true});img.addEventListener("touchmove",move,{passive:true});
+     img.addEventListener("touchend",end);img.addEventListener("touchcancel",end);
+     img.addEventListener("mousedown",begin);img.addEventListener("mousemove",move);img.addEventListener("mouseup",end);img.addEventListener("mouseleave",end);
+     img.addEventListener("contextmenu",e=>{e.preventDefault();clearTimeout(timer);timer=null;openMenu(img,row)});
+   });
+ }
+ document.addEventListener("DOMContentLoaded",()=>{install();new MutationObserver(install).observe(document.body,{childList:true,subtree:true})});
+ window.ffV42ClosePhotoMenu=closeMenu;
+})();
+</script>
+
+
+<style id="ff-v42-reaction-people-css">
+.ff-v42-react-count{cursor:pointer!important;text-decoration:none}
+.ff-v42-react-count:hover{text-decoration:underline}
+.ff-v42-react-modal{position:fixed;inset:0;z-index:100500;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:14px}
+.ff-v42-react-box{width:min(440px,100%);max-height:72vh;overflow:auto;background:#1d1f22;border:1px solid #393b40;border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.55)}
+.ff-v42-react-head{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:#1d1f22;border-bottom:1px solid #333;z-index:2}
+.ff-v42-react-head strong{color:#f2f2f2}.ff-v42-react-head button{border:0;background:#303238;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer}
+.ff-v42-react-person{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #292b2f}
+.ff-v42-react-person img{width:38px;height:38px;border-radius:50%;object-fit:cover;background:#333}
+.ff-v42-react-name{flex:1;font-size:12px;font-weight:800;color:#eee;cursor:pointer}
+.ff-v42-react-emoji{font-size:18px}
+</style>
+<script id="ff-v42-reaction-people-js">
+(function(){
+ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ function close(){document.querySelector(".ff-v42-react-modal")?.remove()}
+ async function showPost(postId){
+   try{
+     const q=await supabaseClient.from("reactions").select("user_id,reaction,created_at").eq("post_id",Number(postId)).order("created_at",{ascending:false});
+     if(q.error)throw q.error;
+     await render(q.data||[],"Post reactions");
+   }catch(e){alert("Reactions could not be loaded: "+(e.message||e))}
+ }
+ async function showComment(commentId){
+   try{
+     const q=await supabaseClient.from("comment_reactions").select("user_id,reaction,created_at").eq("comment_id",Number(commentId)).order("created_at",{ascending:false});
+     if(q.error)throw q.error;
+     await render(q.data||[],"Comment reactions");
+   }catch(e){alert("Comment reactions could not be loaded: "+(e.message||e))}
+ }
+ async function render(rows,title){
+   close();
+   const ids=[...new Set(rows.map(x=>x.user_id).filter(Boolean))],profiles={};
+   if(ids.length){
+     const p=await supabaseClient.from("profiles").select("id,full_name,avatar_url").in("id",ids);
+     if(p.error)throw p.error;(p.data||[]).forEach(x=>profiles[x.id]=x);
+   }
+   const modal=document.createElement("div");modal.className="ff-v42-react-modal";
+   modal.innerHTML=`<div class="ff-v42-react-box"><div class="ff-v42-react-head"><strong>${esc(title)} · ${rows.length}</strong><button type="button">×</button></div><div>${rows.length?rows.map(x=>{const p=profiles[x.user_id]||{};return `<div class="ff-v42-react-person"><img src="${esc(p.avatar_url||"")}" alt=""><div class="ff-v42-react-name" data-uid="${esc(x.user_id)}">${esc(p.full_name||"Clan Member")}</div><div class="ff-v42-react-emoji">${esc(({like:"👍",love:"❤️",haha:"😂",wow:"😮",sad:"😢",angry:"😡",care:"🥰"})[String(x.reaction||"").toLowerCase()]||x.reaction||"👍")}</div></div>`}).join(""):'<div style="padding:20px;text-align:center;color:#888">No reactions yet.</div>'}</div></div>`;
+   modal.querySelector(".ff-v42-react-head button").onclick=close;
+   modal.onclick=e=>{if(e.target===modal)close()};
+   modal.querySelectorAll("[data-uid]").forEach(n=>n.onclick=()=>{const id=n.dataset.uid;close();(window.openClanProfile||window.openMemberProfile)?.(id)});
+   document.body.appendChild(modal);
+ }
+ function enhance(){
+   // Post reaction summaries/counts.
+   document.querySelectorAll(".post-card[data-post-id]").forEach(card=>{
+     const pid=Number(card.dataset.postId);if(!pid)return;
+     card.querySelectorAll(".reaction-count,.post-reaction-count,.reaction-summary,[data-reaction-count]").forEach(el=>{
+       if(el.dataset.peopleView)return;el.dataset.peopleView="1";el.classList.add("ff-v42-react-count");
+       el.title="See who reacted";el.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();showPost(pid)});
+     });
+   });
+   // Comment reaction summaries/counts.
+   document.querySelectorAll("[data-comment-id]").forEach(c=>{
+     const cid=Number(c.dataset.commentId);if(!cid)return;
+     c.querySelectorAll(".comment-reaction-count,.comment-reactions-summary,[data-comment-reaction-count]").forEach(el=>{
+       if(el.dataset.peopleView)return;el.dataset.peopleView="1";el.classList.add("ff-v42-react-count");
+       el.title="See who reacted";el.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();showComment(cid)});
+     });
+   });
+ }
+ document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true})});
+ window.ffShowPostReactionPeople=showPost;
+ window.ffShowCommentReactionPeople=showComment;
+ window.ffCloseReactionPeople=close;
 })();
 </script>
 
