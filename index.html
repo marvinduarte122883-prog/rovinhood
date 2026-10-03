@@ -1753,7 +1753,7 @@ input:focus,textarea:focus,select:focus{box-shadow:0 0 0 3px rgba(212,175,55,.08
 #duarteMyProfileCard:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 </style>
 
-<meta name="duarte-build" content="pwa-install-v23">
+<meta name="duarte-build" content="data-lite-v24">
 <style id="ff-production-v10-css">
 /* Production V10: final containment and mobile stability. */
 #posts,.feed,#ffFullProfile,#ffMsgModal,#notificationWrap{min-width:0}
@@ -9564,7 +9564,7 @@ body.ff-offline .ff-online-required{opacity:.55}
  font:600 9px/1 system-ui;color:#777;pointer-events:none;opacity:.7}
 body.ff-offline img:not([src^="data:"]){content-visibility:auto}
 </style>
-<div id="ffBuildV16" aria-hidden="true">Duarte Clan · V23 Installed App</div>
+<div id="ffBuildV16" aria-hidden="true">Duarte Clan · V24 Data Lite</div>
 <script id="ff-production-v16-js">
 (function(){
  const BUILD="production-offline-v16";
@@ -9873,6 +9873,60 @@ body{min-height:100dvh;padding-left:var(--ff-safe-left);padding-right:var(--ff-s
  const setVH=()=>document.documentElement.style.setProperty("--ff-app-height",`${window.visualViewport?.height||window.innerHeight}px`);
  setVH();
  window.visualViewport?.addEventListener("resize",setVH,{passive:true});
+})();
+</script>
+
+
+<script id="ff-data-lite-v24-js">
+(function(){
+ window.DUARTE_BUILD="data-lite-v24";
+ const inflight=new Map(), lastRun=new Map();
+ function coalesce(name,fn,minGap=0){
+   if(typeof fn!=="function")return fn;
+   return function(...args){
+     const key=name+":"+args.map(x=>typeof x==="object"?"obj":String(x)).join("|");
+     if(inflight.has(key))return inflight.get(key);
+     const now=Date.now(), prev=lastRun.get(key)||0;
+     if(minGap&&now-prev<minGap)return Promise.resolve(null);
+     lastRun.set(key,now);
+     let p;
+     try{p=Promise.resolve(fn.apply(this,args))}catch(e){return Promise.reject(e)}
+     inflight.set(key,p);
+     return p.finally(()=>inflight.delete(key));
+   };
+ }
+ // Coalesce the highest-frequency read refreshers. No schema/RLS/write behavior changes.
+ if(typeof window.refreshMessengerUnread==="function")
+   window.refreshMessengerUnread=coalesce("msgUnread",window.refreshMessengerUnread,2500);
+ if(typeof window.loadConversations==="function")
+   window.loadConversations=coalesce("conversations",window.loadConversations,1200);
+ if(typeof window.loadPrivateMessages==="function")
+   window.loadPrivateMessages=coalesce("messages",window.loadPrivateMessages,900);
+ if(typeof window.refreshNotificationBadgeLite==="function")
+   window.refreshNotificationBadgeLite=coalesce("notifBadge",window.refreshNotificationBadgeLite,3000);
+ if(typeof window.loadNotifications==="function")
+   window.loadNotifications=coalesce("notifications",window.loadNotifications,1500);
+
+ // Tiny in-memory profile cache for optional consumers; never persists personal profile data.
+ const profileCache=new Map(), TTL=5*60*1000;
+ window.ffProfileCacheV24={
+   get(id){const x=profileCache.get(String(id));if(!x||Date.now()-x.t>TTL){profileCache.delete(String(id));return null}return x.v},
+   set(id,v){if(id&&v)profileCache.set(String(id),{t:Date.now(),v});return v},
+   clear(){profileCache.clear()}
+ };
+
+ // Clear ephemeral cache when the session changes or page is backgrounded for a long period.
+ let hiddenAt=0;
+ document.addEventListener("visibilitychange",()=>{
+   if(document.hidden)hiddenAt=Date.now();
+   else if(hiddenAt&&Date.now()-hiddenAt>10*60*1000)profileCache.clear();
+ },{passive:true});
+
+ window.ffDataLiteV24={
+   inflight:()=>inflight.size,
+   profileCacheSize:()=>profileCache.size,
+   clearProfileCache:()=>profileCache.clear()
+ };
 })();
 </script>
 
