@@ -1752,6 +1752,25 @@ input:focus,textarea:focus,select:focus{box-shadow:0 0 0 3px rgba(212,175,55,.08
 #duarteMyProfileCard:hover{border-color:var(--gold)!important;transform:translateY(-1px)}
 #duarteMyProfileCard:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 </style>
+
+<meta name="duarte-build" content="production-v10">
+<style id="ff-production-v10-css">
+/* Production V10: final containment and mobile stability. */
+#posts,.feed,#ffFullProfile,#ffMsgModal,#notificationWrap{min-width:0}
+@media(max-width:980px),(hover:none) and (pointer:coarse){
+ body{overscroll-behavior-y:none}
+ .post-card,.notification-item,.ff-conversation{transform:translateZ(0)}
+}
+</style>
+
+
+<meta name="theme-color" content="#111111">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Duarte Clan">
+<link rel="manifest" href="./duarte-manifest-v11.webmanifest">
+
 </head>
 
 
@@ -3286,6 +3305,7 @@ let selectedPostPhotoFile = null;
 
 async function uploadDuartePostPhoto(file) {
     if (!file || !currentUser) return null;
+    file = await window.ffStorageSaverImage(file, "feed");
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
     const safeExt = ["jpg","jpeg","png","webp"].includes(ext) ? ext : "jpg";
     const path = `${currentUser.id}/post-${Date.now()}-${Math.random().toString(36).slice(2,8)}.${safeExt}`;
@@ -3450,84 +3470,98 @@ function renderPostCard(post, profile) {
 }
 
 
-async function loadPosts() {
-    const container = document.getElementById("postsContainer");
-    if (!container || !currentProfile?.approved) return;
+const FF_FEED_PAGE_SIZE = 10;
+let ffFeedPage = 0;
+let ffFeedLoading = false;
+let ffFeedHasMore = true;
+let ffFeedObserver = null;
 
-    container.innerHTML = `
-        <div style="
-            background:var(--panel);
-            border:1px solid var(--border);
-            border-radius:15px;
-            padding:22px;
-            color:var(--muted);
-            text-align:center;
-        ">Loading Duarte Clan posts...</div>
-    `;
+function ffFeedSentinelHTML() {
+    return `<div id="ffFeedSentinel" style="padding:18px;text-align:center;color:var(--muted);font-size:12px;">${ffFeedHasMore ? "Loading more clan posts…" : "You're all caught up."}</div>`;
+}
+
+async function ffLoadPostBatch(reset = false) {
+    const container = document.getElementById("postsContainer");
+    if (!container || !currentProfile?.approved || ffFeedLoading) return;
+    if (!reset && !ffFeedHasMore) return;
+
+    if (reset) {
+        ffFeedPage = 0;
+        ffFeedHasMore = true;
+        container.innerHTML = `<div style="background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:22px;color:var(--muted);text-align:center;">Loading Duarte Clan posts...</div>`;
+    }
+
+    ffFeedLoading = true;
+    const from = ffFeedPage * FF_FEED_PAGE_SIZE;
+    const to = from + FF_FEED_PAGE_SIZE - 1;
 
     try {
         const { data: posts, error: postsError } = await supabaseClient
             .from("posts")
             .select("id, user_id, content, image_url, created_at")
-            .order("created_at", { ascending: false });
-
+            .order("created_at", { ascending: false })
+            .range(from, to);
         if (postsError) throw postsError;
 
-        if (!posts || posts.length === 0) {
-            container.innerHTML = `
-                <div style="
-                    background:var(--panel);
-                    border:1px solid var(--border);
-                    border-radius:15px;
-                    padding:28px;
-                    color:var(--muted);
-                    text-align:center;
-                ">
-                    No clan posts yet.<br>
-                    <span style="color:var(--gold)">Be the first to share a Duarte Clan update.</span>
-                </div>
-            `;
+        const batch = posts || [];
+        if (reset && batch.length === 0) {
+            container.innerHTML = `<div style="background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:28px;color:var(--muted);text-align:center;">No clan posts yet.<br><span style="color:var(--gold)">Be the first to share a Duarte Clan update.</span></div>`;
+            ffFeedHasMore = false;
             return;
         }
 
-        const userIds = [...new Set(posts.map(post => post.user_id).filter(Boolean))];
-        let profileMap = {};
-
+        const userIds = [...new Set(batch.map(post => post.user_id).filter(Boolean))];
+        const profileMap = {};
         if (userIds.length) {
             const { data: profiles, error: profileError } = await supabaseClient
                 .from("profiles")
                 .select("id, full_name, clan_role, avatar_url, birthday")
                 .in("id", userIds);
-
             if (profileError) throw profileError;
-
-            (profiles || []).forEach(profile => {
-                profileMap[profile.id] = profile;
-            });
+            (profiles || []).forEach(profile => profileMap[profile.id] = profile);
         }
 
-        container.innerHTML = posts
-            .map(post => renderPostCard(post, profileMap[post.user_id]))
-            .join("");
+        container.querySelector("#ffFeedSentinel")?.remove();
+        if (reset) container.innerHTML = "";
 
-        await loadAllPostActivity();
+        const holder = document.createElement("div");
+        holder.innerHTML = batch.map(post => renderPostCard(post, profileMap[post.user_id])).join("");
+        const newCards = [...holder.querySelectorAll(".post-card[data-post-id]")];
+        while (holder.firstChild) container.appendChild(holder.firstChild);
 
+        // Only hydrate reactions/comments for this 10-post batch, not the entire clan history.
+        await Promise.all(newCards.map(card => loadPostActivity(Number(card.dataset.postId), card)));
+
+        ffFeedPage += 1;
+        ffFeedHasMore = batch.length === FF_FEED_PAGE_SIZE;
+        container.insertAdjacentHTML("beforeend", ffFeedSentinelHTML());
+        ffInstallFeedObserver();
     } catch (error) {
         console.error("Load posts error:", error);
-        container.innerHTML = `
-            <div style="
-                background:var(--panel);
-                border:1px solid #633;
-                border-radius:15px;
-                padding:22px;
-                color:#e0a0a0;
-                text-align:center;
-            ">
-                Posts could not be loaded.<br>
-                ${escapeHTML(error.message || "Unknown error")}
-            </div>
-        `;
+        if (reset) {
+            container.innerHTML = `<div style="background:var(--panel);border:1px solid #633;border-radius:15px;padding:22px;color:#e0a0a0;text-align:center;">Posts could not be loaded.<br>${escapeHTML(error.message || "Unknown error")}</div>`;
+        } else {
+            container.querySelector("#ffFeedSentinel")?.remove();
+            container.insertAdjacentHTML("beforeend", `<button type="button" onclick="ffLoadPostBatch(false)" style="display:block;margin:14px auto;padding:10px 16px;border:1px solid var(--border);border-radius:20px;background:var(--panel);color:var(--gold);cursor:pointer;">Retry loading more posts</button>`);
+        }
+    } finally {
+        ffFeedLoading = false;
     }
+}
+
+function ffInstallFeedObserver() {
+    ffFeedObserver?.disconnect();
+    const sentinel = document.getElementById("ffFeedSentinel");
+    if (!sentinel || !ffFeedHasMore || !("IntersectionObserver" in window)) return;
+    ffFeedObserver = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) ffLoadPostBatch(false);
+    }, { rootMargin: "500px 0px" });
+    ffFeedObserver.observe(sentinel);
+}
+
+async function loadPosts() {
+    ffFeedObserver?.disconnect();
+    return ffLoadPostBatch(true);
 }
 
 async function deletePost(postId) {
@@ -4011,7 +4045,12 @@ async function loadConversations(){
    (p.data||[]).forEach(x=>profiles[x.id]=x)
   }
 
-  const mr=await supabaseClient.from("messages").select("id,conversation_id,sender_id,content,is_read,created_at").in("conversation_id",ids).order("created_at",{ascending:false});if(mr.error)throw mr.error;
+  const mr=await supabaseClient.from("messages")
+   .select("id,conversation_id,sender_id,content,is_read,created_at")
+   .in("conversation_id",ids)
+   .order("created_at",{ascending:false})
+   .limit(Math.max(80,Math.min(400,ids.length*25)));
+  if(mr.error)throw mr.error;
   const latest={},unread={};
   (mr.data||[]).forEach(x=>{
    if(!latest[x.conversation_id])latest[x.conversation_id]=x;
@@ -4056,9 +4095,11 @@ async function loadPrivateMessages(){
  try{
   const r=await supabaseClient.from("messages")
    .select("id,sender_id,content,is_read,created_at,reply_to_id,attachment_url")
-   .eq("conversation_id",ffActiveConversationId).order("created_at",{ascending:true});
+   .eq("conversation_id",ffActiveConversationId)
+   .order("created_at",{ascending:false})
+   .limit(60);
   if(r.error)throw r.error;
-  const a=r.data||[], ids=a.map(x=>x.id), byId=Object.fromEntries(a.map(x=>[x.id,x]));
+  const a=(r.data||[]).slice().reverse(), ids=a.map(x=>x.id), byId=Object.fromEntries(a.map(x=>[x.id,x]));
   let react={};
   if(ids.length){
    const rr=await supabaseClient.from("message_reactions").select("message_id,user_id,reaction").in("message_id",ids);
@@ -4072,7 +4113,7 @@ async function loadPrivateMessages(){
     if(!laterMine)seen=`<div class="ff-seen-status">${x.is_read?"Seen":"Sent"}</div>`;
    }
    const reply=replied?`<div class="ff-v4-replied">↪ ${escapeHTML((replied.content||"Photo").slice(0,120))}</div>`:"";
-   const photo=x.attachment_url?`<img class="ff-v4-msg-photo" src="${escapeHTML(x.attachment_url)}" alt="Message photo" onclick="window.open(this.src,'_blank')">`:"";
+   const photo=x.attachment_url?`<img class="ff-v4-msg-photo" src="${escapeHTML(x.attachment_url)}" alt="Message photo" loading="lazy" decoding="async" onclick="window.open(this.src,'_blank')">`:"";
    const reactions=(react[x.id]||[]).map(z=>z.reaction).join(" ");
    return `<div class="ff-bubble-row ${mine?"mine":""}" data-message-id="${x.id}"><div class="ff-bubble">${reply}${x.content?escapeHTML(x.content):""}${photo}<div class="ff-bubble-time">${new Date(x.created_at).toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</div>${reactions?`<div class="ff-v4-msg-reactions">${escapeHTML(reactions)}</div>`:""}${seen}<div class="ff-v4-msg-tools"><button onclick="ffV4Reply(${x.id},${JSON.stringify((x.content||"Photo").slice(0,120)).replace(/"/g,"&quot;")})">↩</button>${["👍","❤️","😂","😮"].map(e=>`<button onclick="ffV4React(${x.id},'${e}')">${e}</button>`).join("")}${mine?`<button class="ff-v42-msg-delete" title="Delete my message" onclick="ffV42DeleteOwnMessage(${x.id},${JSON.stringify(x.attachment_url||"").replace(/"/g,"&quot;")})">🗑</button>`:""}</div></div></div>`
   }).join(""):'<div class="ff-chat-empty">No messages yet. Say hello 👋</div>';
@@ -4102,6 +4143,7 @@ async function ffV4React(messageId,reaction){
 }
 async function ffV4UploadMessagePhoto(file){
  if(!file)return null;
+ file=await window.ffStorageSaverImage(file,"message");
  if(file.size>10*1024*1024)throw new Error("Photo must be 10 MB or smaller.");
  const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
  const path=`${currentUser.id}/messages/${ffActiveConversationId}/${Date.now()}.${ext}`;
@@ -4175,9 +4217,10 @@ function startMessengerRefresh(){
  if(ffMessageTimer)clearInterval(ffMessageTimer);
  ffMessageTimer=setInterval(()=>{
    refreshMessengerUnread();
-   loadConversations();
-   if(ffActiveConversationId&&document.getElementById("ffMsgModal")?.classList.contains("open"))loadPrivateMessages()
- },15000)
+   const modalOpen=document.getElementById("ffMsgModal")?.classList.contains("open");
+   if(modalOpen)loadConversations();
+   if(!ffMessengerChannel && ffActiveConversationId && modalOpen)loadPrivateMessages();
+ },30000)
 }
 
 function addMemberMessageButtons(){document.querySelectorAll(".member-card,.clan-member-card").forEach(card=>{if(card.querySelector(".ff-member-message"))return;const uid=card.dataset.userId||card.dataset.memberId;if(!uid||uid===currentUser?.id)return;const name=card.querySelector(".member-name,h3,strong")?.textContent?.trim()||"Clan Member";const b=document.createElement("button");b.className="ff-member-message";b.textContent="💬 Message";b.onclick=e=>{e.stopPropagation();startPrivateChat(uid,name)};card.appendChild(b)})}
@@ -4211,7 +4254,7 @@ async function loadNotifications() {
             .select("id,type,post_id,event_id,message,is_read,created_at")
             .eq("user_id", currentUser.id)
             .order("created_at", { ascending: false })
-            .limit(50);
+            .limit(25);
 
         if (error) throw error;
 
@@ -4357,10 +4400,35 @@ async function openNotification(id, type, postId, eventId, actorId = null) {
     await loadNotifications();
 }
 
+async function refreshNotificationBadgeLite() {
+    if (!currentUser) return;
+    const badge = document.getElementById("notificationBadge");
+    try {
+        const { count, error } = await supabaseClient
+            .from("notifications")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", currentUser.id)
+            .eq("is_read", false);
+        if (error) throw error;
+        const unread = Number(count || 0);
+        if (badge) {
+            badge.textContent = unread > 99 ? "99+" : String(unread);
+            badge.style.display = unread ? "flex" : "none";
+        }
+    } catch (e) {
+        console.warn("Notification badge refresh:", e);
+    }
+}
+
 function startNotificationRefresh() {
     if (notificationRefreshTimer) clearInterval(notificationRefreshTimer);
-    loadNotifications();
-    notificationRefreshTimer = setInterval(loadNotifications, 30000);
+    refreshNotificationBadgeLite();
+    notificationRefreshTimer = setInterval(() => {
+        refreshNotificationBadgeLite();
+        if (document.getElementById("notificationWrap")?.classList.contains("open")) {
+            loadNotifications();
+        }
+    }, 60000);
 }
 
 /* =========================
@@ -4472,6 +4540,7 @@ async function uploadGalleryPhoto() {
     button.disabled = true;
     button.textContent = "UPLOADING...";
 
+    selectedGalleryFile = await window.ffStorageSaverImage(selectedGalleryFile,"gallery");
     const ext = (selectedGalleryFile.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
     const path = `${currentUser.id}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
@@ -4644,6 +4713,8 @@ async function saveMyProfile() {
         let avatarUrl=(currentProfile.avatar_url||"").trim()||null;
 
         if(myProfilePhotoFile){
+            status.textContent="Optimizing profile photo...";
+            myProfilePhotoFile=await window.ffStorageSaverImage(myProfilePhotoFile,"profile");
             status.textContent="Uploading profile photo...";
             const ext=(myProfilePhotoFile.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
             const path=`${currentUser.id}/profile-${Date.now()}.${ext}`;
@@ -5913,6 +5984,7 @@ window.openMemberProfileById=openClanProfile;
     if(btn){btn.disabled=true;btn.textContent="Uploading…";}
 
     try{
+      file=await window.ffStorageSaverImage(file,"cover");
       const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
       const path=`${currentUser.id}/cover-${Date.now()}.${ext||"jpg"}`;
 
@@ -6073,7 +6145,7 @@ window.openMemberProfileById=openClanProfile;
       };
       actions.appendChild(b);
     });
-    observer.observe(document.body,{childList:true,subtree:true});
+    observer.observe(document.getElementById("ffFullProfile")||document.body,{childList:true,subtree:true});
   }
 
   document.addEventListener("DOMContentLoaded",()=>{
@@ -6115,6 +6187,7 @@ window.openMemberProfileById=openClanProfile;
    if(file.size>10*1024*1024){alert("Cover photo must be 10 MB or smaller.");return}
    const old=btn.textContent; btn.disabled=true; btn.textContent="Uploading…";
    try{
+     file=await window.ffStorageSaverImage(file,"cover");
      const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
      const path=`${uid()}/cover-${Date.now()}.${ext}`;
      const {error:upErr}=await supabaseClient.storage.from(BUCKET).upload(path,file,{upsert:false,contentType:file.type});
@@ -6150,7 +6223,7 @@ window.openMemberProfileById=openClanProfile;
    cover.append(input,btn);
  }
  const mo=new MutationObserver(()=>install());
- document.addEventListener("DOMContentLoaded",()=>{mo.observe(document.body,{childList:true,subtree:true});setTimeout(install,300)});
+ document.addEventListener("DOMContentLoaded",()=>{mo.observe(document.getElementById("ffFullProfile")||document.body,{childList:true,subtree:true});setTimeout(install,300)});
  window.addEventListener("load",()=>setTimeout(install,500));
  window.ffEnsureCoverEditButton=install;
 })();
@@ -6211,6 +6284,7 @@ window.openMemberProfileById=openClanProfile;
    const old=button.textContent;
    button.classList.add("ff-cover-uploading"); button.textContent="Uploading…";
    try{
+     file=await window.ffStorageSaverImage(file,"cover");
      const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
      const path=`${me()}/cover-${Date.now()}.${ext}`;
      const {error:upErr}=await supabaseClient.storage.from(BUCKET).upload(path,file,{
@@ -6298,7 +6372,7 @@ window.openMemberProfileById=openClanProfile;
  document.addEventListener("DOMContentLoaded",()=>{
    boot();
    const mo=new MutationObserver(()=>install());
-   mo.observe(document.body,{childList:true,subtree:true});
+   mo.observe(document.getElementById("ffFullProfile")||document.body,{childList:true,subtree:true});
    setTimeout(boot,1000);
  });
  window.addEventListener("load",()=>setTimeout(boot,300));
@@ -6425,7 +6499,7 @@ window.openMemberProfileById=openClanProfile;
  document.addEventListener("DOMContentLoaded",()=>{
    secureEditFlow();
    const mo=new MutationObserver(()=>enhanceOwnProfile());
-   mo.observe(document.body,{childList:true,subtree:true});
+   mo.observe(document.getElementById("ffFullProfile")||document.body,{childList:true,subtree:true});
    setTimeout(enhanceOwnProfile,300);
  });
  window.addEventListener("load",()=>setTimeout(enhanceOwnProfile,500));
@@ -6510,7 +6584,7 @@ window.openMemberProfileById=openClanProfile;
  document.addEventListener("DOMContentLoaded",()=>{
    bind();
    const mo=new MutationObserver(()=>bind());
-   mo.observe(document.body,{childList:true,subtree:true});
+   mo.observe(document.querySelector(".left-sidebar,.sidebar,.page")||document.body,{childList:true,subtree:true});
    setTimeout(bind,500);
    setTimeout(bind,1500);
  });
@@ -6617,7 +6691,7 @@ window.openMemberProfileById=openClanProfile;
   document.addEventListener("DOMContentLoaded",()=>{
     installSaveReturn();
     const mo=new MutationObserver(installSaveReturn);
-    mo.observe(document.body,{childList:true,subtree:true});
+    mo.observe(document.getElementById("ffFullProfile")||document.body,{childList:true,subtree:true});
     setTimeout(installSaveReturn,500);
   });
 })();
@@ -6744,7 +6818,7 @@ window.openMemberProfileById=openClanProfile;
  document.addEventListener("DOMContentLoaded",()=>{
    enhance();
    const mo=new MutationObserver(enhance);
-   mo.observe(document.body,{childList:true,subtree:true});
+   mo.observe(document.getElementById("posts")||document.querySelector(".feed")||document.body,{childList:true,subtree:true});
  });
  window.ffEnhanceHomeFeedV3=enhance;
 })();
@@ -6929,6 +7003,7 @@ window.openMemberProfileById=openClanProfile;
  }
  async function uploadOne(file,caption){
    if(!window.currentUser?.id||!window.supabaseClient)return;
+   file=await window.ffStorageSaverImage(file,"gallery");
    if(file.size>10*1024*1024)throw new Error(file.name+" is larger than 10 MB.");
    const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
    const path=`${currentUser.id}/${Date.now()}-${Math.random().toString(36).slice(2,9)}.${ext}`;
@@ -7036,7 +7111,7 @@ window.openMemberProfileById=openClanProfile;
    });
  }
  function scan(){enhanceMessages();enhanceConversations();ensureReplyPreview()}
- document.addEventListener("DOMContentLoaded",()=>{scan();const mo=new MutationObserver(scan);mo.observe(document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{scan();const mo=new MutationObserver(scan);mo.observe(document.getElementById("ffMsgModal")||document.body,{childList:true,subtree:true})});
  window.ffMessengerV3={setReply,clearReply,getReply:()=>replyTo,refresh:scan};
 })();
 </script>
@@ -7102,7 +7177,7 @@ window.openMemberProfileById=openClanProfile;
  }
  document.addEventListener("DOMContentLoaded",()=>{repair();setTimeout(repair,500)});
  const mo=new MutationObserver(repair);
- document.addEventListener("DOMContentLoaded",()=>mo.observe(document.body,{childList:true,subtree:true}));
+ document.addEventListener("DOMContentLoaded",()=>mo.observe(document.getElementById("ffMsgModal")||document.body,{childList:true,subtree:true}));
  window.ffRepairMessengerComposer=repair;
 })();
 </script>
@@ -7165,7 +7240,7 @@ window.openMemberProfileById=openClanProfile;
  function applyFilter(){document.querySelectorAll(".notification-panel .notification-item").forEach(n=>n.style.display=(filter==="all"||n.dataset.n3class===filter)?"":"none")}
  document.addEventListener("DOMContentLoaded",()=>{
    enhance();
-   new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true});
+   new MutationObserver(enhance).observe(document.getElementById("notificationWrap")||document.body,{childList:true,subtree:true});
  });
  window.ffNotificationCenterV3Refresh=enhance;
 })();
@@ -7247,7 +7322,7 @@ window.openMemberProfileById=openClanProfile;
    }catch(e){alert("Post could not be deleted: "+(e?.message||e))}
  }
  document.addEventListener("click",()=>document.querySelectorAll(".ff-v4-menu.open").forEach(x=>x.classList.remove("open")));
- document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.getElementById("posts")||document.querySelector(".feed")||document.body,{childList:true,subtree:true})});
  window.ffHomeFeedV4Refresh=enhance;
 })();
 </script>
@@ -7306,7 +7381,7 @@ window.openMemberProfileById=openClanProfile;
      }
    });
  }
- document.addEventListener("DOMContentLoaded",()=>{composer();enhancePostImages();new MutationObserver(()=>{composer();enhancePostImages()}).observe(document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{composer();enhancePostImages();new MutationObserver(()=>{composer();enhancePostImages()}).observe(document.querySelector(".create-post")?.parentElement||document.body,{childList:true,subtree:true})});
  window.ffRichComposerV41={getFiles:()=>files.slice(),clear:()=>{files=[];const c=composer();if(c){c.input.value="";draw(c.preview,c.note)}}};
 })();
 </script>
@@ -7334,7 +7409,7 @@ window.openMemberProfileById=openClanProfile;
    if(files.length<2)return [];
    const rows=[];
    for(let i=0;i<Math.min(files.length,4);i++){
-     const f=files[i], ext=(f.name.split(".").pop()||"jpg").toLowerCase();
+     const f=await window.ffStorageSaverImage(files[i],"feed"), ext=(f.name.split(".").pop()||"jpg").toLowerCase();
      const path=`${currentUser.id}/posts/${postId}/${Date.now()}-${i}.${ext}`;
      const up=await supabaseClient.storage.from(BUCKET).upload(path,f,{upsert:false,contentType:f.type||"image/jpeg"});
      if(up.error)throw up.error;
@@ -7375,7 +7450,7 @@ window.openMemberProfileById=openClanProfile;
    return rows;
  };
  window.ffV42RefreshPostPhotos=loadForCards;
- document.addEventListener("DOMContentLoaded",()=>{loadForCards();new MutationObserver(()=>{clearTimeout(window.__ffv42t);window.__ffv42t=setTimeout(loadForCards,120)}).observe(document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{loadForCards();new MutationObserver(()=>{clearTimeout(window.__ffv42t);window.__ffv42t=setTimeout(loadForCards,120)}).observe(document.getElementById("posts")||document.querySelector(".feed")||document.body,{childList:true,subtree:true})});
 })();
 </script>
 
@@ -7460,7 +7535,7 @@ window.openMemberProfileById=openClanProfile;
      el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fetchAndRoute(id)}});
    });
  }
- document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.getElementById("notificationWrap")||document.body,{childList:true,subtree:true})});
  window.ffNotificationV4Route=route;
 })();
 </script>
@@ -7590,7 +7665,7 @@ button:disabled{cursor:not-allowed!important;opacity:.62!important}
    if(home&&typeof window.loadPostActivity==="function")window.loadPostActivity(Number(pid),home);
  }
  document.addEventListener("DOMContentLoaded",()=>{
-   install();new MutationObserver(install).observe(document.body,{childList:true,subtree:true});
+   install();new MutationObserver(install).observe(document.querySelector(".page")||document.body,{childList:true,subtree:true});
    try{
      supabaseClient.channel("duarte-v42-home-profile-comment-sync")
       .on("postgres_changes",{event:"*",schema:"public",table:"comments"},payload=>{
@@ -7754,7 +7829,7 @@ window.ffV42DeleteOwnMessage=ffV42DeleteOwnMessage;
  }
  document.addEventListener("DOMContentLoaded",()=>{
    addDeleteButtons();
-   new MutationObserver(addDeleteButtons).observe(document.body,{childList:true,subtree:true});
+   new MutationObserver(addDeleteButtons).observe(document.getElementById("ffMsgModal")||document.body,{childList:true,subtree:true});
  });
  window.ffRefreshOwnMessageDeleteButtons=addDeleteButtons;
 })();
@@ -7796,7 +7871,7 @@ window.ffV42DeleteOwnMessage=ffV42DeleteOwnMessage;
  }
  document.addEventListener("DOMContentLoaded",()=>{
    installPhotoDelete();
-   new MutationObserver(installPhotoDelete).observe(document.body,{childList:true,subtree:true});
+   new MutationObserver(installPhotoDelete).observe(document.querySelector(".page")||document.body,{childList:true,subtree:true});
  });
  window.ffRefreshPhotoDeleteButtons=installPhotoDelete;
 })();
@@ -7851,7 +7926,7 @@ window.ffV42DeleteOwnMessage=ffV42DeleteOwnMessage;
      img.addEventListener("contextmenu",e=>{e.preventDefault();clearTimeout(timer);timer=null;openMenu(img,row)});
    });
  }
- document.addEventListener("DOMContentLoaded",()=>{install();new MutationObserver(install).observe(document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{install();new MutationObserver(install).observe(document.querySelector(".page")||document.body,{childList:true,subtree:true})});
  window.ffV42ClosePhotoMenu=closeMenu;
 })();
 </script>
@@ -7919,7 +7994,7 @@ window.ffV42DeleteOwnMessage=ffV42DeleteOwnMessage;
      });
    });
  }
- document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.querySelector(".page")||document.body,{childList:true,subtree:true})});
  window.ffShowPostReactionPeople=showPost;
  window.ffShowCommentReactionPeople=showComment;
  window.ffCloseReactionPeople=close;
@@ -8185,7 +8260,7 @@ window.ffMobileSharePost=ffMobileSharePost;
   addEventListener("resize",()=>{if(!isMobile())document.body.classList.remove("ff-mobile-family-open")});
   document.addEventListener("DOMContentLoaded",()=>{
     install();
-    new MutationObserver(install).observe(document.body,{childList:true,subtree:true});
+    new MutationObserver(install).observe(document.querySelector(".topbar")||document.body,{childList:true,subtree:true});
   });
 })();
 </script>
@@ -8367,7 +8442,7 @@ window.ffMobileSharePost=ffMobileSharePost;
  }
  document.addEventListener("DOMContentLoaded",()=>{
    installToggle();
-   new MutationObserver(installToggle).observe(document.body,{childList:true,subtree:true});
+   new MutationObserver(installToggle).observe(document.querySelector(".topbar")||document.body,{childList:true,subtree:true});
  });
  addEventListener("resize",()=>{if(!mobile())close()});
  window.ffCloseMobileHeaderMenu=close;
@@ -8444,7 +8519,7 @@ window.ffMobileSharePost=ffMobileSharePost;
  }
  document.addEventListener("DOMContentLoaded",()=>{
    normalizeProfile();
-   new MutationObserver(normalizeProfile).observe(document.body,{childList:true,subtree:true});
+   new MutationObserver(normalizeProfile).observe(document.getElementById("ffFullProfile")||document.body,{childList:true,subtree:true});
  });
  addEventListener("resize",normalizeProfile);
 })();
@@ -8518,7 +8593,7 @@ window.ffMobileSharePost=ffMobileSharePost;
    });
  }
  document.addEventListener("DOMContentLoaded",()=>{
-   install();new MutationObserver(install).observe(document.body,{childList:true,subtree:true});
+   install();new MutationObserver(install).observe(document.getElementById("ffMsgModal")||document.body,{childList:true,subtree:true});
  });
  addEventListener("resize",()=>{if(!mobile())closeChat()});
  window.ffMobileMessengerBack=closeChat;
@@ -8583,7 +8658,7 @@ window.ffMobileSharePost=ffMobileSharePost;
  }
  document.addEventListener("DOMContentLoaded",()=>{
    enhance();
-   new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true});
+   new MutationObserver(enhance).observe(document.getElementById("ffCommentModal")||document.body,{childList:true,subtree:true});
  });
  addEventListener("resize",enhance);
 })();
@@ -8726,6 +8801,545 @@ window.sharePost=async function(){
   }catch(e){if(e&&e.name!=="AbortError")console.warn("Share failed",e)}
 };
 </script>
+\n<style id="duarte-facebook-v5-consolidated">
+:root{--fb-blue:#2374e1;--fb-surface:#18191a;--fb-surface2:#242526;--fb-hover:#3a3b3c;--fb-line:#3e4042;--fb-text:#e4e6eb;--fb-muted:#b0b3b8}
+body{background:#0f1011!important;color:var(--fb-text)!important}
+.topbar{height:64px!important;background:#18191a!important;border-bottom:1px solid #2f3031!important;box-shadow:0 1px 3px rgba(0,0,0,.35)!important}
+.topbar-inner{width:100%!important;max-width:none!important;padding:0 18px!important;gap:14px!important}
+.brand{min-width:260px!important}.brand-logo{width:42px!important;height:42px!important;background:var(--gold)!important;color:#171717!important;border:0!important;box-shadow:0 0 0 3px rgba(212,175,55,.12)!important}
+.brand-text h1{font-size:18px!important;letter-spacing:1.5px!important}.brand-text span{font-size:8px!important}
+.main-nav{height:64px!important;gap:4px!important;justify-content:center!important;flex:1!important}.nav-btn{height:54px!important;min-width:92px!important;border-radius:8px!important;font-size:13px!important;color:var(--fb-muted)!important}.nav-btn:hover,.nav-btn.active{background:#2b2c2e!important;color:var(--gold)!important}.nav-btn.active{border-bottom:3px solid var(--gold)!important;border-radius:8px 8px 0 0!important}
+.user-area{min-width:160px!important;justify-content:flex-end!important}.icon-btn,.notification-bell{background:#303031!important;border:0!important}.avatar{background:var(--gold)!important;color:#111!important}
+.page{width:100%!important;max-width:1460px!important;margin:18px auto 70px!important;padding:0 18px!important}.layout{grid-template-columns:260px minmax(500px,680px) 300px!important;gap:22px!important;align-items:start!important}
+.sidebar,.right-sidebar{top:82px!important}.profile-mini,.side-menu,.right-card,.create-post,.post-card{background:var(--fb-surface)!important;border:1px solid #2e3032!important;box-shadow:0 1px 2px rgba(0,0,0,.25)!important}.profile-mini,.side-menu,.right-card,.create-post,.post-card{border-radius:12px!important}.side-link{color:var(--fb-text)!important;font-weight:600!important}.side-link:hover,.side-link.active{background:var(--fb-hover)!important;color:#fff!important}
+.feed-header{display:none!important}.create-post{padding:14px 16px!important}.post-input{background:#3a3b3c!important;border:0!important;color:#e4e6eb!important;min-height:42px!important}.post-input::placeholder{color:#b0b3b8!important}.post-tools{border-color:#343536!important}.post-action{font-weight:600!important;color:#b0b3b8!important}.post-action:hover{background:#3a3b3c!important;color:#fff!important}.publish-btn{background:var(--gold)!important;color:#161616!important;border-radius:8px!important}
+.post-card{padding:14px 16px!important}.post-text{color:#e4e6eb!important;font-size:15px!important;line-height:1.45!important}.post-stats,.post-buttons{border-color:#3e4042!important}.post-btn{color:#b0b3b8!important;font-weight:600!important}.post-btn:hover,.post-btn.liked{background:#3a3b3c!important}.comment-input{background:#3a3b3c!important;border:0!important}
+#dcStories{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin-bottom:10px;scrollbar-width:none}#dcStories::-webkit-scrollbar{display:none}.dc-story{position:relative;flex:0 0 112px;height:190px;border:0;border-radius:12px;overflow:hidden;background:linear-gradient(160deg,#3a3b3c,#171819);box-shadow:0 1px 3px rgba(0,0,0,.4);cursor:pointer;color:#fff;text-align:left}.dc-story::after{content:"";position:absolute;inset:45% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.82))}.dc-story-avatar{position:absolute;z-index:2;left:10px;top:10px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#111;border:3px solid #18191a;font-weight:800}.dc-story-name{position:absolute;z-index:2;left:10px;right:8px;bottom:10px;font-size:12px;font-weight:700;line-height:1.2}.dc-story.add{background:#242526}.dc-story.add .dc-story-avatar{top:118px;left:38px;background:var(--gold);font-size:22px}.dc-story.add .dc-story-name{text-align:center}.dc-story-art{position:absolute;inset:0;background:radial-gradient(circle at 70% 20%,rgba(212,175,55,.35),transparent 34%),linear-gradient(145deg,#2d2e30,#151617)}
+#dcDesktopSearch{width:220px;height:40px;border:0;border-radius:22px;background:#3a3b3c;color:#fff;padding:0 16px;outline:none}#dcDesktopSearch::placeholder{color:#b0b3b8}
+#dcMobileNav{display:none}
+@media(max-width:1100px){.layout{grid-template-columns:230px minmax(440px,680px)!important}.right-sidebar{display:none!important}#dcDesktopSearch{display:none}}
+@media(max-width:800px){.topbar{height:56px!important;padding:0!important}.topbar-inner{padding:0 10px!important;flex-wrap:nowrap!important}.brand{min-width:0!important}.brand-text span{display:none!important}.brand-text h1{font-size:16px!important}.main-nav{display:none!important}.user-area{min-width:auto!important}.page{padding:0!important;margin:8px auto 72px!important;width:100%!important}.layout{display:block!important}.sidebar,.right-sidebar{display:none!important}.feed{width:100%!important;max-width:100%!important}.create-post,.post-card{border-left:0!important;border-right:0!important;border-radius:0!important;margin-bottom:8px!important}.gallery-manager,.profile-manager,.members-manager,.events-manager{border-radius:0!important}.dc-story{flex-basis:104px;height:176px}.dc-story.add .dc-story-avatar{top:105px;left:34px}#dcStories{padding-left:8px!important}.user-area .icon-btn{display:none!important}#dcMobileNav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;z-index:99990;left:0;right:0;bottom:0;height:58px;padding-bottom:env(safe-area-inset-bottom);background:#18191a;border-top:1px solid #3a3b3c}#dcMobileNav button{border:0;background:transparent;color:#b0b3b8;font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}#dcMobileNav button span{font-size:20px;line-height:1}#dcMobileNav button:active{background:#2f3031;color:var(--gold)}}
+</style>
+<script id="duarte-facebook-v5-ui">
+(function(){
+ function addStories(){
+   const composer=document.getElementById('createPostBox'); if(!composer||document.getElementById('dcStories'))return;
+   const s=document.createElement('div');s.id='dcStories';s.innerHTML=`<button class="dc-story add" type="button" onclick="document.getElementById('postInput')?.focus()"><div class="dc-story-art"></div><span class="dc-story-avatar">+</span><span class="dc-story-name">Create story</span></button><button class="dc-story" type="button" onclick="showSection('gallery')"><div class="dc-story-art"></div><span class="dc-story-avatar">D</span><span class="dc-story-name">Family memories</span></button><button class="dc-story" type="button" onclick="showSection('events')"><div class="dc-story-art"></div><span class="dc-story-avatar">📅</span><span class="dc-story-name">Clan events</span></button><button class="dc-story" type="button" onclick="showSection('members')"><div class="dc-story-art"></div><span class="dc-story-avatar">👥</span><span class="dc-story-name">Duarte family</span></button>`;composer.parentNode.insertBefore(s,composer);
+ }
+ function addSearch(){const brand=document.querySelector('.brand');if(!brand||document.getElementById('dcDesktopSearch'))return;const i=document.createElement('input');i.id='dcDesktopSearch';i.type='search';i.placeholder='Search Duarte Clan';i.setAttribute('aria-label','Search Duarte Clan');i.addEventListener('keydown',e=>{if(e.key==='Enter'&&i.value.trim()){if(typeof showSection==='function')showSection('members');setTimeout(()=>{const candidates=[...document.querySelectorAll('input[type="search"],input[placeholder*="Search" i]')].filter(x=>x!==i&&x.offsetParent);if(candidates[0]){candidates[0].value=i.value;candidates[0].dispatchEvent(new Event('input',{bubbles:true}));candidates[0].focus()}},100)}});brand.after(i)}
+ function addMobileNav(){if(document.getElementById('dcMobileNav'))return;const n=document.createElement('nav');n.id='dcMobileNav';n.setAttribute('aria-label','Mobile navigation');n.innerHTML=`<button onclick="showSection('home')"><span>🏠</span>Home</button><button onclick="showSection('members')"><span>👥</span>Members</button><button onclick="document.getElementById('postInput')?.focus();showSection('home')"><span>➕</span>Create</button><button onclick="typeof openMessenger==='function'?openMessenger():document.querySelector('.ff-msg-fab')?.click()"><span>💬</span>Messages</button><button onclick="document.querySelector('.notification-bell')?.click()"><span>🔔</span>Alerts</button>`;document.body.appendChild(n)}
+ function run(){addStories();addSearch();addMobileNav()}
+ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',run):run();
+ new MutationObserver(run).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>\n
+
+<script id="duarte-storage-saver-v1">
+/* Duarte Clan Storage Saver v1 — client-side image compression before Supabase upload. */
+window.ffStorageSaverImage = async function(file, preset="feed") {
+  if (!file || !(file instanceof Blob) || !String(file.type || "").startsWith("image/")) return file;
+  if (file.type === "image/gif") return file; // preserve animation
+
+  const cfg = {
+    profile: { max: 720,  quality: 0.78 },
+    cover:   { max: 1600, quality: 0.78 },
+    message: { max: 1280, quality: 0.75 },
+    gallery: { max: 1280, quality: 0.76 },
+    feed:    { max: 1280, quality: 0.76 }
+  }[preset] || { max:1280, quality:0.76 };
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, cfg.max / Math.max(bitmap.width, bitmap.height));
+    const w = Math.max(1, Math.round(bitmap.width * scale));
+    const h = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext("2d", { alpha:false });
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0,0,w,h);
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close?.();
+
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", cfg.quality));
+    if (!blob || blob.size >= file.size) return file;
+    const base = String(file.name || "duarte-photo").replace(/\.[^.]+$/, "");
+    return new File([blob], base + ".webp", { type:"image/webp", lastModified:Date.now() });
+  } catch (err) {
+    console.warn("[Duarte Storage Saver] Compression skipped:", err);
+    return file;
+  }
+};
+</script>
+
+<script id="duarte-storage-saver-lazy-v1">
+(function(){
+ const apply=()=>document.querySelectorAll('img:not([loading])').forEach(img=>{img.loading='lazy';img.decoding='async';});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true}); else apply();
+ let t=0; new MutationObserver(()=>{clearTimeout(t);t=setTimeout(apply,250)}).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+
+<style id="duarte-facebook-comments-reactions-v3-css">
+.ff-v3-reaction-modal{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;padding:18px}.ff-v3-reaction-modal.open{display:flex}.ff-v3-reaction-card{width:min(520px,100%);max-height:min(680px,86vh);overflow:hidden;background:#18191a;border:1px solid rgba(255,255,255,.10);border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);color:#e4e6eb}.ff-v3-reaction-head{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.10);font-weight:800;font-size:17px}.ff-v3-close{width:36px;height:36px;border:0;border-radius:50%;background:#3a3b3c;color:#e4e6eb;font-size:22px;cursor:pointer}.ff-v3-reaction-tabs{display:flex;gap:6px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);overflow:auto}.ff-v3-tab{border:0;background:transparent;color:#b0b3b8;padding:8px 10px;border-radius:8px;font-weight:700;white-space:nowrap;cursor:pointer}.ff-v3-tab.active{background:#2b2c2f;color:#f5c85b}.ff-v3-react-list{overflow:auto;max-height:520px;padding:8px 12px 14px}.ff-v3-react-person{display:flex;align-items:center;gap:11px;padding:9px 4px}.ff-v3-react-avatar{width:42px;height:42px;border-radius:50%;overflow:hidden;background:#3a3b3c;display:grid;place-items:center;flex:none}.ff-v3-react-avatar img{width:100%;height:100%;object-fit:cover}.ff-v3-react-name{font-weight:750;flex:1}.ff-v3-react-emoji{font-size:22px}.reaction-count{cursor:pointer}.ff-v3-time{font-size:11px;color:#9b9da1;margin-left:6px}.ff-v3-more{border:0;background:transparent;color:#b0b3b8;font-weight:750;padding:7px 0;cursor:pointer;text-align:left}.ff-v3-more:hover{color:#e4e6eb;text-decoration:underline}.comment-actions{align-items:center;flex-wrap:wrap}.comment-replies{margin-left:34px}.comment-item{margin-top:9px}.comment-bubble{border-radius:18px!important}.comment-reaction-summary{cursor:default}@media(max-width:700px){.ff-v3-reaction-modal{padding:0;align-items:flex-end}.ff-v3-reaction-card{width:100%;max-height:82vh;border-radius:18px 18px 0 0;border-bottom:0}.ff-v3-react-list{max-height:62vh}.comment-replies{margin-left:22px}.comment-actions{padding-left:46px!important}.ff-v3-time{display:inline-block;margin-left:4px}}
+</style>
+<script id="duarte-facebook-comments-reactions-v3-js">
+(function(){
+ const expandedPosts=new Set(), expandedReplies=new Set();
+ const fmtTime=(v)=>{try{const d=new Date(v),sec=Math.max(1,(Date.now()-d)/1000);if(sec<60)return 'Just now';if(sec<3600)return Math.floor(sec/60)+'m';if(sec<86400)return Math.floor(sec/3600)+'h';if(sec<604800)return Math.floor(sec/86400)+'d';return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});}catch{return ''}};
+ window.ffV3ExpandComments=(postId)=>{expandedPosts.add(Number(postId));const c=document.querySelector(`.post-card[data-post-id="${Number(postId)}"]`);if(c)loadPostActivity(Number(postId),c);if(window.ffActiveCommentPostId===Number(postId))loadModalComments();};
+ window.ffV3ExpandReplies=(postId,commentId)=>{expandedReplies.add(Number(commentId));const c=document.querySelector(`.post-card[data-post-id="${Number(postId)}"]`);if(c)loadPostActivity(Number(postId),c);if(window.ffActiveCommentPostId===Number(postId))loadModalComments();};
+ renderThreadedComments=function(comments,likes,profiles,postId){
+   const tree={},lm={};comments.forEach(c=>{const k=c.parent_comment_id==null?'root':String(c.parent_comment_id);(tree[k]??=[]).push(c)});likes.forEach(r=>(lm[String(r.comment_id)]??=[]).push(r));
+   const render=(c,depth=0)=>{const name=profiles[c.user_id]?.full_name||'Duarte Clan Member',rs=lm[String(c.id)]||[],mine=rs.find(r=>r.user_id===currentUser?.id),del=c.user_id===currentUser?.id||currentProfile?.is_admin===true,safe=escapeHTML(name).replace(/'/g,'&#39;'),kids=tree[String(c.id)]||[];let shown=kids;if(depth===0&&!expandedReplies.has(Number(c.id))&&kids.length>2)shown=kids.slice(0,2);const more=kids.length>shown.length?`<button class="ff-v3-more" onclick="ffV3ExpandReplies(${Number(postId)},${Number(c.id)})">View ${kids.length-shown.length} more ${kids.length-shown.length===1?'reply':'replies'}</button>`:'';return `<div class="comment-item" data-user-id="${c.user_id}"><div class="comment-row"><div class="comment-avatar ff-profile-link" onclick="event.stopPropagation();openClanProfile('${c.user_id}')">${duarteAvatarHTML(profiles[c.user_id]||{full_name:name})}</div><div class="comment-bubble"><div class="comment-author ff-profile-link" onclick="event.stopPropagation();openClanProfile('${c.user_id}')">${escapeHTML(name)}</div><div class="comment-text">${escapeHTML(c.content)}</div></div></div><div class="comment-actions"><span class="comment-reaction-wrap"><button class="comment-action ${mine?'active':''}" onclick="toggleCommentReactionPicker(event,this,${c.id},${postId},${mine?`'${mine.reaction}'`:'null'})">${mine&&REACTION_META[mine.reaction]?REACTION_META[mine.reaction].emoji+' '+REACTION_META[mine.reaction].label:'👍 Like'}</button><span class="comment-reaction-picker" onclick="event.stopPropagation()">${Object.entries(REACTION_META).map(([k,m])=>`<button class="comment-reaction-choice" title="${m.label}" onclick="setCommentReaction(this,${c.id},'${k}',${postId})">${m.emoji}</button>`).join('')}</span></span><button class="comment-action" onclick="showReplyBox(this,${c.id},'${safe}')">Reply</button><span class="ff-v3-time">${fmtTime(c.created_at)}</span>${rs.length?`<span class="comment-reaction-summary">· <span class="comment-reaction-icons">${[...new Set(rs.map(r=>(REACTION_META[r.reaction]||REACTION_META.like).emoji))].slice(0,3).join(' ')}</span> ${rs.length}</span>`:''}${del?`<button class="comment-action" onclick="deleteComment(${c.id},${postId})">Delete</button>`:''}</div>${shown.length?`<div class="comment-replies">${shown.map(x=>render(x,depth+1)).join('')}${more}</div>`:''}</div>`};
+   const roots=tree.root||[],shown=expandedPosts.has(Number(postId))?roots:roots.slice(Math.max(0,roots.length-3));return `${roots.length>shown.length?`<button class="ff-v3-more" onclick="ffV3ExpandComments(${Number(postId)})">View ${roots.length-shown.length} previous ${roots.length-shown.length===1?'comment':'comments'}</button>`:''}${shown.map(c=>render(c,0)).join('')}`;
+ };
+ function ensureModal(){if(document.getElementById('ffV3ReactionModal'))return;document.body.insertAdjacentHTML('beforeend',`<div class="ff-v3-reaction-modal" id="ffV3ReactionModal" onclick="if(event.target===this)ffV3CloseReactions()"><div class="ff-v3-reaction-card"><div class="ff-v3-reaction-head"><span>People who reacted</span><button class="ff-v3-close" onclick="ffV3CloseReactions()">×</button></div><div class="ff-v3-reaction-tabs" id="ffV3ReactionTabs"></div><div class="ff-v3-react-list" id="ffV3ReactionList"></div></div></div>`)}
+ let cache=[];
+ window.ffV3CloseReactions=()=>document.getElementById('ffV3ReactionModal')?.classList.remove('open');
+ window.ffV3FilterReactions=(type)=>{document.querySelectorAll('.ff-v3-tab').forEach(b=>b.classList.toggle('active',b.dataset.type===type));const rows=type==='all'?cache:cache.filter(x=>x.reaction===type);document.getElementById('ffV3ReactionList').innerHTML=rows.length?rows.map(x=>`<div class="ff-v3-react-person"><div class="ff-v3-react-avatar ff-profile-link" onclick="ffV3CloseReactions();openClanProfile('${x.user_id}')">${duarteAvatarHTML(x.profile||{full_name:'Duarte Clan Member'})}</div><div class="ff-v3-react-name ff-profile-link" onclick="ffV3CloseReactions();openClanProfile('${x.user_id}')">${escapeHTML(x.profile?.full_name||'Duarte Clan Member')}</div><div class="ff-v3-react-emoji">${(REACTION_META[x.reaction]||REACTION_META.like).emoji}</div></div>`).join(''):'<div style="padding:28px;text-align:center;color:#b0b3b8">No reactions yet.</div>';};
+ window.ffV3OpenReactions=async(postId)=>{ensureModal();const modal=document.getElementById('ffV3ReactionModal'),list=document.getElementById('ffV3ReactionList');modal.classList.add('open');list.innerHTML='<div style="padding:28px;text-align:center;color:#b0b3b8">Loading reactions…</div>';try{const rr=await supabaseClient.from('reactions').select('user_id,reaction').eq('post_id',Number(postId));if(rr.error)throw rr.error;const reactions=rr.data||[],uids=[...new Set(reactions.map(x=>x.user_id))];let pm={};if(uids.length){const pr=await supabaseClient.from('profiles').select('id,full_name,avatar_url').in('id',uids);if(pr.error)throw pr.error;(pr.data||[]).forEach(p=>pm[p.id]=p)}cache=reactions.map(r=>({...r,profile:pm[r.user_id]}));const counts={};cache.forEach(r=>counts[r.reaction]=(counts[r.reaction]||0)+1);document.getElementById('ffV3ReactionTabs').innerHTML=`<button class="ff-v3-tab active" data-type="all" onclick="ffV3FilterReactions('all')">All ${cache.length}</button>`+Object.entries(REACTION_META).filter(([k])=>counts[k]).map(([k,m])=>`<button class="ff-v3-tab" data-type="${k}" onclick="ffV3FilterReactions('${k}')">${m.emoji} ${counts[k]}</button>`).join('');ffV3FilterReactions('all')}catch(e){list.innerHTML=`<div style="padding:28px;text-align:center;color:#f0a0a0">Could not load reactions: ${escapeHTML(e.message||String(e))}</div>`}};
+ document.addEventListener('click',e=>{const el=e.target.closest('.reaction-count');if(!el)return;const card=el.closest('.post-card');if(card){e.preventDefault();e.stopPropagation();ffV3OpenReactions(Number(card.dataset.postId));}},true);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')ffV3CloseReactions()});
+})();
+</script>
+
+
+<style id="ff-messenger-lite-v4-css">
+/* Duarte Clan Messenger Lite V4 — lightweight Facebook/Messenger-style polish */
+#ffMsgModal .ff-msg-shell{max-width:980px!important;height:min(760px,88vh)!important}
+#ffMsgModal .ff-msg-list{min-width:310px}
+#ffConversationList{content-visibility:auto}
+.ff-conversation{min-height:68px!important;padding:9px 11px!important;border-radius:12px!important;margin:2px 7px!important}
+.ff-conversation:hover{background:rgba(212,175,55,.09)!important}
+.ff-conversation.unread{background:rgba(212,175,55,.12)!important}
+.ff-conversation.unread .ff-conversation-name{font-weight:900!important}
+.ff-conversation-avatar{width:48px!important;height:48px!important;min-width:48px!important;border-radius:50%!important;overflow:hidden!important}
+.ff-conversation-avatar img{width:100%!important;height:100%!important;object-fit:cover!important}
+.ff-conversation-preview{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:210px}
+.ff-conversation-unread{min-width:20px!important;height:20px!important;padding:0 6px!important;border-radius:999px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}
+.ff-chat-head{min-height:58px!important}
+.ff-chat-messages{overscroll-behavior:contain;scroll-behavior:smooth}
+.ff-bubble-row{content-visibility:auto;contain-intrinsic-size:48px}
+.ff-v4-msg-photo{max-width:min(300px,72vw)!important;max-height:360px!important;object-fit:cover!important;border-radius:14px!important}
+.ff-chat-compose{position:sticky!important;bottom:0!important;z-index:3!important}
+#ffChatInput{min-width:0!important}
+.ff-messenger-lite-note{font-size:10px;color:var(--muted);padding:5px 12px 9px;text-align:center}
+@media(max-width:800px){
+ #ffMsgModal .ff-msg-shell{width:100%!important;height:100dvh!important;max-height:none!important;border-radius:0!important}
+ #ffMsgModal .ff-msg-list,#ffMsgModal .ff-chat{width:100%!important;min-width:0!important}
+ .ff-conversation{margin:2px 5px!important}
+ .ff-conversation-preview{max-width:calc(100vw - 155px)!important}
+ .ff-v4-msg-photo{max-width:72vw!important;max-height:300px!important}
+ .ff-chat-compose{padding-bottom:max(9px,env(safe-area-inset-bottom))!important}
+}
+</style>
+<script id="ff-messenger-lite-v4-js">
+(function(){
+  const addLiteNote=()=>{
+    const list=document.querySelector("#ffMsgModal .ff-msg-list");
+    if(list && !list.querySelector(".ff-messenger-lite-note")){
+      const n=document.createElement("div");
+      n.className="ff-messenger-lite-note";
+      n.textContent="Messenger Lite · recent messages load first";
+      list.appendChild(n);
+    }
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",addLiteNote,{once:true});
+  else addLiteNote();
+})();
+</script>
+
+
+<style id="ff-notifications-lite-v5-css">
+/* Duarte Clan Notifications Lite V5 */
+.notification-panel{width:min(390px,calc(100vw - 18px))!important;max-height:min(620px,76vh)!important;overflow:hidden!important}
+.notification-head{position:sticky!important;top:0!important;z-index:3!important;backdrop-filter:blur(12px)}
+#notificationList{max-height:min(550px,68vh)!important;overflow:auto!important;overscroll-behavior:contain}
+.notification-item{content-visibility:auto;contain-intrinsic-size:72px;border-radius:12px!important;margin:3px 6px!important;padding:10px!important}
+.notification-item:hover{background:rgba(212,175,55,.09)!important}
+.notification-item.unread,.notification-item[data-read="false"]{background:rgba(212,175,55,.12)!important}
+.notification-badge{box-shadow:0 0 0 2px #111}
+.ff-n5-status{padding:8px 12px;text-align:center;font-size:10px;color:var(--muted);border-top:1px solid rgba(212,175,55,.12)}
+@media(max-width:600px){
+ .notification-panel{position:fixed!important;left:6px!important;right:6px!important;top:58px!important;width:auto!important;max-height:calc(100dvh - 70px)!important}
+ #notificationList{max-height:calc(100dvh - 132px)!important}
+ .notification-item{margin:3px 4px!important}
+}
+</style>
+<script id="ff-notifications-lite-v5-js">
+(function(){
+ function decorate(){
+   const list=document.getElementById("notificationList");
+   if(!list)return;
+   list.querySelectorAll("img").forEach(img=>{img.loading="lazy";img.decoding="async"});
+   const panel=document.getElementById("notificationPanel");
+   if(panel&&!panel.querySelector(".ff-n5-status")){
+     const n=document.createElement("div");
+     n.className="ff-n5-status";
+     n.textContent="Showing the 25 most recent notifications";
+     panel.appendChild(n);
+   }
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",decorate,{once:true});else decorate();
+ const list=document.getElementById("notificationList");
+ if(list)new MutationObserver(()=>requestAnimationFrame(decorate)).observe(list,{childList:true,subtree:true});
+})();
+</script>
+
+
+<style id="ff-facebook-profile-v6-css">
+/* Duarte Clan V6 — final full-profile presentation layer.
+   Reuses existing profile data, uploads, posts, photos and handlers. */
+#ffFullProfile{background:#0f1012!important}
+#ffFullProfile .ff-full-profile-wrap{width:min(1060px,100%)!important;margin:auto!important;padding:0 16px 56px!important}
+#ffFullProfile .ff-full-cover{
+ height:340px!important;min-height:340px!important;border-radius:0 0 14px 14px!important;
+ background-size:cover!important;background-position:center!important;overflow:hidden!important
+}
+#ffFullProfile .ff-full-cover:after{
+ content:"";position:absolute;inset:auto 0 0;height:34%;pointer-events:none;
+ background:linear-gradient(transparent,rgba(0,0,0,.36))
+}
+#ffFullProfile .ff-full-identity{
+ position:relative!important;min-height:156px!important;padding:0 28px 20px 210px!important;
+ background:#151515!important;border-bottom:0!important
+}
+#ffFullProfile .ff-full-avatar{
+ position:absolute!important;left:28px!important;top:-82px!important;width:174px!important;height:174px!important;
+ border-radius:50%!important;border:6px solid #151515!important;overflow:hidden!important;
+ background:#292929!important;box-shadow:0 3px 15px rgba(0,0,0,.48)!important
+}
+#ffFullProfile .ff-full-avatar img{width:100%!important;height:100%!important;object-fit:cover!important}
+#ffFullProfile .ff-full-name{padding-top:22px!important;font-size:32px!important;font-weight:900!important;line-height:1.12!important}
+#ffFullProfile .ff-full-role{margin-top:6px!important;color:#aaa!important;font-size:13px!important}
+#ffFullProfile .ff-full-actions{display:flex!important;gap:8px!important;flex-wrap:wrap!important;justify-content:flex-end!important}
+#ffFullProfile .ff-full-actions button,#ffFullProfile .ff-member-profile-message,#ffFullProfile .ff-member-profile-own{
+ min-height:40px!important;border:0!important;border-radius:8px!important;padding:0 15px!important;font-weight:800!important
+}
+#ffFullProfile .ff-member-profile-message{background:var(--gold)!important;color:#111!important}
+#ffFullProfile .ff-member-profile-own{background:#303236!important;color:#fff!important}
+#ffFullProfile .ff-profile-tabs{
+ position:sticky!important;top:56px!important;z-index:10!important;height:56px!important;
+ display:flex!important;align-items:stretch!important;gap:3px!important;padding:0 28px!important;
+ overflow-x:auto!important;background:#151515!important;border-top:1px solid #303236!important;border-bottom:1px solid #303236!important
+}
+#ffFullProfile .ff-profile-tab{min-width:max-content!important;padding:0 18px!important;border-radius:0!important;color:#aaa!important}
+#ffFullProfile .ff-profile-tab.active{color:var(--gold)!important;background:transparent!important}
+#ffFullProfile .ff-profile-tab.active:after{height:3px!important}
+#ffFullProfile .ff-profile-content{padding:18px 28px 34px!important;background:#0f1012!important}
+#ffFullProfile #ffFullPosts.active{grid-template-columns:340px minmax(0,1fr)!important;gap:16px!important}
+#ffFullProfile .ff-fb-profile-intro,#ffFullProfile .ff-full-post-card{
+ border:1px solid #303236!important;border-radius:12px!important;background:#191a1d!important;
+ box-shadow:0 1px 2px rgba(0,0,0,.28)!important
+}
+#ffFullProfile #ffFullPhotos.active{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important}
+#ffFullProfile #ffFullPhotos img{
+ width:100%!important;aspect-ratio:1/1!important;height:auto!important;object-fit:cover!important;border-radius:7px!important
+}
+.ff-v6-profile-label{
+ display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 9px;border-radius:999px;
+ background:rgba(212,175,55,.10);color:#d7c77e;font-size:11px;font-weight:800
+}
+@media(max-width:760px){
+ #ffFullProfile .ff-full-profile-top{height:52px!important}
+ #ffFullProfile .ff-full-profile-wrap{padding:0 0 32px!important;width:100%!important}
+ #ffFullProfile .ff-full-cover{height:220px!important;min-height:220px!important;border-radius:0!important}
+ #ffFullProfile .ff-full-identity{
+   min-height:220px!important;padding:70px 14px 14px!important;text-align:center!important
+ }
+ #ffFullProfile .ff-full-avatar{
+   width:128px!important;height:128px!important;left:50%!important;top:-64px!important;transform:translateX(-50%)!important;
+   border-width:5px!important
+ }
+ #ffFullProfile .ff-full-name{padding-top:0!important;font-size:25px!important}
+ #ffFullProfile .ff-full-actions{position:static!important;margin-top:13px!important;justify-content:center!important}
+ #ffFullProfile .ff-full-actions button{flex:1 1 135px!important;max-width:220px!important}
+ #ffFullProfile .ff-profile-tabs{top:52px!important;padding:0 6px!important;height:50px!important}
+ #ffFullProfile .ff-profile-tab{padding:0 13px!important;font-size:12px!important}
+ #ffFullProfile .ff-profile-content{padding:12px!important}
+ #ffFullProfile #ffFullPosts.active{display:block!important}
+ #ffFullProfile .ff-fb-profile-intro{position:static!important;margin-bottom:12px!important}
+ #ffFullProfile #ffFullPhotos.active{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:3px!important}
+ .ff-cover-photo-action{right:10px!important;bottom:10px!important;padding:8px 10px!important;font-size:11px!important}
+}
+</style>
+<script id="ff-facebook-profile-v6-js">
+(function(){
+ function enhance(){
+   const root=document.getElementById("ffFullProfile");
+   if(!root)return;
+   root.querySelectorAll("img").forEach(img=>{img.loading="lazy";img.decoding="async"});
+   const role=root.querySelector(".ff-full-role");
+   if(role&&!root.querySelector(".ff-v6-profile-label")){
+     const tag=document.createElement("span");
+     tag.className="ff-v6-profile-label";
+     tag.textContent="Duarte Clan Member";
+     role.insertAdjacentElement("afterend",tag);
+   }
+   const actions=root.querySelector(".ff-full-actions");
+   if(actions)actions.setAttribute("aria-label","Profile actions");
+   const tabs=root.querySelector(".ff-profile-tabs");
+   if(tabs)tabs.setAttribute("aria-label","Member profile sections");
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",enhance,{once:true});else enhance();
+ const root=document.getElementById("ffFullProfile");
+ if(root){
+   let queued=false;
+   new MutationObserver(()=>{
+     if(queued)return;queued=true;
+     requestAnimationFrame(()=>{queued=false;enhance()});
+   }).observe(root,{childList:true,subtree:true});
+ }
+})();
+</script>
+
+
+<style id="ff-mobile-performance-v7-css">
+/* Duarte Clan V7 — final mobile/performance layer. No DB/schema changes. */
+html,body{max-width:100%;overflow-x:hidden}
+img{max-width:100%}
+.post-card,.notification-item,.ff-conversation,.ff-bubble-row,.ff-full-post-card{
+ content-visibility:auto;
+ contain-intrinsic-size:auto 160px;
+}
+@media(max-width:980px),(hover:none) and (pointer:coarse){
+ html{scroll-behavior:auto!important}
+ body{width:100%!important;max-width:100vw!important;overflow-x:hidden!important}
+ .page,.layout,.main-content,.feed,.center-column{width:100%!important;max-width:100%!important;min-width:0!important}
+ .layout{display:block!important}
+ .left-sidebar,.right-sidebar{max-width:100%!important}
+ .post-card,.create-post{max-width:100%!important;min-width:0!important}
+ .post-card img,.ff-v4-msg-photo,#ffFullProfile img{height:auto}
+ .topbar,.notification-head,#ffMsgModal,.ff-msg-modal,.ff-mobile-nav-backdrop{
+   -webkit-backdrop-filter:none!important;backdrop-filter:none!important
+ }
+ .post-card,.ff-conversation,.notification-item,.ff-bubble-row{
+   box-shadow:none!important
+ }
+ button,.post-btn,.nav-btn,.side-link,.notification-bell,.ff-conversation{
+   touch-action:manipulation!important
+ }
+ input,textarea,select{font-size:16px!important}
+ .notification-panel{
+   left:6px!important;right:6px!important;top:56px!important;width:auto!important;
+   max-height:calc(100dvh - 64px)!important
+ }
+ #ffMsgModal .ff-msg-shell{
+   width:100vw!important;max-width:100vw!important;height:100dvh!important;max-height:100dvh!important;
+   border-radius:0!important
+ }
+ #ffFullProfile{width:100vw!important;max-width:100vw!important}
+ .ff-chat-messages,#notificationList,.comments-list,.ff-comments-list{
+   overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch
+ }
+ .reaction-picker,.comment-reaction-picker{will-change:auto!important}
+}
+@media(max-width:520px){
+ .page{padding-left:7px!important;padding-right:7px!important}
+ .post-card,.create-post{border-radius:10px!important}
+ .post-buttons{gap:2px!important}
+ .post-btn{padding-left:5px!important;padding-right:5px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+<script id="ff-mobile-performance-v7-js">
+(function(){
+ let hidden=false;
+ const isVisible=()=>!document.hidden;
+ document.addEventListener("visibilitychange",()=>{
+   hidden=document.hidden;
+   if(!hidden){
+     try{ if(typeof window.refreshNotificationBadgeLite==="function") window.refreshNotificationBadgeLite(); }catch(e){}
+     try{ if(typeof window.refreshMessengerUnread==="function") window.refreshMessengerUnread(); }catch(e){}
+   }
+ });
+
+ // Pause the two recurring app timers while the browser tab is hidden.
+ // Existing Realtime subscriptions remain untouched.
+ const nativeSetInterval=window.setInterval.bind(window);
+ window.setInterval=function(fn,delay,...args){
+   if(typeof fn!=="function")return nativeSetInterval(fn,delay,...args);
+   const wrapped=function(...inner){
+     if(document.hidden)return;
+     return fn.apply(this,inner);
+   };
+   return nativeSetInterval(wrapped,delay,...args);
+ };
+
+ function tuneImages(root=document){
+   root.querySelectorAll?.("img").forEach(img=>{
+     if(!img.loading)img.loading="lazy";
+     img.decoding="async";
+     img.draggable=false;
+   });
+ }
+ function tuneInteractive(root=document){
+   root.querySelectorAll?.("button:not([type])").forEach(b=>b.type="button");
+ }
+ let queued=false;
+ function schedule(){
+   if(queued)return;queued=true;
+   requestAnimationFrame(()=>{queued=false;tuneImages();tuneInteractive()});
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",schedule,{once:true});else schedule();
+
+ // One scoped observer for final lightweight attributes only.
+ // It is debounced to one animation frame and does not rewrite app content.
+ const appRoot=document.querySelector("main,.page,#app")||document.body;
+ new MutationObserver(schedule).observe(appRoot,{childList:true,subtree:true});
+})();
+</script>
+
+
+<style id="ff-runtime-cleanup-v8-css">
+/* V8 runtime cleanup: isolate major dynamic surfaces from each other's layout work. */
+#posts,.feed,#notificationList,.ff-chat-messages,#ffConversationList,#ffFullProfile{
+ contain:layout style;
+}
+body.ff-app-hidden *,body.ff-app-hidden *::before,body.ff-app-hidden *::after{
+ animation-play-state:paused!important;
+}
+@media(max-width:980px),(hover:none) and (pointer:coarse){
+ .post-card,.notification-item,.ff-conversation,.ff-bubble-row,.ff-full-post-card{
+   contain:layout style paint;
+ }
+ .topbar{background:#111!important}
+}
+</style>
+<script id="ff-runtime-cleanup-v8-js">
+(function(){
+ function visibility(){
+   document.body?.classList.toggle("ff-app-hidden",document.hidden);
+ }
+ document.addEventListener("visibilitychange",visibility,{passive:true});
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",visibility,{once:true});
+ else visibility();
+
+ // Keep scroll work passive on touch devices.
+ ["touchstart","touchmove","wheel"].forEach(type=>{
+   document.addEventListener(type,function(){},{passive:true});
+ });
+})();
+</script>
+
+
+<style id="ff-functional-qa-v9-css">
+#ffQaToast{position:fixed;left:50%;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);
+ z-index:2147483000;max-width:min(560px,92vw);padding:9px 12px;border-radius:9px;background:#2b1717;
+ color:#ffd7d7;border:1px solid #7b3939;font:12px/1.35 system-ui;box-shadow:0 8px 30px rgba(0,0,0,.4);
+ display:none;white-space:normal;overflow-wrap:anywhere}
+#ffQaToast.show{display:block}
+</style>
+<div id="ffQaToast" role="status" aria-live="polite"></div>
+<script id="ff-functional-qa-v9-js">
+(function(){
+ const log=[];
+ const toast=document.getElementById("ffQaToast");
+ function record(type,msg,detail){
+   const row={time:new Date().toISOString(),type,message:String(msg||"Unknown error"),detail:String(detail||"")};
+   log.push(row);if(log.length>50)log.shift();
+   console.warn("[Duarte QA]",row);
+ }
+ window.addEventListener("error",e=>record("error",e.message,e.filename?`${e.filename}:${e.lineno||0}`:""));
+ window.addEventListener("unhandledrejection",e=>record("promise",e.reason?.message||e.reason||"Unhandled rejection",""));
+ window.ffDuarteQA={
+   errors:()=>log.slice(),
+   clear:()=>{log.length=0},
+   status:()=>{
+     const required=["posts","comments","reactions","profiles","messages","notifications"];
+     return {
+       online:navigator.onLine,
+       user:!!window.currentUser,
+       supabase:!!window.supabaseClient,
+       feed:!!document.getElementById("posts"),
+       messenger:!!document.getElementById("ffMsgModal"),
+       notifications:!!document.getElementById("notificationWrap"),
+       profile:!!document.getElementById("ffFullProfile"),
+       capturedErrors:log.length,
+       expectedCoreTables:required
+     };
+   },
+   showLast:()=>{
+     const x=log[log.length-1];
+     if(!toast)return x||null;
+     toast.textContent=x?`${x.type}: ${x.message}`:"No captured runtime errors.";
+     toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),4500);
+     return x||null;
+   }
+ };
+})();
+</script>
+
+
+<style id="ff-pwa-v11-css">
+#ffNetStatus{position:fixed;left:50%;top:max(8px,env(safe-area-inset-top));transform:translateX(-50%);
+ z-index:2147482500;padding:7px 11px;border-radius:999px;font:700 11px/1 system-ui;
+ border:1px solid rgba(255,255,255,.16);box-shadow:0 5px 20px rgba(0,0,0,.28);
+ opacity:0;pointer-events:none;transition:opacity .18s ease;background:#1e2023;color:#fff}
+#ffNetStatus.show{opacity:1}#ffNetStatus.offline{background:#4b1f1f;color:#ffd6d6}
+#ffNetStatus.online{background:#17351f;color:#d9ffe1}
+body.ff-offline .ff-online-required{opacity:.55}
+</style>
+<div id="ffNetStatus" role="status" aria-live="polite"></div>
+<script id="ff-pwa-v11-js">
+(function(){
+ const badge=document.getElementById("ffNetStatus");
+ let hideTimer=0,recoverTimer=0,lastOnline=navigator.onLine;
+ function show(msg,state,sticky){
+   if(!badge)return;
+   clearTimeout(hideTimer);badge.textContent=msg;badge.className="show "+state;
+   if(!sticky)hideTimer=setTimeout(()=>badge.className="",2600);
+ }
+ function setState(initial){
+   const online=navigator.onLine;
+   document.body?.classList.toggle("ff-offline",!online);
+   if(!online)show("Offline — cached interface remains available","offline",true);
+   else if(!initial||!lastOnline)show("Back online — reconnecting…","online",false);
+   lastOnline=online;
+ }
+ async function recover(){
+   if(!navigator.onLine)return;
+   clearTimeout(recoverTimer);
+   recoverTimer=setTimeout(async()=>{
+     try{if(typeof window.refreshNotificationBadgeLite==="function")await window.refreshNotificationBadgeLite()}catch(e){}
+     try{if(typeof window.refreshMessengerUnread==="function")await window.refreshMessengerUnread()}catch(e){}
+     try{
+       const modal=document.getElementById("ffMsgModal");
+       if(modal?.classList.contains("open")&&typeof window.loadConversations==="function")await window.loadConversations();
+     }catch(e){}
+   },500);
+ }
+ window.addEventListener("offline",()=>setState(false),{passive:true});
+ window.addEventListener("online",()=>{setState(false);recover()},{passive:true});
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setState(true),{once:true});else setState(true);
+
+ // Reusable timeout helper for future/optional network calls.
+ window.ffWithTimeout=function(promise,ms=15000,label="Request"){
+   let t;const timeout=new Promise((_,rej)=>t=setTimeout(()=>rej(new Error(label+" timed out. Check your connection and try again.")),ms));
+   return Promise.race([Promise.resolve(promise),timeout]).finally(()=>clearTimeout(t));
+ };
+
+ // Prevent rapid double-click submits while existing handlers are processing.
+ document.addEventListener("click",e=>{
+   const b=e.target.closest("button");
+   if(!b||b.disabled||!navigator.onLine)return;
+   const text=(b.textContent||"").trim().toLowerCase();
+   if(!/^(post|publish|send|save|upload|comment|reply)$/.test(text))return;
+   if(b.dataset.ffClickLock==="1"){e.preventDefault();e.stopImmediatePropagation();return}
+   b.dataset.ffClickLock="1";
+   setTimeout(()=>{delete b.dataset.ffClickLock},1200);
+ },true);
+
+ if("serviceWorker" in navigator && location.protocol!=="file:"){
+   window.addEventListener("load",()=>{
+     navigator.serviceWorker.register("./duarte-sw-v11.js").catch(e=>console.warn("Duarte service worker:",e));
+   },{once:true});
+ }
+})();
+</script>
+
 </body>
 </html>
 
