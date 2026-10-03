@@ -9333,7 +9333,7 @@ body.ff-offline .ff-online-required{opacity:.55}
 
  if("serviceWorker" in navigator && location.protocol!=="file:"){
    window.addEventListener("load",()=>{
-     navigator.serviceWorker.register("./duarte-sw-v16.js").catch(e=>console.warn("Duarte service worker:",e));
+     navigator.serviceWorker.register("./duarte-sw-v24.js").catch(e=>console.warn("Duarte service worker:",e));
    },{once:true});
  }
 })();
@@ -9927,6 +9927,47 @@ body{min-height:100dvh;padding-left:var(--ff-safe-left);padding-right:var(--ff-s
    profileCacheSize:()=>profileCache.size,
    clearProfileCache:()=>profileCache.clear()
  };
+})();
+</script>
+
+
+<style id="ff-pwa-update-v24-css">
+#ffPwaUpdateV24{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483000;display:none;align-items:center;gap:10px;max-width:calc(100vw - 24px);padding:10px 12px;border:1px solid rgba(212,175,55,.45);border-radius:14px;background:#151515;color:#fff;box-shadow:0 10px 32px rgba(0,0,0,.35);font:600 13px/1.3 system-ui,-apple-system,Segoe UI,sans-serif}
+#ffPwaUpdateV24 button{min-height:40px;border:0;border-radius:10px;padding:0 14px;background:#d4af37;color:#111;font-weight:800;cursor:pointer}
+#ffPwaUpdateV24 .ff-dismiss{background:transparent;color:#ddd;border:1px solid #555}
+</style>
+<div id="ffPwaUpdateV24" role="status" aria-live="polite">
+  <span>New Duarte Clan version available.</span>
+  <button id="ffPwaApplyV24" type="button">Update</button>
+  <button id="ffPwaDismissV24" class="ff-dismiss" type="button" aria-label="Dismiss update">Later</button>
+</div>
+<script id="ff-pwa-update-v24-js">
+(function(){
+ if(!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) return;
+ const box=document.getElementById("ffPwaUpdateV24");
+ const apply=document.getElementById("ffPwaApplyV24");
+ const later=document.getElementById("ffPwaDismissV24");
+ let waiting=null, reloading=false;
+
+ function show(worker){ waiting=worker; if(box) box.style.display="flex"; }
+ function watch(reg){
+   if(reg.waiting && navigator.serviceWorker.controller) show(reg.waiting);
+   reg.addEventListener("updatefound",()=>{
+     const w=reg.installing;
+     if(!w)return;
+     w.addEventListener("statechange",()=>{
+       if(w.state==="installed" && navigator.serviceWorker.controller) show(w);
+     });
+   });
+ }
+ navigator.serviceWorker.ready.then(watch).catch(()=>{});
+ apply&&apply.addEventListener("click",()=>{
+   if(waiting) waiting.postMessage({type:"SKIP_WAITING"});
+ });
+ later&&later.addEventListener("click",()=>{ if(box)box.style.display="none"; });
+ navigator.serviceWorker.addEventListener("controllerchange",()=>{
+   if(reloading)return; reloading=true; location.reload();
+ });
 })();
 </script>
 
