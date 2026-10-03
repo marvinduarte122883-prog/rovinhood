@@ -1,0 +1,30 @@
+{
+  "name": "Duarte Clan \u2014 Our Family \u2022 Our Stories \u2022 Our Legacy",
+  "short_name": "Duarte Clan",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1012",
+  "theme_color": "#0f1012",
+  "description": "Private Duarte Clan community app with offline-ready interface and sync queue.",
+  "icons": [
+    {
+      "src": "./duarte-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./duarte-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./duarte-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

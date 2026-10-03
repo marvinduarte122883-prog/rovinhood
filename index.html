@@ -1753,7 +1753,7 @@ input:focus,textarea:focus,select:focus{box-shadow:0 0 0 3px rgba(212,175,55,.08
 #duarteMyProfileCard:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 </style>
 
-<meta name="duarte-build" content="production-offline-v16">
+<meta name="duarte-build" content="pwa-install-v23">
 <style id="ff-production-v10-css">
 /* Production V10: final containment and mobile stability. */
 #posts,.feed,#ffFullProfile,#ffMsgModal,#notificationWrap{min-width:0}
@@ -1769,8 +1769,11 @@ input:focus,textarea:focus,select:focus{box-shadow:0 0 0 3px rgba(212,175,55,.08
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Duarte Clan">
-<link rel="manifest" href="./duarte-manifest-v16.webmanifest">
+<link rel="manifest" href="./duarte-manifest-v23.webmanifest">
 
+
+<link rel="apple-touch-icon" sizes="180x180" href="./duarte-apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./duarte-icon-192.png">
 </head>
 
 
@@ -4146,9 +4149,9 @@ async function loadPrivateMessages(){
     if(!laterMine)seen=`<div class="ff-seen-status">${x.is_read?"Seen":"Sent"}</div>`;
    }
    const reply=replied?`<div class="ff-v4-replied">↪ ${escapeHTML((replied.content||"Photo").slice(0,120))}</div>`:"";
-   const photo=x.attachment_url?`<img class="ff-v4-msg-photo" src="${escapeHTML(x.attachment_url)}" alt="Message photo" loading="lazy" decoding="async" onclick="window.open(this.src,'_blank')">`:"";
+   const photo=x.attachment_url?`<img class="ff-v4-msg-photo" src="${escapeHTML(x.attachment_url)}" alt="Message photo" loading="lazy" decoding="async" onclick="ffV18OpenPhoto(this.src)">`:"";
    const reactions=(react[x.id]||[]).map(z=>z.reaction).join(" ");
-   return `<div class="ff-bubble-row ${mine?"mine":""}" data-message-id="${x.id}"><div class="ff-bubble">${reply}${x.content?escapeHTML(x.content):""}${photo}<div class="ff-bubble-time">${new Date(x.created_at).toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</div>${reactions?`<div class="ff-v4-msg-reactions">${escapeHTML(reactions)}</div>`:""}${seen}<div class="ff-v4-msg-tools"><button onclick="ffV4Reply(${x.id},${JSON.stringify((x.content||"Photo").slice(0,120)).replace(/"/g,"&quot;")})">↩</button>${["👍","❤️","😂","😮"].map(e=>`<button onclick="ffV4React(${x.id},'${e}')">${e}</button>`).join("")}${mine?`<button class="ff-v42-msg-delete" title="Delete my message" onclick="ffV42DeleteOwnMessage(${x.id},${JSON.stringify(x.attachment_url||"").replace(/"/g,"&quot;")})">🗑</button>`:""}</div></div></div>`
+   return `<div class="ff-bubble-row ${mine?"mine":""}" data-message-id="${x.id}" data-ff-message-search="${escapeHTML(((x.content||"")+" "+(replied?.content||"")).toLowerCase())}"><div class="ff-bubble">${reply}${x.content?escapeHTML(x.content):""}${photo}<div class="ff-bubble-time">${new Date(x.created_at).toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</div>${reactions?`<div class="ff-v4-msg-reactions">${escapeHTML(reactions)}</div>`:""}${seen}<div class="ff-v4-msg-tools"><button onclick="ffV4Reply(${x.id},${JSON.stringify((x.content||"Photo").slice(0,120)).replace(/"/g,"&quot;")})">↩</button>${["👍","❤️","😂","😮"].map(e=>`<button onclick="ffV4React(${x.id},'${e}')">${e}</button>`).join("")}${mine?`<button class="ff-v42-msg-delete" title="Delete my message" onclick="ffV42DeleteOwnMessage(${x.id},${JSON.stringify(x.attachment_url||"").replace(/"/g,"&quot;")})">🗑</button>`:""}</div></div></div>`
   }).join(""):'<div class="ff-chat-empty">No messages yet. Say hello 👋</div>';
   box.scrollTop=box.scrollHeight;
   const unread=a.filter(x=>x.sender_id!==currentUser.id&&!x.is_read).map(x=>x.id);
@@ -4262,7 +4265,8 @@ function startMessengerRefresh(){
  subscribeMessengerRealtime();
  if(ffMessageTimer)clearInterval(ffMessageTimer);
  ffMessageTimer=setInterval(()=>{
-   refreshMessengerUnread();
+ if(document.hidden)return;
+ refreshMessengerUnread();
    const modalOpen=document.getElementById("ffMsgModal")?.classList.contains("open");
    if(modalOpen)loadConversations();
    if(!ffMessengerChannel && ffActiveConversationId && modalOpen)loadPrivateMessages();
@@ -4470,6 +4474,7 @@ function startNotificationRefresh() {
     if (notificationRefreshTimer) clearInterval(notificationRefreshTimer);
     refreshNotificationBadgeLite();
     notificationRefreshTimer = setInterval(() => {
+        if (document.hidden) return;
         refreshNotificationBadgeLite();
         if (document.getElementById("notificationWrap")?.classList.contains("open")) {
             loadNotifications();
@@ -6191,7 +6196,7 @@ window.openMemberProfileById=openClanProfile;
       };
       actions.appendChild(b);
     });
-    observer.observe(document.getElementById("ffFullProfile")||document.body,{childList:true,subtree:true});
+    observer.observe(document.getElementById("ffFullProfile"),{childList:true,subtree:true});
   }
 
   document.addEventListener("DOMContentLoaded",()=>{
@@ -6269,7 +6274,7 @@ window.openMemberProfileById=openClanProfile;
    cover.append(input,btn);
  }
  const mo=new MutationObserver(()=>install());
- document.addEventListener("DOMContentLoaded",()=>{mo.observe(document.getElementById("ffFullProfile")||document.body,{childList:true,subtree:true});setTimeout(install,300)});
+ document.addEventListener("DOMContentLoaded",()=>{mo.observe(document.getElementById("ffFullProfile"),{childList:true,subtree:true});setTimeout(install,300)});
  window.addEventListener("load",()=>setTimeout(install,500));
  window.ffEnsureCoverEditButton=install;
 })();
@@ -6418,7 +6423,7 @@ window.openMemberProfileById=openClanProfile;
  document.addEventListener("DOMContentLoaded",()=>{
    boot();
    const mo=new MutationObserver(()=>install());
-   mo.observe(document.getElementById("ffFullProfile")||document.body,{childList:true,subtree:true});
+   mo.observe(document.getElementById("ffFullProfile"),{childList:true,subtree:true});
    setTimeout(boot,1000);
  });
  window.addEventListener("load",()=>setTimeout(boot,300));
@@ -6545,7 +6550,7 @@ window.openMemberProfileById=openClanProfile;
  document.addEventListener("DOMContentLoaded",()=>{
    secureEditFlow();
    const mo=new MutationObserver(()=>enhanceOwnProfile());
-   mo.observe(document.getElementById("ffFullProfile")||document.body,{childList:true,subtree:true});
+   mo.observe(document.getElementById("ffFullProfile"),{childList:true,subtree:true});
    setTimeout(enhanceOwnProfile,300);
  });
  window.addEventListener("load",()=>setTimeout(enhanceOwnProfile,500));
@@ -6737,7 +6742,7 @@ window.openMemberProfileById=openClanProfile;
   document.addEventListener("DOMContentLoaded",()=>{
     installSaveReturn();
     const mo=new MutationObserver(installSaveReturn);
-    mo.observe(document.getElementById("ffFullProfile")||document.body,{childList:true,subtree:true});
+    mo.observe(document.getElementById("ffFullProfile"),{childList:true,subtree:true});
     setTimeout(installSaveReturn,500);
   });
 })();
@@ -6864,7 +6869,7 @@ window.openMemberProfileById=openClanProfile;
  document.addEventListener("DOMContentLoaded",()=>{
    enhance();
    const mo=new MutationObserver(enhance);
-   mo.observe(document.getElementById("posts")||document.querySelector(".feed")||document.body,{childList:true,subtree:true});
+   mo.observe(document.getElementById("posts")||document.querySelector(".feed"),{childList:true,subtree:true});
  });
  window.ffEnhanceHomeFeedV3=enhance;
 })();
@@ -7157,7 +7162,7 @@ window.openMemberProfileById=openClanProfile;
    });
  }
  function scan(){enhanceMessages();enhanceConversations();ensureReplyPreview()}
- document.addEventListener("DOMContentLoaded",()=>{scan();const mo=new MutationObserver(scan);mo.observe(document.getElementById("ffMsgModal")||document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{scan();const mo=new MutationObserver(scan);mo.observe(document.getElementById("ffMsgModal"),{childList:true,subtree:true})});
  window.ffMessengerV3={setReply,clearReply,getReply:()=>replyTo,refresh:scan};
 })();
 </script>
@@ -7223,7 +7228,7 @@ window.openMemberProfileById=openClanProfile;
  }
  document.addEventListener("DOMContentLoaded",()=>{repair();setTimeout(repair,500)});
  const mo=new MutationObserver(repair);
- document.addEventListener("DOMContentLoaded",()=>mo.observe(document.getElementById("ffMsgModal")||document.body,{childList:true,subtree:true}));
+ document.addEventListener("DOMContentLoaded",()=>mo.observe(document.getElementById("ffMsgModal"),{childList:true,subtree:true}));
  window.ffRepairMessengerComposer=repair;
 })();
 </script>
@@ -7286,7 +7291,7 @@ window.openMemberProfileById=openClanProfile;
  function applyFilter(){document.querySelectorAll(".notification-panel .notification-item").forEach(n=>n.style.display=(filter==="all"||n.dataset.n3class===filter)?"":"none")}
  document.addEventListener("DOMContentLoaded",()=>{
    enhance();
-   new MutationObserver(enhance).observe(document.getElementById("notificationWrap")||document.body,{childList:true,subtree:true});
+   new MutationObserver(enhance).observe(document.getElementById("notificationWrap"),{childList:true,subtree:true});
  });
  window.ffNotificationCenterV3Refresh=enhance;
 })();
@@ -7368,7 +7373,7 @@ window.openMemberProfileById=openClanProfile;
    }catch(e){alert("Post could not be deleted: "+(e?.message||e))}
  }
  document.addEventListener("click",()=>document.querySelectorAll(".ff-v4-menu.open").forEach(x=>x.classList.remove("open")));
- document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.getElementById("posts")||document.querySelector(".feed")||document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.getElementById("posts")||document.querySelector(".feed"),{childList:true,subtree:true})});
  window.ffHomeFeedV4Refresh=enhance;
 })();
 </script>
@@ -7427,7 +7432,7 @@ window.openMemberProfileById=openClanProfile;
      }
    });
  }
- document.addEventListener("DOMContentLoaded",()=>{composer();enhancePostImages();new MutationObserver(()=>{composer();enhancePostImages()}).observe(document.querySelector(".create-post")?.parentElement||document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{composer();enhancePostImages();new MutationObserver(()=>{composer();enhancePostImages()}).observe(document.querySelector(".create-post")?.parentElement,{childList:true,subtree:true})});
  window.ffRichComposerV41={getFiles:()=>files.slice(),clear:()=>{files=[];const c=composer();if(c){c.input.value="";draw(c.preview,c.note)}}};
 })();
 </script>
@@ -7496,7 +7501,7 @@ window.openMemberProfileById=openClanProfile;
    return rows;
  };
  window.ffV42RefreshPostPhotos=loadForCards;
- document.addEventListener("DOMContentLoaded",()=>{loadForCards();new MutationObserver(()=>{clearTimeout(window.__ffv42t);window.__ffv42t=setTimeout(loadForCards,120)}).observe(document.getElementById("posts")||document.querySelector(".feed")||document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{loadForCards();new MutationObserver(()=>{clearTimeout(window.__ffv42t);window.__ffv42t=setTimeout(loadForCards,120)}).observe(document.getElementById("posts")||document.querySelector(".feed"),{childList:true,subtree:true})});
 })();
 </script>
 
@@ -7581,7 +7586,7 @@ window.openMemberProfileById=openClanProfile;
      el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fetchAndRoute(id)}});
    });
  }
- document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.getElementById("notificationWrap")||document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.getElementById("notificationWrap"),{childList:true,subtree:true})});
  window.ffNotificationV4Route=route;
 })();
 </script>
@@ -7636,7 +7641,7 @@ button:disabled{cursor:not-allowed!important;opacity:.62!important}
  }
  document.addEventListener("DOMContentLoaded",()=>{
    enhance();
-   new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true});
+   const root=document.querySelector(".page");if(root)new MutationObserver(enhance).observe(root,{childList:true,subtree:true});
  });
 })();
 </script>
@@ -7711,7 +7716,7 @@ button:disabled{cursor:not-allowed!important;opacity:.62!important}
    if(home&&typeof window.loadPostActivity==="function")window.loadPostActivity(Number(pid),home);
  }
  document.addEventListener("DOMContentLoaded",()=>{
-   install();new MutationObserver(install).observe(document.querySelector(".page")||document.body,{childList:true,subtree:true});
+   install();new MutationObserver(install).observe(document.querySelector(".page"),{childList:true,subtree:true});
    try{
      supabaseClient.channel("duarte-v42-home-profile-comment-sync")
       .on("postgres_changes",{event:"*",schema:"public",table:"comments"},payload=>{
@@ -7875,7 +7880,7 @@ window.ffV42DeleteOwnMessage=ffV42DeleteOwnMessage;
  }
  document.addEventListener("DOMContentLoaded",()=>{
    addDeleteButtons();
-   new MutationObserver(addDeleteButtons).observe(document.getElementById("ffMsgModal")||document.body,{childList:true,subtree:true});
+   new MutationObserver(addDeleteButtons).observe(document.getElementById("ffMsgModal"),{childList:true,subtree:true});
  });
  window.ffRefreshOwnMessageDeleteButtons=addDeleteButtons;
 })();
@@ -7917,7 +7922,7 @@ window.ffV42DeleteOwnMessage=ffV42DeleteOwnMessage;
  }
  document.addEventListener("DOMContentLoaded",()=>{
    installPhotoDelete();
-   new MutationObserver(installPhotoDelete).observe(document.querySelector(".page")||document.body,{childList:true,subtree:true});
+   new MutationObserver(installPhotoDelete).observe(document.querySelector(".page"),{childList:true,subtree:true});
  });
  window.ffRefreshPhotoDeleteButtons=installPhotoDelete;
 })();
@@ -7972,7 +7977,7 @@ window.ffV42DeleteOwnMessage=ffV42DeleteOwnMessage;
      img.addEventListener("contextmenu",e=>{e.preventDefault();clearTimeout(timer);timer=null;openMenu(img,row)});
    });
  }
- document.addEventListener("DOMContentLoaded",()=>{install();new MutationObserver(install).observe(document.querySelector(".page")||document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{install();new MutationObserver(install).observe(document.querySelector(".page"),{childList:true,subtree:true})});
  window.ffV42ClosePhotoMenu=closeMenu;
 })();
 </script>
@@ -8040,7 +8045,7 @@ window.ffV42DeleteOwnMessage=ffV42DeleteOwnMessage;
      });
    });
  }
- document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.querySelector(".page")||document.body,{childList:true,subtree:true})});
+ document.addEventListener("DOMContentLoaded",()=>{enhance();new MutationObserver(enhance).observe(document.querySelector(".page"),{childList:true,subtree:true})});
  window.ffShowPostReactionPeople=showPost;
  window.ffShowCommentReactionPeople=showComment;
  window.ffCloseReactionPeople=close;
@@ -8306,7 +8311,7 @@ window.ffMobileSharePost=ffMobileSharePost;
   addEventListener("resize",()=>{if(!isMobile())document.body.classList.remove("ff-mobile-family-open")});
   document.addEventListener("DOMContentLoaded",()=>{
     install();
-    new MutationObserver(install).observe(document.querySelector(".topbar")||document.body,{childList:true,subtree:true});
+    new MutationObserver(install).observe(document.querySelector(".topbar"),{childList:true,subtree:true});
   });
 })();
 </script>
@@ -8488,7 +8493,7 @@ window.ffMobileSharePost=ffMobileSharePost;
  }
  document.addEventListener("DOMContentLoaded",()=>{
    installToggle();
-   new MutationObserver(installToggle).observe(document.querySelector(".topbar")||document.body,{childList:true,subtree:true});
+   new MutationObserver(installToggle).observe(document.querySelector(".topbar"),{childList:true,subtree:true});
  });
  addEventListener("resize",()=>{if(!mobile())close()});
  window.ffCloseMobileHeaderMenu=close;
@@ -8565,7 +8570,7 @@ window.ffMobileSharePost=ffMobileSharePost;
  }
  document.addEventListener("DOMContentLoaded",()=>{
    normalizeProfile();
-   new MutationObserver(normalizeProfile).observe(document.getElementById("ffFullProfile")||document.body,{childList:true,subtree:true});
+   new MutationObserver(normalizeProfile).observe(document.getElementById("ffFullProfile"),{childList:true,subtree:true});
  });
  addEventListener("resize",normalizeProfile);
 })();
@@ -8639,7 +8644,7 @@ window.ffMobileSharePost=ffMobileSharePost;
    });
  }
  document.addEventListener("DOMContentLoaded",()=>{
-   install();new MutationObserver(install).observe(document.getElementById("ffMsgModal")||document.body,{childList:true,subtree:true});
+   install();new MutationObserver(install).observe(document.getElementById("ffMsgModal"),{childList:true,subtree:true});
  });
  addEventListener("resize",()=>{if(!mobile())closeChat()});
  window.ffMobileMessengerBack=closeChat;
@@ -8704,7 +8709,7 @@ window.ffMobileSharePost=ffMobileSharePost;
  }
  document.addEventListener("DOMContentLoaded",()=>{
    enhance();
-   new MutationObserver(enhance).observe(document.getElementById("ffCommentModal")||document.body,{childList:true,subtree:true});
+   new MutationObserver(enhance).observe(document.getElementById("ffCommentModal"),{childList:true,subtree:true});
  });
  addEventListener("resize",enhance);
 })();
@@ -8791,50 +8796,6 @@ window.ffMobileSharePost=ffMobileSharePost;
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
-<script id="duarte-v43-mobile-performance-js">
-(function(){
-  const mobile=()=>matchMedia("(max-width:980px),(hover:none) and (pointer:coarse)").matches;
-  if(!mobile()) return;
-
-  /* Batch resize/orientation work to one animation frame. */
-  let raf=0;
-  function settle(){
-    if(raf) cancelAnimationFrame(raf);
-    raf=requestAnimationFrame(()=>{
-      raf=0;
-      document.documentElement.style.setProperty("--ff-vh",(innerHeight*.01)+"px");
-    });
-  }
-  addEventListener("resize",settle,{passive:true});
-  addEventListener("orientationchange",settle,{passive:true});
-  settle();
-
-  /* Native lazy loading/async decoding for feed and gallery images. */
-  function tune(root){
-    const scope=root&&root.querySelectorAll?root:document;
-    scope.querySelectorAll("img:not([data-ff-perf])").forEach(img=>{
-      img.dataset.ffPerf="1";
-      if(!img.closest("header,.topbar,.ff-chat-header,.ff-profile-cover")) img.loading="lazy";
-      img.decoding="async";
-    });
-  }
-  tune(document);
-
-  /* One small observer for newly rendered images only; callback is frame-batched. */
-  let queued=false, roots=[];
-  const mo=new MutationObserver(records=>{
-    for(const r of records) for(const n of r.addedNodes) if(n.nodeType===1) roots.push(n);
-    if(queued) return;
-    queued=true;
-    requestAnimationFrame(()=>{
-      queued=false;
-      const batch=roots.splice(0);
-      for(const n of batch) tune(n);
-    });
-  });
-  mo.observe(document.body,{childList:true,subtree:true});
-})();
-</script>
 
 
 <script id="duarte-v43-share-final-fix">
@@ -8876,7 +8837,7 @@ body{background:#0f1011!important;color:var(--fb-text)!important}
  function addMobileNav(){if(document.getElementById('dcMobileNav'))return;const n=document.createElement('nav');n.id='dcMobileNav';n.setAttribute('aria-label','Mobile navigation');n.innerHTML=`<button onclick="showSection('home')"><span>🏠</span>Home</button><button onclick="showSection('members')"><span>👥</span>Members</button><button onclick="document.getElementById('postInput')?.focus();showSection('home')"><span>➕</span>Create</button><button onclick="typeof openMessenger==='function'?openMessenger():document.querySelector('.ff-msg-fab')?.click()"><span>💬</span>Messages</button><button onclick="document.querySelector('.notification-bell')?.click()"><span>🔔</span>Alerts</button>`;document.body.appendChild(n)}
  function run(){addStories();addSearch();addMobileNav()}
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',run):run();
- new MutationObserver(run).observe(document.documentElement,{childList:true,subtree:true});
+ let tries=0;const bootRetry=setInterval(()=>{run();if(++tries>=6)clearInterval(bootRetry)},350);
 })();
 </script>\n
 
@@ -8915,14 +8876,6 @@ window.ffStorageSaverImage = async function(file, preset="feed") {
     return file;
   }
 };
-</script>
-
-<script id="duarte-storage-saver-lazy-v1">
-(function(){
- const apply=()=>document.querySelectorAll('img:not([loading])').forEach(img=>{img.loading='lazy';img.decoding='async';});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true}); else apply();
- let t=0; new MutationObserver(()=>{clearTimeout(t);t=setTimeout(apply,250)}).observe(document.body,{childList:true,subtree:true});
-})();
 </script>
 
 <style id="duarte-facebook-comments-reactions-v3-css">
@@ -9600,7 +9553,7 @@ body.ff-offline .ff-online-required{opacity:.55}
  });
  window.addEventListener("online",()=>setTimeout(syncAndRecord,1900),{passive:true});
  window.addEventListener("offline",render,{passive:true});
- setInterval(()=>{if(modal?.classList.contains("open"))render()},5000);
+ setInterval(()=>{if(!document.hidden&&modal?.classList.contains("open"))render()},5000);
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",render,{once:true});else render();
 })();
 </script>
@@ -9611,7 +9564,7 @@ body.ff-offline .ff-online-required{opacity:.55}
  font:600 9px/1 system-ui;color:#777;pointer-events:none;opacity:.7}
 body.ff-offline img:not([src^="data:"]){content-visibility:auto}
 </style>
-<div id="ffBuildV16" aria-hidden="true">Duarte Clan · V16 Production Offline</div>
+<div id="ffBuildV16" aria-hidden="true">Duarte Clan · V23 Installed App</div>
 <script id="ff-production-v16-js">
 (function(){
  const BUILD="production-offline-v16";
@@ -9640,6 +9593,286 @@ body.ff-offline img:not([src^="data:"]){content-visibility:auto}
  if("serviceWorker" in navigator && location.protocol!=="file:"){
    navigator.serviceWorker.ready.then(reg=>reg.update()).catch(()=>{});
  }
+})();
+</script>
+
+
+<script id="ff-production-qa-v17-js">
+(function(){
+ const checks=()=>{
+  const q=window.ffOfflineQueue;
+  return {
+   build:window.DUARTE_BUILD||document.querySelector('meta[name="duarte-build"]')?.content||"",
+   online:navigator.onLine,
+   serviceWorkerSupported:"serviceWorker" in navigator,
+   indexedDBSupported:"indexedDB" in window,
+   storageEstimateSupported:!!navigator.storage?.estimate,
+   supabaseReady:!!window.supabaseClient,
+   currentUserReady:!!window.currentUser,
+   queueReady:!!q,
+   coreFunctions:{
+    publishPost:typeof window.publishPost==="function",
+    sendComment:typeof window.sendComment==="function",
+    sendReply:typeof window.sendReply==="function",
+    sendPrivateMessage:typeof window.sendPrivateMessage==="function",
+    loadPosts:typeof window.loadPosts==="function",
+    openClanProfile:typeof window.openClanProfile==="function"
+   }
+  };
+ };
+ window.ffDuarteProductionQA={
+  status:checks,
+  queueCount:async()=>window.ffOfflineQueue?await window.ffOfflineQueue.count():null,
+  serviceWorker:async()=>{
+   if(!("serviceWorker" in navigator)||location.protocol==="file:")return {available:false,reason:"Service workers require HTTP(S)."};
+   const reg=await navigator.serviceWorker.getRegistration();
+   return {available:true,registered:!!reg,controller:!!navigator.serviceWorker.controller};
+  }
+ };
+ window.DUARTE_BUILD="production-qa-v17";
+})();
+</script>
+
+
+<style id="ff-messenger-v18-css">
+#ffV18ChatTools{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:#151618}
+#ffV18ChatSearch{flex:1;min-width:0;border:1px solid rgba(255,255,255,.12);background:#0e0f11;color:#fff;border-radius:18px;padding:9px 12px;font:inherit}
+#ffV18ChatSearch::placeholder{color:#96999f}
+#ffV18SearchCount{font-size:12px;color:#c8a84e;white-space:nowrap}
+.ff-v18-hidden-message{display:none!important}
+#ffV18PhotoViewer{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;padding:24px}
+#ffV18PhotoViewer.open{display:flex}
+#ffV18PhotoViewer img{max-width:min(96vw,1200px);max-height:90vh;object-fit:contain;border-radius:10px}
+#ffV18PhotoClose{position:absolute;right:18px;top:18px;width:44px;height:44px;border:0;border-radius:50%;background:#25272b;color:#fff;font-size:28px;cursor:pointer}
+#ffChatMessages:empty::after{content:"No messages to display.";display:block;text-align:center;color:#92959b;padding:30px}
+@media(max-width:700px){
+ #ffV18ChatTools{padding:7px 9px;position:sticky;top:0;z-index:3}
+ #ffV18ChatSearch{font-size:16px}
+ #ffV18PhotoViewer{padding:8px}
+ #ffV18PhotoViewer img{max-width:100%;max-height:88dvh}
+}
+</style>
+<script id="ff-messenger-v18-js">
+(function(){
+ function shell(){return document.getElementById("ffMsgShell")}
+ function installTools(){
+   const s=shell(); if(!s||document.getElementById("ffV18ChatTools"))return;
+   const messages=document.getElementById("ffChatMessages"); if(!messages)return;
+   const bar=document.createElement("div");bar.id="ffV18ChatTools";
+   bar.innerHTML='<input id="ffV18ChatSearch" type="search" autocomplete="off" placeholder="Search this conversation…" aria-label="Search this conversation"><span id="ffV18SearchCount"></span>';
+   messages.parentNode.insertBefore(bar,messages);
+   bar.querySelector("input").addEventListener("input",filter);
+ }
+ function filter(){
+   const input=document.getElementById("ffV18ChatSearch"),count=document.getElementById("ffV18SearchCount");
+   const q=String(input?.value||"").trim().toLowerCase();
+   const rows=[...document.querySelectorAll("#ffChatMessages .ff-bubble-row")];
+   let shown=0;
+   rows.forEach(row=>{
+     const hit=!q||String(row.dataset.ffMessageSearch||row.textContent||"").toLowerCase().includes(q);
+     row.classList.toggle("ff-v18-hidden-message",!hit);if(hit)shown++;
+   });
+   if(count)count.textContent=q?(shown+" found"):"";
+ }
+ function viewer(){
+   if(document.getElementById("ffV18PhotoViewer"))return;
+   const v=document.createElement("div");v.id="ffV18PhotoViewer";v.setAttribute("role","dialog");v.setAttribute("aria-modal","true");
+   v.innerHTML='<button id="ffV18PhotoClose" type="button" aria-label="Close photo">×</button><img alt="Message photo">';
+   document.body.appendChild(v);
+   const close=()=>{v.classList.remove("open");v.querySelector("img").removeAttribute("src")};
+   v.addEventListener("click",e=>{if(e.target===v||e.target.id==="ffV18PhotoClose")close()});
+   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&v.classList.contains("open"))close()});
+ }
+ window.ffV18OpenPhoto=function(src){viewer();const v=document.getElementById("ffV18PhotoViewer");v.querySelector("img").src=src;v.classList.add("open")};
+ const obs=new MutationObserver(()=>{installTools();filter()});
+ function start(){
+   installTools();viewer();
+   const root=document.getElementById("ffMsgModal");
+   obs.observe(root,{childList:true,subtree:true});
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
+})();
+</script>
+
+
+<style id="ff-lite-mobile-v19-css">
+/* V19 Lite Mobile: rendering containment and low-cost phone presentation. */
+.post-card,.ff-conversation,.ff-bubble-row,.notification-item,.ff-profile-post-card,.gallery-item,.album-card{
+  content-visibility:auto;
+  contain-intrinsic-size:auto 180px;
+}
+#posts,.feed,#ffConversationList,#ffChatMessages,#notificationList{
+  overflow-anchor:auto;
+}
+img{height:auto}
+@media(max-width:700px){
+  /* Avoid expensive decorative rendering on small phones while preserving the Duarte design. */
+  .post-card,.card,.ff-bubble,.ff-conversation,.modal-content,.ff-profile-shell{
+    box-shadow:none!important;
+  }
+  .topbar,.modal,.ff-modal,.ff-profile-tabs{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  *{
+    -webkit-tap-highlight-color:transparent;
+  }
+  button,a,[role="button"]{touch-action:manipulation}
+  #posts,.feed,#ffChatMessages,#ffConversationList{
+    overscroll-behavior:contain;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    scroll-behavior:auto!important;
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+}
+body.ff-lite-device *{
+  animation-duration:.01ms!important;
+  transition-duration:.08s!important;
+}
+body.ff-lite-device .post-card,
+body.ff-lite-device .card,
+body.ff-lite-device .ff-bubble,
+body.ff-lite-device .ff-conversation{box-shadow:none!important}
+</style>
+<script id="ff-lite-mobile-v19-js">
+(function(){
+ window.DUARTE_BUILD="lite-mobile-v19";
+ const lowMemory=typeof navigator.deviceMemory==="number"&&navigator.deviceMemory<=4;
+ const lowCPU=typeof navigator.hardwareConcurrency==="number"&&navigator.hardwareConcurrency<=4;
+ const narrow=matchMedia("(max-width:700px)").matches;
+ if((narrow&&(lowMemory||lowCPU))||matchMedia("(prefers-reduced-motion: reduce)").matches){
+   document.body?.classList.add("ff-lite-device");
+ }
+ function lazy(root=document){
+   root.querySelectorAll?.("img:not([loading])").forEach(img=>{
+     img.loading="lazy";img.decoding="async";
+   });
+ }
+ let queued=false;
+ const schedule=()=>{
+   if(queued||document.hidden)return;queued=true;
+   const run=()=>{queued=false;lazy(document)};
+   if("requestIdleCallback" in window)requestIdleCallback(run,{timeout:1200});else setTimeout(run,120);
+ };
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>lazy(document),{once:true});else lazy(document);
+ // One lightweight final observer instead of another synchronous whole-page enhancement pass.
+ const root=document.querySelector(".page");
+ if(root){
+   new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
+ }
+ document.addEventListener("visibilitychange",()=>{
+   if(!document.hidden){
+     schedule();
+     if(navigator.onLine)window.ffOfflineQueue?.sync?.().catch(()=>{});
+   }
+ },{passive:true});
+})();
+</script>
+
+
+<style id="ff-legacy-performance-v20-css">
+/* V20: keep inactive feature trees cheap on mobile without changing their data paths. */
+@media(max-width:700px){
+ [hidden],.hidden,.modal:not(.open),.ff-modal:not(.open){content-visibility:hidden}
+ .post-card,.ff-conversation,.ff-bubble-row,.notification-item{contain:layout paint style}
+}
+</style>
+<script id="ff-legacy-performance-v20-js">
+(function(){
+ window.DUARTE_BUILD="legacy-performance-v20";
+ // Yield large UI enhancement bursts until the browser is idle where supported.
+ window.ffDuarteIdle=window.ffDuarteIdle||function(fn,timeout=800){
+   if(typeof fn!=="function")return;
+   if("requestIdleCallback" in window)return requestIdleCallback(fn,{timeout});
+   return setTimeout(fn,60);
+ };
+})();
+</script>
+
+
+<style id="ff-final-performance-v21-css">
+/* Final performance pass: favor native scrolling/compositing on mobile. */
+@media(max-width:700px){
+  #posts,.feed,#ffChatMessages,#ffConversationList,.ff-v3-react-list{
+    -webkit-overflow-scrolling:touch;
+  }
+}
+</style>
+<script id="ff-final-performance-v21-js">
+(function(){
+ window.DUARTE_BUILD="final-performance-v21";
+ window.ffDuartePerformance={
+   version:"V21",
+   mode:document.body?.classList.contains("ff-lite-device")?"lite":"standard",
+   online:()=>navigator.onLine
+ };
+})();
+</script>
+
+
+<style id="ff-mobile-app-v22-css">
+:root{
+ --ff-safe-top:env(safe-area-inset-top,0px);
+ --ff-safe-right:env(safe-area-inset-right,0px);
+ --ff-safe-bottom:env(safe-area-inset-bottom,0px);
+ --ff-safe-left:env(safe-area-inset-left,0px);
+}
+html{min-height:100%;background:#0f1012}
+body{min-height:100dvh;padding-left:var(--ff-safe-left);padding-right:var(--ff-safe-right)}
+@media(max-width:700px){
+ body{overscroll-behavior-y:none}
+ .topbar{padding-top:var(--ff-safe-top)!important;height:calc(64px + var(--ff-safe-top))!important}
+ button,.btn,[role="button"],a.ff-btn{min-height:44px}
+ input,textarea,select{font-size:16px!important}
+ .modal,.ff-modal,#ffMsgModal{padding-bottom:var(--ff-safe-bottom)}
+ .modal-content,.ff-modal-content{
+   max-width:100vw!important;
+   max-height:calc(100dvh - var(--ff-safe-top) - var(--ff-safe-bottom))!important;
+ }
+ #ffMsgModal{inset:0!important}
+ #ffMsgShell{
+   width:100vw!important;
+   max-width:100vw!important;
+   height:calc(100dvh - var(--ff-safe-top) - var(--ff-safe-bottom))!important;
+   max-height:none!important;
+   border-radius:0!important;
+ }
+ .ff-chat-compose{
+   padding-bottom:max(10px,var(--ff-safe-bottom))!important;
+ }
+ #ffNetStatus,#ffQueueStatus{
+   max-width:calc(100vw - 24px - var(--ff-safe-left) - var(--ff-safe-right));
+ }
+}
+@media(display-mode:standalone){
+ body{user-select:none;-webkit-user-select:none}
+ input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:text}
+ .topbar{padding-top:var(--ff-safe-top)!important}
+}
+</style>
+<script id="ff-mobile-app-v22-js">
+(function(){
+ window.DUARTE_BUILD="pwa-install-v23";
+ const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+ document.documentElement.classList.toggle("ff-standalone",standalone);
+ // Prevent accidental double-tap zoom on controls while preserving pinch zoom/accessibility.
+ let lastTouch=0;
+ document.addEventListener("touchend",e=>{
+   const el=e.target?.closest?.("button,[role=button],.btn");
+   if(!el)return;
+   const now=Date.now();
+   if(now-lastTouch<280)e.preventDefault();
+   lastTouch=now;
+ },{passive:false});
+ // Keep viewport state available to existing layouts without continuous resize work.
+ const setVH=()=>document.documentElement.style.setProperty("--ff-app-height",`${window.visualViewport?.height||window.innerHeight}px`);
+ setVH();
+ window.visualViewport?.addEventListener("resize",setVH,{passive:true});
 })();
 </script>
 
