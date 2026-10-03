@@ -1753,7 +1753,7 @@ input:focus,textarea:focus,select:focus{box-shadow:0 0 0 3px rgba(212,175,55,.08
 #duarteMyProfileCard:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 </style>
 
-<meta name="duarte-build" content="production-v10">
+<meta name="duarte-build" content="production-offline-v16">
 <style id="ff-production-v10-css">
 /* Production V10: final containment and mobile stability. */
 #posts,.feed,#ffFullProfile,#ffMsgModal,#notificationWrap{min-width:0}
@@ -1769,7 +1769,7 @@ input:focus,textarea:focus,select:focus{box-shadow:0 0 0 3px rgba(212,175,55,.08
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Duarte Clan">
-<link rel="manifest" href="./duarte-manifest-v11.webmanifest">
+<link rel="manifest" href="./duarte-manifest-v16.webmanifest">
 
 </head>
 
@@ -3180,13 +3180,23 @@ function toggleComments(button) {
 async function sendComment(button) {
  const card=button.closest(".post-card"), postId=Number(card?.dataset.postId), input=card?.querySelector(".comment-input"), content=input?.value.trim();
  if(!postId||!content)return;
+ if(!navigator.onLine){
+   try{await window.ffOfflineQueue.enqueueComment(postId,content,null);input.value="";window.ffShowOfflinePending?.("comment",content,card)}
+   catch(e){alert("Offline comment could not be saved: "+(e.message||e))}
+   return;
+ }
  try{const {error}=await supabaseClient.from("comments").insert({post_id:postId,user_id:currentUser.id,content,parent_comment_id:null});if(error)throw error;input.value="";await loadPostActivity(postId,card)}
  catch(e){alert("Comment could not be sent: "+e.message)}
 }
 async function sendReply(button,parentId){
  const card=button.closest(".post-card"),postId=Number(card?.dataset.postId),input=button.closest(".comment-reply-box")?.querySelector(".reply-input"),content=input?.value.trim();
  if(!content)return;
- try{const {error}=await supabaseClient.from("comments").insert({post_id:postId,user_id:currentUser.id,content,parent_comment_id:Number(parentId)});if(error)throw error;await loadPostActivity(postId,card)}
+ if(!navigator.onLine){
+   try{await window.ffOfflineQueue.enqueueComment(postId,content,Number(parentId));input.value="";window.ffShowOfflinePending?.("reply",content,card)}
+   catch(e){alert("Offline reply could not be saved: "+(e.message||e))}
+   return;
+ }
+ try{const {error}=await supabaseClient.from("comments").insert({post_id:postId,user_id:currentUser.id,content,parent_comment_id:Number(parentId)});if(error)throw error;input.value="";await loadPostActivity(postId,card)}
  catch(e){alert("Reply could not be sent: "+e.message)}
 }
 function showReplyBox(button,id,name){
@@ -3334,6 +3344,29 @@ async function publishPost() {
 
     if (!currentUser || !currentProfile || currentProfile.approved !== true) {
         alert("Your membership must be approved before posting.");
+        return;
+    }
+
+    if (!navigator.onLine) {
+        try {
+            const offlineFiles = multiFiles.length ? multiFiles : (selectedPostPhotoFile ? [selectedPostPhotoFile] : []);
+            if (offlineFiles.length > 1) {
+                alert("Offline multi-photo posts are not supported yet. Use one photo, or reconnect before posting.");
+                return;
+            }
+            let photo = null;
+            if (offlineFiles[0]) {
+                const compressed = await window.ffStorageSaverImage(offlineFiles[0], "feed");
+                photo = {blob:compressed,name:compressed.name||offlineFiles[0].name||"offline-post.webp",type:compressed.type||"image/webp"};
+            }
+            await window.ffOfflineQueue.enqueuePost(text,photo);
+            input.value = "";
+            clearSelectedPostPhoto();
+            window.ffRichComposerV41?.clear?.();
+            window.ffShowOfflinePending?.("post", text || "Photo");
+        } catch (e) {
+            alert("Offline post could not be saved: " + (e.message || e));
+        }
         return;
     }
 
@@ -4155,6 +4188,19 @@ async function sendPrivateMessage(){
  const i=document.getElementById("ffChatInput"),c=i?.value.trim()||"";
  const fi=document.getElementById("ffV4MsgPhoto"),file=fi?.files?.[0]||null;
  if((!c&&!file)||!ffActiveConversationId)return;
+ if(!navigator.onLine){
+   try{
+     let photo=null;
+     if(file){
+       const compressed=await window.ffStorageSaverImage(file,"message");
+       if(compressed.size>10*1024*1024)throw new Error("Photo must be 10 MB or smaller.");
+       photo={blob:compressed,name:compressed.name||file.name||"offline-message.webp",type:compressed.type||"image/webp"};
+     }
+     await window.ffOfflineQueue.enqueueMessage(ffActiveConversationId,c,ffV4ReplyToId||null,photo);
+     i.value="";if(fi)fi.value="";ffV4CancelReply();window.ffShowOfflinePending?.("message",c||"Photo");
+   }catch(e){alert("Offline message could not be saved: "+(e.message||e))}
+   return;
+ }
  const btn=document.querySelector(".ff-chat-compose button:last-child");if(btn){btn.disabled=true;btn.textContent="Sending..."}
  try{
   const attachment_url=await ffV4UploadMessagePhoto(file);
@@ -9334,8 +9380,265 @@ body.ff-offline .ff-online-required{opacity:.55}
 
  if("serviceWorker" in navigator && location.protocol!=="file:"){
    window.addEventListener("load",()=>{
-     navigator.serviceWorker.register("./duarte-sw-v11.js").catch(e=>console.warn("Duarte service worker:",e));
+     navigator.serviceWorker.register("./duarte-sw-v16.js").catch(e=>console.warn("Duarte service worker:",e));
    },{once:true});
+ }
+})();
+</script>
+
+
+<style id="ff-offline-queue-v12-css">
+#ffQueueStatus{position:fixed;right:12px;bottom:max(12px,env(safe-area-inset-bottom));z-index:2147482400;
+ background:#1d1f22;color:#eee;border:1px solid #3b3d42;border-radius:999px;padding:7px 10px;
+ font:700 10px/1 system-ui;box-shadow:0 5px 20px rgba(0,0,0,.28);display:none}
+#ffQueueStatus.show{display:block}#ffQueueStatus.syncing{border-color:#8b7427;color:#ffe69a}
+</style>
+<div id="ffQueueStatus" role="status" aria-live="polite"></div>
+<script id="ff-offline-queue-v12-js">
+(function(){
+ const DB="duarte_clan_offline_v12",STORE="queue",VER=1;
+ const badge=document.getElementById("ffQueueStatus");
+ let syncing=false;
+ function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,VER);
+   r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:"id"})};
+   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);
+ })}
+ async function all(){const d=await openDB();return new Promise((res,rej)=>{const t=d.transaction(STORE,"readonly"),r=t.objectStore(STORE).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
+ async function put(row){const d=await openDB();return new Promise((res,rej)=>{const t=d.transaction(STORE,"readwrite");t.objectStore(STORE).put(row);t.oncomplete=()=>res(row);t.onerror=()=>rej(t.error)})}
+ async function del(id){const d=await openDB();return new Promise((res,rej)=>{const t=d.transaction(STORE,"readwrite");t.objectStore(STORE).delete(id);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
+ async function draw(extra=""){const rows=await all().catch(()=>[]);if(!badge)return;badge.textContent=extra||(`${rows.length} offline item${rows.length===1?"":"s"} pending`);badge.classList.toggle("show",rows.length>0||!!extra)}
+ function uuid(){return crypto.randomUUID?crypto.randomUUID():"q-"+Date.now()+"-"+Math.random().toString(16).slice(2)}
+ async function enqueue(kind,payload){
+   const row={id:uuid(),kind,payload,created_at:new Date().toISOString(),attempts:0};
+   await put(row);await draw();return row;
+ }
+ async function execute(row){
+   if(!window.supabaseClient)throw new Error("Supabase not ready");
+   const s=window.supabaseClient,p=row.payload||{};
+   if(row.kind==="comment"){
+     const {error}=await s.from("comments").insert({post_id:Number(p.post_id),user_id:p.user_id,content:p.content,parent_comment_id:p.parent_comment_id||null});if(error)throw error;return;
+   }
+   if(row.kind==="message"){
+     let attachment_url=null;
+     if(p.photo_blob){
+       const f=new File([p.photo_blob],p.photo_name||"offline-message.webp",{type:p.photo_type||p.photo_blob.type||"image/webp"});
+       const ext=(f.name.split(".").pop()||"webp").toLowerCase();
+       const path=`${p.sender_id}/messages/${p.conversation_id}/offline-${row.id}.${ext}`;
+       const up=await s.storage.from("family-gallery").upload(path,f,{upsert:true,contentType:f.type||"image/webp"});
+       if(up.error && !String(up.error.message||"").toLowerCase().includes("already"))throw up.error;
+       attachment_url=s.storage.from("family-gallery").getPublicUrl(path)?.data?.publicUrl||null;
+     }
+     const {error}=await s.from("messages").insert({conversation_id:p.conversation_id,sender_id:p.sender_id,content:p.content,reply_to_id:p.reply_to_id||null,attachment_url});if(error)throw error;return;
+   }
+   if(row.kind==="post"){
+     let image_url=null;
+     if(p.photo_blob){
+       const f=new File([p.photo_blob],p.photo_name||"offline-post.webp",{type:p.photo_type||p.photo_blob.type||"image/webp"});
+       const ext=(f.name.split(".").pop()||"webp").toLowerCase();
+       const path=`${p.user_id}/offline-post-${row.id}.${ext}`;
+       const up=await s.storage.from("family-gallery").upload(path,f,{cacheControl:"3600",upsert:true,contentType:f.type||"image/webp"});
+       if(up.error && !String(up.error.message||"").toLowerCase().includes("already"))throw up.error;
+       image_url=s.storage.from("family-gallery").getPublicUrl(path)?.data?.publicUrl||null;
+     }
+     const {error}=await s.from("posts").insert({user_id:p.user_id,content:p.content,image_url});if(error)throw error;return;
+   }
+   throw new Error("Unsupported queued action: "+row.kind);
+ }
+ async function sync(){
+   if(syncing||!navigator.onLine)return;
+   syncing=true;badge?.classList.add("syncing");
+   try{
+     const rows=(await all()).sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
+     for(const row of rows){
+       try{await execute(row);await del(row.id)}
+       catch(e){row.attempts=(row.attempts||0)+1;row.last_error=String(e?.message||e);await put(row);break}
+     }
+   }finally{syncing=false;badge?.classList.remove("syncing");await draw()}
+ }
+ window.ffOfflineQueue={
+   enqueueComment:(post_id,content,parent_comment_id=null)=>enqueue("comment",{post_id,content,parent_comment_id,user_id:window.currentUser?.id}),
+   enqueueMessage:(conversation_id,content,reply_to_id=null,photo=null)=>enqueue("message",{conversation_id,content,reply_to_id,sender_id:window.currentUser?.id,photo_blob:photo?.blob||null,photo_name:photo?.name||null,photo_type:photo?.type||null}),
+   enqueuePost:(content,photo=null)=>enqueue("post",{content,user_id:window.currentUser?.id,photo_blob:photo?.blob||null,photo_name:photo?.name||null,photo_type:photo?.type||null}),
+   list:all,sync,count:async()=>(await all()).length,
+   remove:async(id)=>{await del(id);await draw()},
+   retry:async(id)=>{const rows=await all(),row=rows.find(x=>x.id===id);if(!row)return false;row.attempts=0;row.last_error="";await put(row);await draw();if(navigator.onLine)await sync();return true}
+ };
+ window.addEventListener("online",()=>setTimeout(sync,900),{passive:true});
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{draw();if(navigator.onLine)sync()},{once:true});
+ else{draw();if(navigator.onLine)sync()}
+})();
+</script>
+
+
+<style id="ff-full-offline-v13-css">
+.ff-offline-pending{margin:8px 0;padding:8px 10px;border:1px dashed #8b7427;border-radius:9px;
+ background:rgba(212,175,55,.07);color:#e8d99d;font-size:11px}
+.ff-offline-pending strong{color:#f1d46c}
+</style>
+<script id="ff-full-offline-v13-js">
+(function(){
+ window.ffShowOfflinePending=function(kind,text,host){
+   const label=kind==="message"?"Message":kind==="reply"?"Reply":kind==="comment"?"Comment":"Post";
+   const target=host||document.querySelector(kind==="message"?".ff-chat-messages":"#posts,.feed");
+   if(!target)return;
+   const el=document.createElement("div");el.className="ff-offline-pending";
+   el.innerHTML="<strong>"+label+" pending sync</strong> · "+String(text||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+   target.appendChild(el);
+   if(kind==="message")target.scrollTop=target.scrollHeight;
+ };
+ async function refreshAfterSync(){
+   try{if(typeof window.loadPosts==="function")await window.loadPosts()}catch(e){}
+   try{if(typeof window.loadPrivateMessages==="function"&&window.ffActiveConversationId)await window.loadPrivateMessages()}catch(e){}
+   try{if(typeof window.loadConversations==="function")await window.loadConversations()}catch(e){}
+   document.querySelectorAll(".ff-offline-pending").forEach(x=>x.remove());
+ }
+ if(window.ffOfflineQueue){
+   const original=window.ffOfflineQueue.sync;
+   window.ffOfflineQueue.sync=async function(){
+     const before=await window.ffOfflineQueue.count().catch(()=>0);
+     await original();
+     const after=await window.ffOfflineQueue.count().catch(()=>before);
+     if(before>0&&after===0)await refreshAfterSync();
+   };
+ }
+ window.addEventListener("online",()=>setTimeout(()=>window.ffOfflineQueue?.sync?.(),1200),{passive:true});
+})();
+</script>
+
+
+<script id="ff-offline-photo-v14-js">
+(function(){
+ async function quotaOK(blob){
+   if(!blob)return true;
+   try{
+     const e=await navigator.storage?.estimate?.();
+     if(!e||!e.quota)return true;
+     const free=e.quota-(e.usage||0);
+     return free>blob.size*1.5;
+   }catch{return true}
+ }
+ window.ffOfflinePhotoQuotaOK=quotaOK;
+ window.addEventListener("online",()=>setTimeout(()=>window.ffOfflineQueue?.sync?.(),1600),{passive:true});
+})();
+</script>
+
+
+<style id="ff-sync-center-v15-css">
+#ffSyncFab{position:fixed;right:12px;bottom:54px;z-index:2147482300;border:1px solid #665722;background:#17181a;color:#f1d46c;
+ border-radius:999px;padding:9px 12px;font:800 11px/1 system-ui;box-shadow:0 6px 22px rgba(0,0,0,.32)}
+#ffSyncFab .n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:5px;border-radius:10px;background:#d4af37;color:#111}
+#ffSyncModal{position:fixed;inset:0;z-index:2147483000;display:none;background:rgba(0,0,0,.72);padding:18px}
+#ffSyncModal.open{display:grid;place-items:center}
+.ff-sync-card{width:min(720px,100%);max-height:min(82vh,760px);display:flex;flex-direction:column;background:#111214;color:#eee;border:1px solid #34363a;border-radius:16px;overflow:hidden}
+.ff-sync-head,.ff-sync-actions{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #292b2f}
+.ff-sync-head h3{margin:0;flex:1;color:#f1d46c;font:800 16px system-ui}.ff-sync-head button,.ff-sync-actions button,.ff-sync-item button{border:1px solid #444;background:#202226;color:#eee;border-radius:8px;padding:8px 10px;font-weight:700}
+.ff-sync-actions{border-bottom:1px solid #292b2f;flex-wrap:wrap}.ff-sync-state{margin-left:auto;font-size:11px;color:#aaa}
+#ffSyncList{overflow:auto;padding:10px;overscroll-behavior:contain}
+.ff-sync-item{border:1px solid #303238;border-radius:12px;padding:10px;margin-bottom:8px;background:#18191c}
+.ff-sync-row{display:flex;gap:8px;align-items:center}.ff-sync-kind{font-weight:800;text-transform:capitalize}.ff-sync-badge{font-size:10px;border:1px solid #6b5c27;color:#f1d46c;border-radius:999px;padding:3px 6px}
+.ff-sync-preview{font-size:12px;color:#ccc;margin:7px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ff-sync-meta,.ff-sync-error{font-size:10px;color:#888}.ff-sync-error{color:#ff9e9e;margin-top:5px;white-space:normal}
+.ff-sync-item-actions{display:flex;gap:6px;margin-top:8px}.ff-sync-empty{text-align:center;color:#888;padding:36px 12px}
+@media(max-width:600px){#ffSyncModal{padding:0;align-items:end}.ff-sync-card{width:100%;max-height:88dvh;border-radius:16px 16px 0 0}.ff-sync-state{width:100%;margin:4px 0 0}}
+</style>
+<button id="ffSyncFab" type="button" aria-label="Open offline Sync Center">Sync <span class="n">0</span></button>
+<div id="ffSyncModal" role="dialog" aria-modal="true" aria-label="Offline Sync Center">
+ <section class="ff-sync-card">
+  <header class="ff-sync-head"><h3>Offline Sync Center</h3><button type="button" id="ffSyncClose">Close</button></header>
+  <div class="ff-sync-actions">
+   <button type="button" id="ffSyncAll">Retry All</button>
+   <span class="ff-sync-state" id="ffSyncState"></span>
+  </div>
+  <div id="ffSyncList"></div>
+ </section>
+</div>
+<script id="ff-sync-center-v15-js">
+(function(){
+ const modal=document.getElementById("ffSyncModal"),list=document.getElementById("ffSyncList"),state=document.getElementById("ffSyncState"),fab=document.getElementById("ffSyncFab");
+ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const lastKey="duarte_last_successful_sync_v15";
+ function preview(r){const p=r.payload||{};return p.content||((p.photo_blob||p.photo_name)?"Photo attachment":"Queued item")}
+ async function render(){
+  const q=window.ffOfflineQueue;if(!q)return;
+  const rows=(await q.list().catch(()=>[])).sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
+  fab?.querySelector(".n")?.replaceChildren(document.createTextNode(String(rows.length)));
+  const last=localStorage.getItem(lastKey);
+  if(state)state.textContent=(navigator.onLine?"Online":"Offline")+" · "+(last?"Last sync "+new Date(last).toLocaleString():"No completed sync yet");
+  if(!list)return;
+  if(!rows.length){list.innerHTML='<div class="ff-sync-empty">Everything is synced.</div>';return}
+  list.innerHTML=rows.map(r=>`<article class="ff-sync-item" data-id="${esc(r.id)}">
+   <div class="ff-sync-row"><span class="ff-sync-kind">${esc(r.kind)}</span><span class="ff-sync-badge">${r.last_error?"Failed / pending":"Pending"}</span></div>
+   <div class="ff-sync-preview">${esc(preview(r))}</div>
+   <div class="ff-sync-meta">Saved ${esc(new Date(r.created_at).toLocaleString())} · Attempts ${Number(r.attempts||0)}</div>
+   ${r.last_error?`<div class="ff-sync-error">${esc(r.last_error)}</div>`:""}
+   <div class="ff-sync-item-actions"><button type="button" data-act="retry">Retry</button><button type="button" data-act="remove">Remove</button></div>
+  </article>`).join("");
+ }
+ async function syncAndRecord(){
+  if(!navigator.onLine){await render();return}
+  const before=await window.ffOfflineQueue.count().catch(()=>0);
+  await window.ffOfflineQueue.sync();
+  const after=await window.ffOfflineQueue.count().catch(()=>before);
+  if(before>0&&after===0)localStorage.setItem(lastKey,new Date().toISOString());
+  await render();
+ }
+ fab?.addEventListener("click",()=>{modal.classList.add("open");render()});
+ document.getElementById("ffSyncClose")?.addEventListener("click",()=>modal.classList.remove("open"));
+ modal?.addEventListener("click",e=>{if(e.target===modal)modal.classList.remove("open")});
+ document.getElementById("ffSyncAll")?.addEventListener("click",syncAndRecord);
+ list?.addEventListener("click",async e=>{
+  const b=e.target.closest("button[data-act]");if(!b)return;
+  const row=b.closest(".ff-sync-item"),id=row?.dataset.id;if(!id)return;
+  if(b.dataset.act==="remove"){
+    if(!confirm("Remove this unsent item? It will not be sent to the Duarte Clan app."))return;
+    await window.ffOfflineQueue.remove(id);
+  }else{
+    if(!navigator.onLine){alert("You are offline. The item will remain saved until a connection is available.");return}
+    await window.ffOfflineQueue.retry(id);
+  }
+  await render();
+ });
+ window.addEventListener("online",()=>setTimeout(syncAndRecord,1900),{passive:true});
+ window.addEventListener("offline",render,{passive:true});
+ setInterval(()=>{if(modal?.classList.contains("open"))render()},5000);
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",render,{once:true});else render();
+})();
+</script>
+
+
+<style id="ff-production-v16-css">
+#ffBuildV16{position:fixed;left:8px;bottom:max(8px,env(safe-area-inset-bottom));z-index:20;
+ font:600 9px/1 system-ui;color:#777;pointer-events:none;opacity:.7}
+body.ff-offline img:not([src^="data:"]){content-visibility:auto}
+</style>
+<div id="ffBuildV16" aria-hidden="true">Duarte Clan · V16 Production Offline</div>
+<script id="ff-production-v16-js">
+(function(){
+ const BUILD="production-offline-v16";
+ window.DUARTE_BUILD=BUILD;
+
+ // Persist a tiny health breadcrumb; useful after a reload/crash without storing personal content.
+ try{localStorage.setItem("duarte_last_boot_v16",new Date().toISOString())}catch(e){}
+
+ // Prevent optional reconnect refreshes from becoming unhandled rejections.
+ window.addEventListener("unhandledrejection",e=>{
+   const m=String(e?.reason?.message||e?.reason||"");
+   if(!navigator.onLine && /fetch|network|timeout|failed/i.test(m)) e.preventDefault();
+ });
+
+ // When returning to the app, refresh queue state and retry only if actually online.
+ document.addEventListener("visibilitychange",()=>{
+   if(document.visibilityState==="visible" && navigator.onLine){
+     setTimeout(()=>window.ffOfflineQueue?.sync?.().catch?.(()=>{}),700);
+   }
+ },{passive:true});
+
+ // Storage persistence is best-effort; browsers may decline it.
+ if(navigator.storage?.persist) navigator.storage.persist().catch(()=>{});
+
+ // Keep service worker updates safe and non-blocking.
+ if("serviceWorker" in navigator && location.protocol!=="file:"){
+   navigator.serviceWorker.ready.then(reg=>reg.update()).catch(()=>{});
  }
 })();
 </script>

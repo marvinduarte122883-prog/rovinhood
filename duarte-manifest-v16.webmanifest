@@ -1,0 +1,10 @@
+{
+  "name": "Duarte Clan — Our Family • Our Stories • Our Legacy",
+  "short_name": "Duarte Clan",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "description": "Private Duarte Clan community app with offline-ready interface and sync queue."
+}
